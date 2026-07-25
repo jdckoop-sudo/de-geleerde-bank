@@ -39,6 +39,10 @@
     --line: rgba(255,138,128,0.18); --text:#FFEDEB; --text-dim:#E0A8A2;
     --accent:#FFD24C; --accent-dim:#8A5A10;
     --gk:#4F8FB8; --def:#E0A8A2; --mid:#FFD24C; --fwd:#FF503C; --danger:#FF503C;
+    background:
+      url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22360%22%20height%3D%22180%22%20viewBox%3D%220%200%20360%20180%22%3E%0A%3Ctext%20x%3D%22-20%22%20y%3D%2240%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2217%22%20font-weight%3D%22800%22%20fill%3D%22rgba%28255%2C90%2C70%2C0.07%29%22%20transform%3D%22rotate%28-18%20180%2090%29%22%3EDARREN%20WERD%2017E%20OP%20HET%20WK%3C/text%3E%0A%3Ctext%20x%3D%22-40%22%20y%3D%22120%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2217%22%20font-weight%3D%22800%22%20fill%3D%22rgba%28255%2C210%2C76%2C0.05%29%22%20transform%3D%22rotate%28-18%20180%2090%29%22%3EDE%20WK-COACH%3C/text%3E%0A%3C/svg%3E") repeat,
+      radial-gradient(1100px 500px at 15% -10%, rgba(255,80,60,0.10), transparent 60%),
+      #160406;
   }
   body.theme-pokemon{
     --bg:#14151F; --bg-alt:#1B1D2B; --surface:#232538; --surface-2:#2C2F45;
@@ -78,6 +82,20 @@
     content:'SANDBOX-MODUS — vrij experimenteren, los van je echte team';
     display:block; text-align:center; font-family:'JetBrains Mono'; font-size:12px; letter-spacing:0.5px;
     background:rgba(0,0,0,0.15); color:#4A3419; padding:6px; border-radius:8px; margin-bottom:14px;
+  }
+  body.theme-darren .wrap::before{
+    content:'🏆 HERINNERING: DARREN WERD 17E MET DE WK-COACH 🏆';
+    display:block; text-align:center; font-family:'Oswald',sans-serif; font-weight:700; font-size:13px; letter-spacing:0.5px;
+    background:linear-gradient(90deg,#FF503C,#8A0E0E,#FF503C); color:#fff; padding:9px; border-radius:10px; margin-bottom:16px;
+    box-shadow:0 2px 12px rgba(255,80,60,0.4);
+  }
+  body.theme-darren .glb-sub{color:#FF503C !important;}
+  body.theme-darren .glb-badge::after{content:'🤡'; position:absolute; font-size:14px; top:-8px; right:-8px;}
+  @media (max-width:760px){
+    body.theme-darren .wrap::before{font-size:11px; padding:8px 6px;}
+    body.theme-darren{
+      background-size: 220px 110px, auto, auto;
+    }
   }
   .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;padding-left:calc(20px + 76px);}
   .sidebar{
@@ -183,7 +201,7 @@
   }
   header.top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
   .brand{display:flex;align-items:center;gap:12px;}
-  .glb-badge{width:38px;height:38px;border-radius:11px;background:#0B0B0C;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+  .glb-badge{position:relative;width:38px;height:38px;border-radius:11px;background:#0B0B0C;color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
   .glb-wordmark{display:flex;flex-direction:column;line-height:1;}
   .glb-main{font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.5px;color:var(--text);}
   .glb-sub{font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;letter-spacing:1px;color:var(--accent); text-transform:uppercase; margin-top:1px;}
