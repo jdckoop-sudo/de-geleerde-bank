@@ -315,7 +315,7 @@
   .bingo-cell:hover{background:var(--surface-2);}
   .bingo-cell.checked{background:rgba(47,158,126,0.14);border-color:var(--def);}
   .bingo-free{background:rgba(242,184,7,0.1) !important;border-color:var(--accent) !important;color:var(--accent);cursor:default !important;}
-  .bingo-x{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--def);opacity:0.85;pointer-events:none;}
+  .bingo-check-badge{position:absolute;bottom:2px;right:3px;font-size:13px;font-weight:900;color:var(--def);opacity:0.9;pointer-events:none;}
   .bingo-cell-input{
     aspect-ratio:1;background:var(--surface);border:1.5px solid var(--line);border-radius:8px;color:var(--text);
     padding:6px;font-size:11px;font-family:'Inter';resize:none;text-align:center;
@@ -4426,7 +4426,10 @@ function resetPickerFilters(){
   state.modal.teamFilter='ALL'; state.modal.priceMin=''; state.modal.priceMax=''; state.modal.ptsMin=''; state.modal.ptsMinPrev='';
   render();
 }
-function closeModal(){ state.modal=null; render(); }
+function closeModal(){
+  if(state.modal && state.modal.type==='bingoEditor') flushBingoSave();
+  state.modal=null; render();
+}
 function toggleBankie(){ state.bankieOpen = !state.bankieOpen; render(); }
 function setTeamView(v){ state.teamView=v; render(); }
 function generatePlayerSummaryHtml(p, season){
@@ -5588,8 +5591,17 @@ function escHtml(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 const BINGO_FREE = '__FREE__'; // sentinel-waarde voor het middelste vak (index 12): altijd een voetbal, nooit invulbaar
-async function saveBingoCards(){
-  try{ await storageSet('cvhj-bingo-cards', JSON.stringify(state.bingoCards||[]), false); }catch(e){}
+let _bingoSaveTimer = null;
+function saveBingoCards(){
+  // Debounce: bij elke toetsaanslag (oninput) werd hiervoor een APARTE asynchrone opslag gestart. Als
+  // die door elkaar heen landden ("laatst geschreven wint"), kon een oudere, onvolledige versie de
+  // nieuwere per ongeluk overschrijven -> vakjes die je wél had ingevuld verdwenen weer. Nu wordt elke
+  // nieuwe aanroep de vorige, nog wachtende opslag geannuleerd, zodat er maar één (de meest actuele)
+  // schrijfactie daadwerkelijk plaatsvindt.
+  clearTimeout(_bingoSaveTimer);
+  _bingoSaveTimer = setTimeout(async ()=>{
+    try{ await storageSet('cvhj-bingo-cards', JSON.stringify(state.bingoCards||[]), false); }catch(e){}
+  }, 500);
 }
 async function loadBingoCards(){
   try{ const r = await storageGet('cvhj-bingo-cards', false); if(r&&r.value) state.bingoCards = JSON.parse(r.value); }catch(e){}
@@ -5608,7 +5620,7 @@ function newBingoCard(){
     createdOn: todayStr(),
   };
   state.bingoCards.push(card);
-  saveBingoCards();
+  flushBingoSave();
   openBingoEditor(card.id, true);
 }
 function openBingoEditor(id, editMode){
@@ -5643,7 +5655,7 @@ function shuffleBingoCard(id){
   }
   otherIdx.forEach((idx,k)=>{ card.cells[idx] = texts[k]; card.checked[idx] = false; });
   card.checked[12] = true;
-  saveBingoCards();
+  flushBingoSave();
   showInfo('Vakjes gehusseld! De aankruisjes zijn opnieuw op nul gezet, want die golden voor de oude volgorde.');
   render();
 }
@@ -5651,10 +5663,15 @@ function renameBingoCard(id, name){
   const card = bingoCardById(id);
   if(!card) return;
   card.name = name;
-  saveBingoCards();
+  flushBingoSave();
+}
+async function flushBingoSave(){
+  clearTimeout(_bingoSaveTimer);
+  try{ await storageSet('cvhj-bingo-cards', JSON.stringify(state.bingoCards||[]), false); }catch(e){}
 }
 function toggleBingoEditMode(){
   state.modal.editMode = !state.modal.editMode;
+  if(!state.modal.editMode) flushBingoSave(); // meteen écht opslaan zodra je klaar bent met bewerken
   render();
 }
 function duplicateBingoCard(id){
@@ -5662,7 +5679,7 @@ function duplicateBingoCard(id){
   if(!card) return;
   const copy = {...card, id:'bingo-'+Date.now(), name: card.name+' (kopie)', cells:[...card.cells], checked: card.cells.map(()=>false), createdOn: todayStr()};
   state.bingoCards.push(copy);
-  saveBingoCards();
+  flushBingoSave();
   render();
 }
 function deleteBingoCard(id){
@@ -5711,7 +5728,7 @@ function renderBingoEditorModal(){
             if(i===12) return `<div class="bingo-cell bingo-free" title="Gratis vak">${icon('ball',22)}</div>`;
             return editMode
             ? `<textarea class="bingo-cell-input" oninput="setBingoCell('${card.id}', ${i}, this.value)" placeholder="Vak ${i+1}">${escHtml(txt)}</textarea>`
-            : `<div class="bingo-cell ${card.checked[i]?'checked':''}" onclick="toggleBingoCheck('${card.id}', ${i})"><span>${escHtml(txt)||'—'}</span>${card.checked[i]?`<div class="bingo-x">✕</div>`:''}</div>`;
+            : `<div class="bingo-cell ${card.checked[i]?'checked':''}" onclick="toggleBingoCheck('${card.id}', ${i})"><span style="${card.checked[i]?'text-decoration:line-through;text-decoration-thickness:2px;':''}">${escHtml(txt)||'—'}</span>${card.checked[i]?`<div class="bingo-check-badge">✓</div>`:''}</div>`;
           }).join('')}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
@@ -5748,39 +5765,170 @@ function renderBingoPdfThemeModal(){
     </div>
   </div>`;
 }
-function bingoThemeColors(theme){
-  const map = {
-    standaard: {bg:'#151619', text:'#F2F1ED', accent:'#F2B807', cellBg:'#1C1E22', line:'rgba(255,255,255,0.12)', checkedBg:'rgba(47,158,126,0.25)', xColor:'#2FBF8F'},
-    light:     {bg:'#FFFFFF', text:'#122A1D', accent:'#B8860B', cellBg:'#F2F6F2', line:'rgba(11,46,31,0.15)', checkedBg:'rgba(31,122,95,0.15)', xColor:'#1F7A5F'},
-    egirl:     {bg:'#FFF3FB', text:'#5A2A5E', accent:'#FF3EA5', cellBg:'#FFFFFF', line:'#FFB3E6', checkedBg:'rgba(255,62,165,0.15)', xColor:'#FF3EA5'},
-    cvhj:      {bg:'#0B0B0C', text:'#F2E9C9', accent:'#D9B24C', cellBg:'#151516', line:'rgba(217,178,76,0.3)', checkedBg:'rgba(217,178,76,0.2)', xColor:'#D9B24C'},
-    darren:    {bg:'#160406', text:'#FFEDEB', accent:'#FFD24C', cellBg:'#2A090C', line:'rgba(255,138,128,0.25)', checkedBg:'rgba(255,80,60,0.3)', xColor:'#FF503C'},
-    pokemon:   {bg:'#14151F', text:'#FFF8E0', accent:'#FFD24C', cellBg:'#232538', line:'rgba(255,210,76,0.25)', checkedBg:'rgba(76,217,122,0.25)', xColor:'#4CD97A'},
-    gamer:     {bg:'#0A0A0A', text:'#EFFFEF', accent:'#39FF14', cellBg:'#141414', line:'rgba(57,255,20,0.3)', checkedBg:'rgba(57,255,20,0.2)', xColor:'#39FF14'},
-    ios:       {bg:'#F2F2F7', text:'#000000', accent:'#007AFF', cellBg:'#FFFFFF', line:'rgba(60,60,67,0.2)', checkedBg:'rgba(0,122,255,0.12)', xColor:'#007AFF'},
-  };
-  return map[theme] || map.standaard;
+function bingoCellCore(txt, checked, i, c, xEl){
+  if(i===12) return `<div style="position:relative;aspect-ratio:1;background:${c.accent}1a;border:2px solid ${c.accent};border-radius:10px;display:flex;align-items:center;justify-content:center;color:${c.accent};">${icon('ball',26)}</div>`;
+  return `
+    <div style="position:relative;aspect-ratio:1;background:${checked?c.checkedBg:c.cellBg};border:1.5px solid ${checked?c.xColor:c.line};border-radius:10px;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;">
+      <span style="font-size:10px;color:${c.text};line-height:1.25;font-weight:${c.cellWeight||400};${checked?'text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:'+c.xColor+';':''}">${escHtml(txt)}</span>
+      ${checked?`<div style="position:absolute;bottom:2px;right:4px;font-size:13px;font-weight:900;color:${c.xColor};">${xEl||'✓'}</div>`:''}
+    </div>`;
 }
 function renderBingoExportHtml(card, theme){
-  const c = bingoThemeColors(theme);
+  const builders = {
+    standaard: renderBingoStandaard, light: renderBingoLight, egirl: renderBingoEgirl,
+    cvhj: renderBingoCvhj, darren: renderBingoDarren, pokemon: renderBingoPokemon,
+    gamer: renderBingoGamer, ios: renderBingoIos,
+  };
+  return (builders[theme]||renderBingoStandaard)(card);
+}
+function renderBingoStandaard(card){
+  const c = {bg:'#0E0F11', text:'#F2F1ED', accent:'#F2B807', cellBg:'#1C1E22', line:'rgba(255,255,255,0.12)', checkedBg:'rgba(47,158,126,0.22)', xColor:'#2FBF8F'};
   const checkedCount = bingoCheckedCount(card);
   return `
-  <div id="bingo-export-inner" style="width:600px;padding:30px;background:${c.bg};font-family:'Inter',sans-serif;">
+  <div id="bingo-export-inner" style="width:600px;padding:32px;background:radial-gradient(1000px 500px at 20% -10%, rgba(242,184,7,0.1), transparent 60%), ${c.bg};font-family:'Inter',sans-serif;">
     <div style="text-align:center;margin-bottom:6px;">
-      <div style="font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:${c.accent};">${escHtml(card.name)}</div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:${c.text};opacity:0.7;">De Geleerde Bank Bingo · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!':''}</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;letter-spacing:1px;color:${c.accent};">${escHtml(card.name)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${c.text};opacity:0.55;">DE GELEERDE BANK BINGO · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!':''}</div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:16px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:18px;">
+      ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c)).join('')}
+    </div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.4;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoLight(card){
+  const c = {bg:'#FFFFFF', text:'#122A1D', accent:'#B8860B', cellBg:'#F7F9F7', line:'rgba(11,46,31,0.14)', checkedBg:'rgba(31,122,95,0.13)', xColor:'#1F7A5F'};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="width:600px;padding:32px;background:${c.bg};font-family:'Inter',sans-serif;border:1px solid #EEE;">
+    <div style="text-align:center;margin-bottom:6px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:${c.accent};">${escHtml(card.name)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${c.text};opacity:0.55;">De Geleerde Bank Bingo · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!':''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:18px;">
+      ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c)).join('')}
+    </div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.4;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoEgirl(card){
+  const c = {bg:'#FFD1EC', text:'#5A2A5E', accent:'#FF3EA5', cellBg:'rgba(255,255,255,0.6)', line:'#FFB3E6', checkedBg:'rgba(255,62,165,0.22)', xColor:'#FF3EA5', cellWeight:600};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="position:relative;width:600px;padding:32px;background:linear-gradient(160deg,#FFD1EC 0%,#E3C6FF 45%,#C6E0FF 100%);font-family:'Inter',sans-serif;overflow:hidden;">
+    <div style="position:absolute;top:10px;left:16px;font-size:20px;">✨🎀</div>
+    <div style="position:absolute;top:10px;right:16px;font-size:20px;">🧸✨</div>
+    <div style="position:absolute;bottom:10px;left:20px;font-size:16px;">💕⭐</div>
+    <div style="position:absolute;bottom:10px;right:20px;font-size:16px;">⭐💕</div>
+    <div style="text-align:center;margin-bottom:6px;position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:${c.accent};">♡ ${escHtml(card.name)} ♡</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${c.text};">De Geleerde Bank Bingo · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!! 💖':''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:18px;position:relative;">
+      ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c, '💗')).join('')}
+    </div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.7;position:relative;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoCvhj(card){
+  const c = {bg:'#F4F5F7', text:'#151515', accent:'#1F9D55', cellBg:'#FFFFFF', line:'rgba(20,20,20,0.10)', checkedBg:'rgba(31,157,85,0.16)', xColor:'#1F9D55'};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="width:600px;background:${c.bg};font-family:-apple-system,'Inter',sans-serif;">
+    <div style="background:#0B0B0C;padding:20px 24px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:#fff;">${escHtml(card.name)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.6);">Coach van het Jaar Bingo · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!':''}</div>
+    </div>
+    <div style="padding:24px;">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;">
+        ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c)).join('')}
+      </div>
+      <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.45;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    </div>
+    <div style="background:#0B0B0C;padding:8px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.4);">Coach van het Jaar 2026/27 • Pagina 1</div>
+  </div>`;
+}
+function renderBingoDarren(card){
+  const c = {bg:'#160406', text:'#FFEDEB', accent:'#FFD24C', cellBg:'#2A090C', line:'rgba(255,138,128,0.22)', checkedBg:'rgba(255,80,60,0.28)', xColor:'#FF503C'};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="position:relative;width:600px;padding:32px;background:linear-gradient(160deg,#4A0E12 0%,#160406 60%);font-family:'Inter',sans-serif;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.03) 0 20px,transparent 20px 40px);"></div>
+    <div style="position:absolute;top:8px;right:14px;font-family:'Oswald',sans-serif;font-size:70px;font-weight:900;color:rgba(255,255,255,0.05);line-height:1;">17</div>
+    <div style="text-align:center;margin-bottom:8px;position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:13px;letter-spacing:2px;color:#FF8A80;">HERINNERING VOOR DE GROEP</div>
+      <div style="font-family:'Oswald',sans-serif;font-size:20px;font-weight:700;line-height:1.2;color:#fff;margin-top:4px;">DARREN WERD <span style="color:${c.accent};">17E</span> MET DE WK-COACH 🤡</div>
+    </div>
+    <div style="text-align:center;margin-bottom:10px;position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:22px;font-weight:700;color:${c.accent};">${escHtml(card.name)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${c.text};opacity:0.75;">${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO! (iets wat Darren nooit haalt)':''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px;position:relative;">
+      ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c)).join('')}
+    </div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.5;position:relative;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoPokemon(card){
+  const c = {bg:'#14151F', text:'#FFF8E0', accent:'#FFD24C', line:'rgba(255,210,76,0.3)', xColor:'#4CD97A'};
+  const checkedCount = bingoCheckedCount(card);
+  const cellColors = ['#FF7A5C','#FFD24C','#4CD97A','#5CA9FF','#C98CFF'];
+  return `
+  <div id="bingo-export-inner" style="width:600px;padding:32px;background:radial-gradient(circle at 50% 0%, #2A2E45 0%, #14151F 70%);font-family:'Inter',sans-serif;">
+    <div style="text-align:center;margin-bottom:10px;">
+      <div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;color:${c.accent};text-shadow:0 2px 0 #B8860B;">${escHtml(card.name)}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,0.5);">Monsterbingo · ${checkedCount}/25 aangekruist${checkedCount===25?' — BINGO!':''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px;">
       ${card.cells.map((txt,i)=>{
-        if(i===12) return `<div style="position:relative;aspect-ratio:1;background:${c.accent}1a;border:1.5px solid ${c.accent};border-radius:8px;display:flex;align-items:center;justify-content:center;color:${c.accent};">${icon('ball',26)}</div>`;
-        return `
-        <div style="position:relative;aspect-ratio:1;background:${card.checked[i]?c.checkedBg:c.cellBg};border:1.5px solid ${c.line};border-radius:8px;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;">
-          <span style="font-size:10px;color:${c.text};line-height:1.25;">${escHtml(txt)}</span>
-          ${card.checked[i]?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:${c.xColor};opacity:0.85;">✕</div>`:''}
-        </div>
-      `;}).join('')}
+        if(i===12) return `<div style="position:relative;aspect-ratio:1;background:linear-gradient(160deg,#FFD24C,#B8860B);border:2px solid #fff8e0;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;">${icon('ball',24)}</div>`;
+        const bg = cellColors[i%cellColors.length];
+        return `<div style="position:relative;aspect-ratio:1;background:linear-gradient(160deg,${bg},${bg}99);border:2px solid ${card.checked[i]?'#fff':'#fff8e0'};border-radius:10px;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;">
+          <span style="font-size:9px;color:#fff;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,0.4);line-height:1.2;${card.checked[i]?'text-decoration:line-through;text-decoration-thickness:2px;':''}">${escHtml(txt)}</span>
+          ${card.checked[i]?`<div style="position:absolute;bottom:2px;right:4px;font-size:13px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.5);">✓</div>`:''}
+        </div>`;
+      }).join('')}
     </div>
-    <div style="margin-top:16px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${c.text};opacity:0.5;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.35);">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoGamer(card){
+  const c = {text:'#EFFFEF', accent:'#39FF14', cellBg:'#141414', line:'#333', checkedBg:'rgba(57,255,20,0.18)', xColor:'#39FF14', cellWeight:700};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="position:relative;width:600px;padding:32px;background:#0A0A0A;font-family:'Inter',sans-serif;border:3px solid;border-image:linear-gradient(90deg,#39FF14,#FF7A00,#39FF14) 1;overflow:hidden;">
+    <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(57,255,20,0.15),transparent 70%);"></div>
+    <div style="text-align:center;margin-bottom:10px;position:relative;">
+      <div style="font-family:'Oswald',sans-serif;font-size:26px;font-weight:700;background:linear-gradient(90deg,#39FF14,#FF7A00);-webkit-background-clip:text;background-clip:text;color:transparent;">⚡ ${escHtml(card.name)} ⚡</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#39FF14;">// GAMER BINGO // ${checkedCount}/25 XP${checkedCount===25?' — GG BINGO!':''}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px;position:relative;">
+      ${card.cells.map((txt,i)=>{
+        if(i===12) return `<div style="position:relative;aspect-ratio:1;background:rgba(57,255,20,0.12);border:2px solid #39FF14;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#39FF14;box-shadow:0 0 10px rgba(57,255,20,0.3);">${icon('ball',24)}</div>`;
+        return `<div style="position:relative;aspect-ratio:1;background:${card.checked[i]?c.checkedBg:c.cellBg};border:2px solid ${card.checked[i]?'#39FF14':c.line};border-radius:8px;display:flex;align-items:center;justify-content:center;padding:6px;text-align:center;">
+          <span style="font-size:9px;color:${card.checked[i]?'#39FF14':'#FF7A00'};font-weight:700;line-height:1.2;${card.checked[i]?'text-decoration:line-through;text-decoration-thickness:2px;':''}">${escHtml(txt)}</span>
+          ${card.checked[i]?`<div style="position:absolute;bottom:2px;right:4px;font-size:13px;font-weight:900;color:#39FF14;">✓</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:18px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:#444;position:relative;">GLHF · ${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+function renderBingoIos(card){
+  const c = {text:'#000000', accent:'#007AFF', cellBg:'#F2F2F7', line:'rgba(60,60,67,0.12)', checkedBg:'rgba(0,122,255,0.12)', xColor:'#007AFF', cellWeight:590};
+  const checkedCount = bingoCheckedCount(card);
+  return `
+  <div id="bingo-export-inner" style="width:600px;padding:32px;background:#F2F2F7;font-family:-apple-system,'Inter',sans-serif;">
+    <div style="text-align:center;margin-bottom:14px;">
+      <div style="font-size:26px;font-weight:700;color:#000;">${escHtml(card.name)}</div>
+      <div style="font-size:13px;color:#8E8E93;margin-top:1px;">De Geleerde Bank Bingo · ${checkedCount}/25${checkedCount===25?' — BINGO!':''}</div>
+    </div>
+    <div style="background:#fff;border-radius:18px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+        ${card.cells.map((txt,i)=>bingoCellCore(txt, card.checked[i], i, c)).join('')}
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:#AEAEB2;margin-top:16px;">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
   </div>`;
 }
 async function downloadBingoPdf(cardId, theme){
@@ -5800,13 +5948,25 @@ async function downloadBingoPdf(cardId, theme){
     const canvas = await html2canvas(target, {backgroundColor:null, scale:2});
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({orientation:'portrait', unit:'pt', format:'a4'});
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgWidth = pageWidth - 60;
-    const imgHeight = imgWidth * (canvas.height/canvas.width);
-    pdf.addImage(imgData, 'JPEG', 30, 40, imgWidth, imgHeight);
+    // Pagina precies zo groot maken als de kaart zelf (+ een kleine, gelijke marge rondom), i.p.v. een
+    // vaste A4-pagina waar de kaart maar een deel van innam en de rest lege ruimte was.
+    const margin = 20;
+    const pxToPt = 0.75; // omrekenfactor van CSS-pixels naar PDF-punten (bij 96dpi)
+    const imgWidth = canvas.width * pxToPt / 2; // scale:2 hierboven weer terugdelen
+    const imgHeight = canvas.height * pxToPt / 2;
+    const pdf = new jsPDF({orientation: imgWidth>imgHeight?'landscape':'portrait', unit:'pt', format:[imgWidth+margin*2, imgHeight+margin*2]});
+    pdf.addImage(imgData, 'JPEG', margin, margin, imgWidth, imgHeight);
     const safeName = (card.name||'bingokaart').replace(/[^a-z0-9]/gi,'-').toLowerCase() || 'bingokaart';
-    pdf.save(`bingokaart-${safeName}.pdf`);
+    // .save() gebruikt intern een blob:-URL, die door het Content-Security-Policy-beleid van sommige
+    // browsers/hostingomgevingen wordt geblokkeerd (ERR_BLOCKED_BY_CSP). Een data:-URI heeft dat
+    // probleem niet — dezelfde, betrouwbaardere aanpak die de agenda-export ook al gebruikt.
+    const dataUri = pdf.output('datauristring');
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = `bingokaart-${safeName}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     closeModal();
     showInfo('Bingokaart als PDF gedownload!');
   }catch(e){
