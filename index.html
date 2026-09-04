@@ -28,6 +28,18 @@
     --accent:#B8860B; --accent-dim:#D9C27E;
     --gk:#3573A0; --def:#1F7A5F; --mid:#B8860B; --fwd:#C43F26; --danger:#C1443C;
   }
+  body.theme-dark{
+    --bg:#000000; --bg-alt:#0A0A0A; --surface:#141414; --surface-2:#1C1C1C;
+    --line: rgba(255,255,255,0.10); --text:#E5E5E5; --text-dim:#888888;
+    --accent:#DDDDDD; --accent-dim:#666666;
+    --gk:#5B8FB0; --def:#4FA080; --mid:#DDDDDD; --fwd:#C97060; --danger:#C1443C;
+  }
+  body.theme-ultradark{
+    --bg:#000000; --bg-alt:#000000; --surface:#0A0A0A; --surface-2:#121212;
+    --line: rgba(255,255,255,0.06); --text:#CCCCCC; --text-dim:#666666;
+    --accent:#FFFFFF; --accent-dim:#555555;
+    --gk:#999999; --def:#BBBBBB; --mid:#FFFFFF; --fwd:#888888; --danger:#AAAAAA;
+  }
   body.theme-egirl{
     --bg:#FCE9F7; --bg-alt:#FFFFFF; --surface:#FFFFFF; --surface-2:#FFF3FB;
     --line: rgba(180,40,140,0.15); --text:#5A2A5E; --text-dim:#A159AC;
@@ -119,6 +131,14 @@
   body.theme-cvhj .mode-toggle button{color:rgba(255,255,255,0.6);}
   body.theme-cvhj .mode-toggle button.active{background:var(--accent); color:#fff;}
   @media (max-width:760px){ body.theme-cvhj header.top{margin:-16px -14px 18px;} }
+  /* Clubthema's: zichtbare tweekleurige streep (clubkleur + secundaire kleur) onder de header,
+     zodat bijv. Ajax' rood-wit als combinatie te zien is, niet alleen de primaire kleur. */
+  body.theme-club header.top{
+    border-bottom:4px solid var(--accent);
+    box-shadow:0 4px 0 0 var(--accent2, transparent);
+    margin-bottom:12px; padding-bottom:8px;
+  }
+  body.theme-club .sidebar{border-right:2px solid var(--accent-dim);}
   .sidebar-btn{
     width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center;
     background:none; border:none; color:var(--text-dim); cursor:pointer; flex-direction:column; gap:2px; position:relative;
@@ -1645,28 +1665,113 @@ async function loadSquad(){
     const t = await storageGet('cvhj-theme', false);
     if(t && t.value){ state.theme = t.value; }
   }catch(e){}
+  try{
+    const v = await storageGet('cvhj-club-theme-variant', false);
+    if(v && v.value){ state.clubThemeVariant = v.value; }
+  }catch(e){}
   applyAppTheme();
   render();
 }
 function applyAppTheme(){
   const t = state.theme || 'standaard';
-  document.body.className = t==='standaard' ? '' : (t==='light' ? 'light' : 'theme-'+t);
+  if(t.startsWith('club-')){
+    const club = t.slice(5);
+    const colors = CLUB_THEME_COLORS[club];
+    const variant = state.clubThemeVariant || 'dark';
+    document.body.className = 'theme-club' + (variant==='light' ? ' theme-club-light' : '');
+    if(colors){
+      const root = document.body.style;
+      if(variant==='light'){
+        root.setProperty('--bg', '#F4F3EF');
+        root.setProperty('--bg-alt', '#FFFFFF');
+        root.setProperty('--surface', '#FFFFFF');
+        root.setProperty('--surface-2', '#EFEEE9');
+        root.setProperty('--line', 'rgba(20,20,20,0.12)');
+        root.setProperty('--text', '#181818');
+        root.setProperty('--text-dim', '#666666');
+      } else {
+        root.setProperty('--bg', '#0A0A0A');
+        root.setProperty('--bg-alt', '#0F0F0F');
+        root.setProperty('--surface', '#161616');
+        root.setProperty('--surface-2', '#1E1E1E');
+        root.setProperty('--line', 'rgba(255,255,255,0.10)');
+        root.setProperty('--text', '#F2F1ED');
+        root.setProperty('--text-dim', '#9A9A9A');
+      }
+      root.setProperty('--accent', colors.accent);
+      root.setProperty('--accent-dim', colors.accentDim);
+      root.setProperty('--accent2', colors.secondary);
+      root.setProperty('--accent3', colors.tertiary || colors.secondary);
+      root.setProperty('--gk', colors.gk);
+      root.setProperty('--def', colors.def);
+      root.setProperty('--mid', colors.mid);
+      root.setProperty('--fwd', colors.fwd);
+    }
+    // Eigen SVG-badge i.p.v. het lage-resolutie rasterlogo — blijft op elke grootte haarscherp en
+    // is van nature transparant. Klein en scherp rechtsboven, plus een grote, heel lichte kleurwas
+    // op de achtergrond voor sfeer.
+    const badgeSvg = clubBadgeSVG(club);
+    const badgeUri = 'data:image/svg+xml,' + encodeURIComponent(badgeSvg);
+    const bgBase = variant==='light' ? '#F4F3EF' : '#0A0A0A';
+    // Bij de lichte variant is de voorberekende (donkere) accentDim té donker als waskleur —
+    // gebruik dan een lichte tint van de accentkleur zelf i.p.v. de donkere variant.
+    const wash = variant==='light'
+      ? (colors ? lightenHex(colors.accent, 0.85) : 'rgba(242,184,7,0.12)')
+      : (colors ? colors.accentDim : 'rgba(242,184,7,0.15)');
+    // Elke club krijgt één grote afbeelding van hun eigen shirt (streep, gehalveerd, banen,
+    // sjerp, of Fries vlagmotief bij Heerenveen) die de hele pagina-achtergrond vult — vast
+    // (fixed) zodat 'ie niet meescrollt, en NIET herhalend. Het logo zelf blijft ongewijzigd,
+    // hetzelfde schild-template als alle andere clubs.
+    const shirtSvg = club ? shirtPatternSVG(club) : '';
+    const pattern = shirtSvg
+      ? `url("data:image/svg+xml,${encodeURIComponent(shirtSvg)}") no-repeat center center / cover fixed, `
+      : '';
+    document.body.style.background = badgeSvg
+      ? `radial-gradient(1600px 800px at 88% -20%, ${wash}, transparent 55%), ${pattern}url("${badgeUri}") no-repeat 97% 3% / 64px, ${bgBase}`
+      : bgBase;
+    document.body.style.backgroundColor = bgBase;
+  } else {
+    // Terug naar niet-club-thema: verwijder eventuele inline overrides van een vorig clubthema.
+    document.body.style.cssText = '';
+    document.body.className = t==='standaard' ? '' : (t==='light' ? 'light' : 'theme-'+t);
+  }
 }
 function openAppThemePicker(){ state.modal = {type:'appTheme'}; render(); }
 function renderAppThemeModal(){
   const t = state.theme || 'standaard';
+  const variant = state.clubThemeVariant || 'dark';
+  const basicThemes = EXPORT_THEMES.filter(th=>!th.isClub);
+  const clubThemes = EXPORT_THEMES.filter(th=>th.isClub);
+  function tile(th){
+    const active = t===th.id;
+    const swatch = th.isClub ? CLUB_THEME_COLORS[th.club] : null;
+    return `<button class="tile" style="text-align:center;cursor:pointer;padding:16px 10px;color:var(--text);${active?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="setAppTheme('${th.id}')">
+      <div style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;color:${active?'var(--accent)':'var(--text)'};">
+        ${th.isClub ? `<div style="width:34px;height:38px;">${clubBadgeSVG(th.club)}</div>` : icon(th.icon,22)}
+      </div>
+      <div style="font-family:'Oswald';font-size:13px;font-weight:600;color:${active?'var(--accent)':'var(--text)'};">${th.label}</div>
+      ${swatch ? `<div style="margin-top:4px;height:4px;border-radius:2px;background:linear-gradient(90deg, ${swatch.accent} 0 50%, ${swatch.secondary} 50% 100%);"></div>` : ''}
+    </button>`;
+  }
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
-    <div class="box">
+    <div class="box" style="max-width:640px;">
       <div class="head"><h4>${icon('gem',18)} Kies een thema</h4><button class="close" onclick="closeModal()">✕</button></div>
       <div class="body-scroll">
         <div class="news-note">Verandert de opmaak van het hele dashboard — je keuze wordt onthouden.</div>
-        <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
-          ${EXPORT_THEMES.map(th=>`
-            <button class="tile" style="text-align:center;cursor:pointer;padding:16px 10px;color:var(--text);${t===th.id?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="setAppTheme('${th.id}')">
-              <div style="margin-bottom:6px;display:flex;justify-content:center;color:${t===th.id?'var(--accent)':'var(--text)'};">${icon(th.icon,22)}</div>
-              <div style="font-family:'Oswald';font-size:13px;font-weight:600;color:${t===th.id?'var(--accent)':'var(--text)'};">${th.label}</div>
-            </button>
-          `).join('')}
+        <div class="section-title" style="margin-top:4px;"><span>Basisthema's</span><span class="line"></span></div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">
+          ${basicThemes.map(tile).join('')}
+        </div>
+        <div class="section-title"><span>Clubthema's</span><span class="line"></span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin:6px 0 12px;">
+          <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);">Variant:</span>
+          <div class="view-toggle">
+            <button class="${variant==='dark'?'active':''}" onclick="setClubThemeVariant('dark')">${icon('moon',12)} Donker</button>
+            <button class="${variant==='light'?'active':''}" onclick="setClubThemeVariant('light')">${icon('sun',12)} Licht</button>
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px;">
+          ${clubThemes.map(tile).join('')}
         </div>
       </div>
     </div>
@@ -1677,6 +1782,12 @@ function setAppTheme(t){
   applyAppTheme();
   storageSet('cvhj-theme', t, false).catch(()=>{});
   closeModal();
+  render();
+}
+function setClubThemeVariant(v){
+  state.clubThemeVariant = v;
+  applyAppTheme();
+  storageSet('cvhj-club-theme-variant', v, false).catch(()=>{});
   render();
 }
 function toggleQuickActionsHidden(){ state.quickActionsHidden = !state.quickActionsHidden; render(); }
@@ -3315,6 +3426,8 @@ function renderScoutTab(){
 const EXPORT_THEMES = [
   {id:'standaard', label:'Standaard', icon:'shirt'},
   {id:'light', label:'Lightmode', icon:'sun'},
+  {id:'dark', label:'Dark', icon:'moon'},
+  {id:'ultradark', label:'Ultra dark', icon:'moon'},
   {id:'egirl', label:'E-girl', icon:'gem'},
   {id:'cvhj', label:'Coach van het Jaar', icon:'trophy'},
   {id:'darren', label:'Darren 17e...', icon:'medal'},
@@ -3322,6 +3435,130 @@ const EXPORT_THEMES = [
   {id:'gamer', label:'Gamer', icon:'refresh'},
   {id:'ios', label:'iPhone', icon:'houseSmall'},
 ];
+// Officiële clubkleuren (primair/secundair) per Eredivisie-club, voor de 18 clubthema's. Elk
+// clubthema is een donkere basis (voor leesbaarheid) met de accentkleur van de club — plus het
+// clublogo als watermerk op de achtergrond (zie applyAppTheme()).
+const CLUB_THEME_COLORS = {
+  'Ajax': {accent:'#D2122E', accentDim:'#5C0814', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'AJA', shirt:'stripe-center', gk:'#4FA0E0', def:'#D2122E', mid:'#FFFFFF', fwd:'#D2122E'},
+  'AZ': {accent:'#D2122E', accentDim:'#5C0814', secondary:'#FFFFFF', tertiary:null, abbr:'AZ', shirt:'solid', gk:'#4FA0E0', def:'#D2122E', mid:'#E5342E', fwd:'#D2122E'},
+  'Excelsior': {accent:'#EE2737', accentDim:'#611017', secondary:'#1A1A1A', tertiary:'#FFFFFF', abbr:'EXC', shirt:'stripes-vert', gk:'#4FA0E0', def:'#EE2737', mid:'#1A1A1A', fwd:'#EE2737'},
+  'FC Groningen': {accent:'#00A650', accentDim:'#00311C', secondary:'#FFFFFF', tertiary:'#ED1C24', abbr:'GRO', shirt:'stripes-vert', gk:'#4FA0E0', def:'#00A650', mid:'#FFFFFF', fwd:'#00A650'},
+  'FC Twente': {accent:'#DA020E', accentDim:'#5C0106', secondary:'#FFFFFF', tertiary:null, abbr:'FCT', shirt:'solid', gk:'#4FA0E0', def:'#DA020E', mid:'#DA020E', fwd:'#DA020E'},
+  'FC Utrecht': {accent:'#EA1D25', accentDim:'#5F0C10', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'FCU', shirt:'sash', gk:'#4FA0E0', def:'#EA1D25', mid:'#EA1D25', fwd:'#EA1D25'},
+  'Feyenoord': {accent:'#EE1A29', accentDim:'#610B12', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'FEY', shirt:'halved', gk:'#4FA0E0', def:'#EE1A29', mid:'#FFFFFF', fwd:'#EE1A29'},
+  'Fortuna Sittard': {accent:'#FCD305', accentDim:'#6B5A02', secondary:'#007A3D', tertiary:null, abbr:'FOR', shirt:'halved', gk:'#4FA0E0', def:'#007A3D', mid:'#FCD305', fwd:'#007A3D'},
+  'Go Ahead Eagles': {accent:'#FFCC00', accentDim:'#6B5600', secondary:'#DA020E', tertiary:null, abbr:'GAE', shirt:'hoops', gk:'#4FA0E0', def:'#DA020E', mid:'#FFCC00', fwd:'#DA020E'},
+  'N.E.C.': {accent:'#00843D', accentDim:'#00331A', secondary:'#ED1C24', tertiary:null, abbr:'NEC', shirt:'sash', gk:'#4FA0E0', def:'#ED1C24', mid:'#00843D', fwd:'#ED1C24'},
+  'PEC Zwolle': {accent:'#00AEEF', accentDim:'#004A63', secondary:'#1A1A1A', tertiary:'#FFFFFF', abbr:'PEC', shirt:'stripes-vert', gk:'#00AEEF', def:'#1A1A1A', mid:'#00AEEF', fwd:'#1A1A1A'},
+  'PSV': {accent:'#ED1C24', accentDim:'#630B0F', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'PSV', shirt:'solid', gk:'#4FA0E0', def:'#ED1C24', mid:'#FFFFFF', fwd:'#ED1C24'},
+  'SC Cambuur': {accent:'#00AEEF', accentDim:'#004A63', secondary:'#FFFFFF', tertiary:null, abbr:'CAM', shirt:'stripes-vert', gk:'#00AEEF', def:'#FFFFFF', mid:'#00AEEF', fwd:'#FFFFFF'},
+  'sc Heerenveen': {accent:'#003DA5', accentDim:'#001A46', secondary:'#FFFFFF', tertiary:null, abbr:'HEE', pompeblede:true, pompebladeRed:'#C8102E', shirt:'frisian', gk:'#4FA0E0', def:'#003DA5', mid:'#FFFFFF', fwd:'#003DA5'},
+  'Sparta Rotterdam': {accent:'#ED1C24', accentDim:'#630B0F', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'SPA', shirt:'stripes-vert', gk:'#4FA0E0', def:'#ED1C24', mid:'#FFFFFF', fwd:'#ED1C24'},
+  'Telstar': {accent:'#1B4F9C', accentDim:'#0B2547', secondary:'#FFFFFF', tertiary:'#D2122E', abbr:'TEL', shirt:'sash', gk:'#4FA0E0', def:'#1B4F9C', mid:'#FFFFFF', fwd:'#1B4F9C'},
+  'ADO Den Haag': {accent:'#FFF200', accentDim:'#6B6500', secondary:'#007A3D', tertiary:null, abbr:'ADO', shirt:'halved', gk:'#4FA0E0', def:'#007A3D', mid:'#FFF200', fwd:'#007A3D'},
+  'Willem II': {accent:'#ED1C24', accentDim:'#630B0F', secondary:'#FFFFFF', tertiary:'#003DA5', abbr:'WII', shirt:'solid', gk:'#4FA0E0', def:'#ED1C24', mid:'#FFFFFF', fwd:'#ED1C24'},
+};
+// Eigen, scherpe vector-badge per club i.p.v. het lage-resolutie rasterlogo — een SVG blijft op
+// elke grootte haarscherp en is van nature transparant. Gebruikt de club-kleuren (2 of 3, waar
+// van toepassing) in een simpel wapenschild-motief met de clubafkorting. sc Heerenveen krijgt in
+// plaats daarvan de pompeblêde (het Friese waterlelieblad), zoals gevraagd.
+// Mengt een hexkleur richting wit — gebruikt voor een lichte achtergrondwas bij de lichte
+// clubthema-variant (de vast-berekende donkere accentDim is daar te donker).
+function lightenHex(hex, amount){
+  const h = hex.replace('#','');
+  const r = parseInt(h.substring(0,2),16), g = parseInt(h.substring(2,4),16), b = parseInt(h.substring(4,6),16);
+  const mix = c => Math.round(c + (255-c)*amount);
+  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
+}
+// Herhalend achtergrondpatroon van rode pompeblêden — de heraldisch juiste kleur (zoals op de
+// Friese vlag, waar sc Heerenveen's shirt letterlijk op gebaseerd is), los van de blauwe
+// clubkleur die het logo zelf gebruikt. Gebruikt als tegelbare SVG-achtergrond.
+// Achtergrondpatroon per club dat lijkt op hun eigen shirt — verticale middenstreep (Ajax),
+// gehalveerd (Feyenoord/ADO/Fortuna), horizontale banen (Go Ahead Eagles), diagonale sjerp
+// (FC Utrecht/N.E.C./Telstar), verticale strepen (Excelsior/Groningen/Cambuur/Sparta/PEC), of
+// een effen kleurwas (AZ/FC Twente/PSV/Willem II). Eén grote afbeelding die de HELE
+// pagina-achtergrond vult (via background-size:cover, niet herhalend), i.p.v. een tegelpatroon.
+function shirtPatternSVG(club){
+  const c = CLUB_THEME_COLORS[club];
+  if(!c) return '';
+  const type = c.shirt || 'solid';
+  const bg = c.accent, sec = c.secondary, op = 0.07;
+  const W = 1600, H = 900; // beeldschermverhouding, wordt met cover uitgerekt/bijgesneden
+  if(type==='frisian') return pompebladePatternSVG(c.pompebladeRed, c.accent);
+  if(type==='stripe-center'){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <rect width="${W}" height="${H}" fill="${sec}" opacity="${op*0.5}"/>
+      <rect x="${W*0.42}" width="${W*0.16}" height="${H}" fill="${bg}" opacity="${op*2}"/>
+    </svg>`;
+  }
+  if(type==='halved'){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <rect width="${W/2}" height="${H}" fill="${bg}" opacity="${op*1.6}"/>
+      <rect x="${W/2}" width="${W/2}" height="${H}" fill="${sec}" opacity="${op*0.8}"/>
+    </svg>`;
+  }
+  if(type==='hoops'){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      ${[0,1,2,3,4].map(i=>`<rect y="${i*H/5}" width="${W}" height="${H/5}" fill="${i%2===0?bg:sec}" opacity="${i%2===0?op*1.6:op*1.1}"/>`).join('')}
+    </svg>`;
+  }
+  if(type==='stripes-vert'){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      ${[0,1,2,3,4,5,6].map(i=>`<rect x="${i*W/7}" width="${W/7}" height="${H}" fill="${i%2===0?bg:sec}" opacity="${i%2===0?op*1.5:op*0.7}"/>`).join('')}
+    </svg>`;
+  }
+  if(type==='sash'){
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <rect width="${W}" height="${H}" fill="${sec}" opacity="${op*0.35}"/>
+      <path d="M-200 ${H*0.75} L${W*0.55} -200 L${W*0.75} -200 L-200 ${H*0.95} Z" fill="${bg}" opacity="${op*2.2}"/>
+    </svg>`;
+  }
+  // solid — overwegend egaal shirt (AZ/FC Twente/PSV/Willem II): een grote, zachte kleurvlek die
+  // van de rand naar het midden uitdooft, zodat ook deze clubs duidelijk hun eigen kleur tonen
+  // i.p.v. helemaal niets.
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <rect width="${W}" height="${H}" fill="${bg}" opacity="${op*1.1}"/>
+    <rect x="${W*0.08}" y="${H*0.08}" width="${W*0.84}" height="${H*0.84}" fill="${sec}" opacity="${op*0.4}"/>
+  </svg>`;
+}
+function pompebladePatternSVG(color, blue){
+  const red = color || '#C8102E';
+  const stripe = blue || '#1B4F9C';
+  // Scherpere, hoekige inkeping tussen de twee lobben (rechte lijnen i.p.v. een zachte bocht) —
+  // zo lezen ze als het herkenbare, licht hoekige pompeblêde-blad en niet als een hartje.
+  const leaf = (x,y,rot,scale) => `<g transform="translate(${x},${y}) rotate(${rot}) scale(${scale})"><path d="M30 60 C6 42 0 16 14 6 L26 2 L30 12 L34 2 L46 6 C60 16 54 42 30 60 Z" fill="${red}" opacity="0.16"/></g>`;
+  const W = 1600, H = 900;
+  // Echt Fries-vlagmotief: een paar grote diagonale blauwe banen over de HELE achtergrond
+  // (niet-herhalend), met verspreide pompeblêde-blaadjes ertussen — zoals op de vlag waar
+  // sc Heerenveen's shirt op is gebaseerd.
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <rect width="${W}" height="${H}" fill="none"/>
+    <path d="M-200 300 L900 -300 L1050 -300 L-50 450 Z" fill="${stripe}" opacity="0.08"/>
+    <path d="M300 1100 L1400 100 L1550 100 L450 1250 Z" fill="${stripe}" opacity="0.08"/>
+    ${leaf(220,200,15,2.2)}
+    ${leaf(900,150,-20,1.8)}
+    ${leaf(1300,500,30,2.5)}
+    ${leaf(550,650,-15,1.6)}
+  </svg>`;
+}
+function clubBadgeSVG(club){
+  const c = CLUB_THEME_COLORS[club];
+  if(!c) return '';
+  // Alle clubs, inclusief sc Heerenveen, gebruiken hetzelfde schild-template — de pompeblêde
+  // komt alleen terug in het aparte achtergrondpatroon (zie pompebladePatternSVG), niet in het
+  // logo zelf.
+  const third = c.tertiary ? `<path d="M50 6 L50 94" stroke="${c.tertiary}" stroke-width="6"/>` : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 110" width="100%" height="100%">
+    <path d="M50 4 L92 18 L92 54 C92 82 74 100 50 108 C26 100 8 82 8 54 L8 18 Z" fill="${c.accentDim}" stroke="${c.accent}" stroke-width="4"/>
+    <path d="M50 4 L92 18 L92 54 C92 82 74 100 50 108 Z" fill="${c.accent}" opacity="0.55"/>
+    ${third}
+    <text x="50" y="64" text-anchor="middle" font-family="Oswald, sans-serif" font-weight="700" font-size="26" fill="${c.secondary}" stroke="${c.accentDim}" stroke-width="0.5">${c.abbr}</text>
+  </svg>`;
+}
+// Clubthema's toevoegen aan de themalijst — één per Eredivisie-club, met het clublogo als icoon.
+Object.keys(CLUB_THEME_COLORS).forEach(club=>{
+  EXPORT_THEMES.push({id:'club-'+club, label:club, isClub:true, club});
+});
 // ==================== AGENDA-EXPORT (.ics) ====================
 function checkAndConfirmSwap(slotId, actionRound, doSwapFn){
   // Is er een geplande (toekomstige) wissel voor DEZELFDE plek, in een LATERE ronde dan deze actie?
