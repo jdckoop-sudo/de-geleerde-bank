@@ -824,20 +824,23 @@ const ICONS = {
   filter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16M7 12h10M10 19h4" stroke-linecap="round"/></svg>`,
 };
 function icon(name, size){ return `<span class="icon-wrap" style="width:${size||16}px;height:${size||16}px;">${ICONS[name]||''}</span>`; }
+// Normaliseert tekst voor zoeken: kleine letters + accenten/diakritische tekens weggehaald, zodat
+// "zechiel" ook "Zechiël" vindt, "heerenveen" ook zonder speciale tekens werkt, enz.
+function normSearch(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(); }
 
 const NAV_GROUPS = [
   {id:'home', label:'Home', iconName:'home', tabs:['home'], color:'#F2B807'},
   {id:'team', label:'Mijn Team', iconName:'shirt', tabs:['team','stats'], color:'#2FBF8F'},
   {id:'week', label:'Team v/d Week', iconName:'medal', tabs:['week_team','week_players','week_coach','week_couch','week_koopje','week_flop','week_algemeen','week_scheidsrechters'], color:'#F2B807'},
   {id:'scout', label:'Scout', iconName:'search', tabs:['scout','clubs','parels','rankings'], color:'#4FA0E0'},
-  {id:'league', label:'Casting Couch', iconName:'trophy', tabs:['league','leagueStats','wissels','hof'], color:'#F2B807'},
+  {id:'league', label:'Casting Couch', iconName:'trophy', tabs:['league','leagueStats','spelersZoeker','wissels','hof'], color:'#F2B807'},
   {id:'personal', label:'Persoonlijk', iconName:'user', tabs:['personal'], color:'#B07AE0'},
   {id:'wedstrijden', label:'Wedstrijden', iconName:'calendar', tabs:['matches','calendar','standings'], color:'#4FA0E0'},
   {id:'blessures', label:'Blessures', iconName:'cross', tabs:['injuries','injuryHistory','suspensions'], color:'#E85A4F'},
   {id:'nieuws', label:'Nieuws', iconName:'news', tabs:['news'], color:'#2FBF8F'},
 ];
 const TAB_LABELS = {
-  home:'Home', team:'Mijn Team', stats:'Statistieken', personal:'Persoonlijk', league:'Casting Couch', leagueStats:'Statistieken', wissels:'Wissels',
+  home:'Home', team:'Mijn Team', stats:'Statistieken', personal:'Persoonlijk', league:'Casting Couch', leagueStats:'Statistieken', spelersZoeker:'Spelers', wissels:'Wissels',
   scout:'Scout', clubs:'Clubs', rankings:'Topstatistieken', parels:'Parels',
   matches:'Wedstrijden', calendar:'Kalender', standings:'Eredivisie & Europa', injuries:'Blessures', injuryHistory:'Geschiedenis', suspensions:'Schorsingen', news:'Nieuws',
   week_team:'Team v/d week', week_players:'Spelers v/d week', week_koopje:'Koopje v/d week',
@@ -3292,8 +3295,8 @@ function filteredPlayers(){
   if(state.fitFilter==='geschorst') list = list.filter(p=>{ const i=findInjury(p.Speler,p.Team); return i && i.Status==='Geschorst'; });
   if(state.fitFilter==='twijfel') list = list.filter(p=>{ const i=findInjury(p.Speler,p.Team); return i && i.Status==='Twijfelgeval'; });
   if(state.search.trim()){
-    const q = state.search.toLowerCase();
-    list = list.filter(p=>p.Speler.toLowerCase().includes(q) || p.Team.toLowerCase().includes(q));
+    const q = normSearch(state.search);
+    list = list.filter(p=>normSearch(p.Speler).includes(q) || normSearch(p.Team).includes(q));
   }
   const dir = state.sortDir==='asc' ? 1 : -1;
   if(state.sortBy==='strength') list.sort((a,b)=>dir*((season==='2026/27'?(a._strength??-1):(strengthFor(a,season)??-1))-(season==='2026/27'?(b._strength??-1):(strengthFor(b,season)??-1))));
@@ -4322,14 +4325,113 @@ function computeAllCoachTransfers(round){
   });
   return out;
 }
+// ---- Spelerszoeker: alle spelers die bij een Casting Couch-team zitten, doorzoekbaar/filterbaar
+// op naam, positie, echte club en coach-team. ----
+function computeSpelersZoekerRows(fromRound, toRound){
+  const allRounds = Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).sort((a,b)=>a-b);
+  if(!allRounds.length) return [];
+  const latest = allRounds[allRounds.length-1];
+  const from = fromRound || allRounds[0];
+  const to = toRound || latest;
+  const rangeRounds = allRounds.filter(r=>r>=from && r<=to);
+  // Per speler-per-coach: tel in hoeveel rondes binnen het gekozen bereik hij in dat team stond,
+  // en onthoud de meest recente status (basis/bank, positie) binnen dat bereik voor de weergave.
+  const map = {};
+  rangeRounds.forEach(r=>{
+    CASTING_COUCH_COACHES.forEach(c=>{
+      const data = CASTING_COUCH_TEAM_SQUADS[r][c.coach];
+      if(!data) return;
+      data.squad.forEach(s=>{
+        const key = s.naam+'|'+s.club+'|'+c.coach;
+        if(!map[key]) map[key] = {naam:s.naam, club:s.club, pos:s.pos, coach:c.coach, coachTeam:c.team, rondesInTeam:0, lastReserve:s.reserve, lastRound:r};
+        map[key].rondesInTeam++;
+        if(r>=map[key].lastRound){ map[key].lastReserve = s.reserve; map[key].lastRound = r; }
+      });
+    });
+  });
+  const rows = Object.values(map);
+  rows.forEach(r=>{
+    const p = PLAYERS.find(pl=>pl.Speler===r.naam && pl.Team===r.club);
+    r.prijs = p ? p.Prijs : null;
+    r.reserve = r.lastReserve;
+  });
+  return {rows, totalRoundsInRange: rangeRounds.length, allRounds, from, to};
+}
+function setSpelersZoekerFilter(key, value){
+  state.spelersZoeker = state.spelersZoeker || {};
+  state.spelersZoeker[key] = value;
+  render();
+}
+function renderSpelersZoekerTab(){
+  const f = state.spelersZoeker || {};
+  const {rows, totalRoundsInRange, allRounds, from, to} = computeSpelersZoekerRows(f.fromRound, f.toRound);
+  if(!rows.length) return `<div class="news-note">Nog geen teamdata beschikbaar om spelers in op te zoeken.</div>`;
+  const q = normSearch(f.search);
+  const posFilter = f.pos || 'alle';
+  const clubFilter = f.club || 'alle';
+  const coachFilter = f.coach || 'alle';
+  let filtered = rows.filter(r=>{
+    if(q && !normSearch(r.naam).includes(q)) return false;
+    if(posFilter!=='alle' && r.pos!==posFilter) return false;
+    if(clubFilter!=='alle' && r.club!==clubFilter) return false;
+    if(coachFilter!=='alle' && r.coach!==coachFilter) return false;
+    return true;
+  });
+  filtered.sort((a,b)=> b.rondesInTeam-a.rondesInTeam || a.naam.localeCompare(b.naam));
+  const clubs = [...new Set(rows.map(r=>r.club))].sort();
+  const coaches = CASTING_COUCH_COACHES.slice().sort((a,b)=>a.coach.localeCompare(b.coach));
+  const posOptions = [
+    {id:'alle', label:'Alle posities'}, {id:'Goalkeeper', label:'Keepers'},
+    {id:'Defender', label:'Verdedigers'}, {id:'Midfielder', label:'Middenvelders'}, {id:'Forward', label:'Aanvallers'},
+  ];
+  return `
+    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Doorzoek alle spelers die in het gekozen rondebereik bij een Casting Couch-team zaten — filter op positie, club of coach-team. Het aantal rondes staat bij elke speler vermeld.</div>
+    <div class="toolbar" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <input type="text" id="input-spelerszoeker-search" placeholder="Zoek op spelersnaam..." value="${f.search||''}" oninput="setSpelersZoekerFilter('search', this.value)" style="min-width:200px;">
+      <select onchange="setSpelersZoekerFilter('pos', this.value)">
+        ${posOptions.map(o=>`<option value="${o.id}" ${posFilter===o.id?'selected':''}>${o.label}</option>`).join('')}
+      </select>
+      <select onchange="setSpelersZoekerFilter('club', this.value)">
+        <option value="alle" ${clubFilter==='alle'?'selected':''}>Alle clubs</option>
+        ${clubs.map(c=>`<option value="${c}" ${clubFilter===c?'selected':''}>${c}</option>`).join('')}
+      </select>
+      <select onchange="setSpelersZoekerFilter('coach', this.value)">
+        <option value="alle" ${coachFilter==='alle'?'selected':''}>Alle coach-teams</option>
+        ${coaches.map(c=>`<option value="${c.coach}" ${coachFilter===c.coach?'selected':''}>${c.coach} (${c.team})</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);">Ronde van:</span>
+      <select onchange="setSpelersZoekerFilter('fromRound', parseInt(this.value))">
+        ${allRounds.map(r=>`<option value="${r}" ${from===r?'selected':''}>Ronde ${r}</option>`).join('')}
+      </select>
+      <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);">tot:</span>
+      <select onchange="setSpelersZoekerFilter('toRound', parseInt(this.value))">
+        ${allRounds.map(r=>`<option value="${r}" ${to===r?'selected':''}>Ronde ${r}</option>`).join('')}
+      </select>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">${filtered.length} resultaten — bereik: ${totalRoundsInRange} ${totalRoundsInRange===1?'ronde':'rondes'} (ronde ${from} t/m ${to})</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      ${filtered.length===0 ? `<div class="news-note">Geen spelers gevonden voor deze filters.</div>` : filtered.map(r=>`
+        <div class="picker-item" style="cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(r.naam)}','${encodeURIComponent(r.club)}')">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;">${teamLogo(r.club)}${r.naam} <span style="color:var(--text-dim);font-size:11px;font-weight:400;">(${POS_LABEL[r.pos]||r.pos} · ${r.club}${r.prijs!=null?` · ${fmtEuro(r.prijs)}`:''})</span></div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:2px;cursor:pointer;" onclick="event.stopPropagation();viewCoachTeam('${r.coach.replace(/'/g,"\\'")}')">${icon('shirt',10)} ${r.coach} (${r.coachTeam})${r.reserve?' — laatst bank':' — laatst basis'}</div>
+          </div>
+          <div style="font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;">${r.rondesInTeam}/${totalRoundsInRange}<div style="font-size:9px;color:var(--text-dim);font-weight:400;text-align:right;">rondes</div></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
 function renderWisselsTab(){
   const rounds = Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).sort((a,b)=>a-b).filter(r=>r>=2);
   if(!state.wisselsRound && rounds.length) state.wisselsRound = rounds[rounds.length-1];
   const round = state.wisselsRound;
   const transfers = round ? computeAllCoachTransfers(round) : [];
-  const q = (state.wisselsSearch||'').trim().toLowerCase();
-  let filtered = q ? transfers.filter(t=>t.coach.toLowerCase().includes(q) ||
-    t.uit.some(s=>s.naam.toLowerCase().includes(q)) || t.erin.some(s=>s.naam.toLowerCase().includes(q))) : transfers;
+  const q = normSearch(state.wisselsSearch);
+  let filtered = q ? transfers.filter(t=>normSearch(t.coach).includes(q) ||
+    t.uit.some(s=>normSearch(s.naam).includes(q)) || t.erin.some(s=>normSearch(s.naam).includes(q))) : transfers;
   // Puntenimpact per wissel: wat leverde de ingekomen speler die ronde op (inclusief bankregel-
   // halvering als van toepassing), tegenover wat de vertrokken speler die ronde zelf scoorde
   // (ook al zat hij niet meer in dit team) — zelfde logica als computeTransferImpacts().
@@ -5784,6 +5886,117 @@ function renderInjuriesTab(){
 // Blessuregeschiedenis — spelers die zijn hersteld (playerRoundMinutes > 0 sinds hun blessure)
 // verhuizen bij een update van INJURIES naar hier, zodat de info niet verloren gaat maar wél uit
 // de actieve blessurelijst verdwijnt. Ook op te vragen via een klikbare tegel op het spelersprofiel.
+// Casting Couch-bezit van een speler: hoeveel/welke coaches hebben hem NU (laatste ronde), en —
+// over het hele seizoen — welke coaches hebben hem ooit gehad en hoeveel rondes, meest naar
+// minst gesorteerd.
+function computePlayerCurrentCoaches(p){
+  const rounds = Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).sort((a,b)=>a-b);
+  const latest = rounds.length ? rounds[rounds.length-1] : null;
+  if(!latest) return {count:0, total:0, coaches:[]};
+  const coaches = [];
+  CASTING_COUCH_COACHES.forEach(c=>{
+    const data = CASTING_COUCH_TEAM_SQUADS[latest][c.coach];
+    if(!data) return;
+    const s = data.squad.find(x=>x.naam===p.Speler && x.club===p.Team);
+    if(s) coaches.push({coach:c.coach, team:c.team, reserve:!!s.reserve});
+  });
+  return {count:coaches.length, total:CASTING_COUCH_COACHES.length, coaches};
+}
+function computePlayerCoachRoundHistory(p){
+  const rounds = Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).sort((a,b)=>a-b);
+  const counts = {};
+  rounds.forEach(r=>{
+    const snap = SEASON_2627_SNAPSHOTS[r];
+    CASTING_COUCH_COACHES.forEach(c=>{
+      const data = CASTING_COUCH_TEAM_SQUADS[r][c.coach];
+      if(!data) return;
+      const s = data.squad.find(x=>x.naam===p.Speler && x.club===p.Team);
+      if(!s) return;
+      if(!counts[c.coach]) counts[c.coach] = {coach:c.coach, team:c.team, rounds:0, points:0};
+      counts[c.coach].rounds++;
+      // Zelfde bankregel als elders: alleen halveren als het team op deze linie "vol" was
+      // (anders verving de speler een afwezige basisspeler en kreeg hij volle punten).
+      const pts = snap && snap.playerRoundPoints ? (snap.playerRoundPoints[s.key]||0) : 0;
+      let half = 1;
+      if(s.reserve){
+        const basisOpLinie = data.squad.filter(x=>!x.reserve && x.pos===s.pos);
+        const vol = basisOpLinie.every(x=>{ const m = snap && snap.playerRoundMinutes ? snap.playerRoundMinutes[x.key] : null; return m>0; });
+        if(vol) half = 0.5;
+      }
+      counts[c.coach].points += Math.floor(pts*half);
+    });
+  });
+  return {history: Object.values(counts).sort((a,b)=>b.rounds-a.rounds), totalRounds: rounds.length};
+}
+function togglePlayerCCDetail(){
+  state.modal.ccDetail = !state.modal.ccDetail;
+  state.modal.ccHistory = false;
+  render();
+}
+function togglePlayerCCHistory(){
+  state.modal.ccHistory = !state.modal.ccHistory;
+  render();
+}
+function renderPlayerCastingCouchSection(p){
+  if(typeof CASTING_COUCH_TEAM_SQUADS==='undefined') return '';
+  const cur = computePlayerCurrentCoaches(p);
+  if(cur.total===0) return '';
+  const {history, totalRounds} = computePlayerCoachRoundHistory(p);
+  const everCount = history.length;
+  // Rondes-aantal per coach opzoeken voor de "nu"-lijst, zodat daar ook "3/4"-achtige tellingen
+  // bij staan i.p.v. alleen basis/bank.
+  const roundsByCoach = {};
+  const pointsByCoach = {};
+  history.forEach(h=>{ roundsByCoach[h.coach] = h.rounds; pointsByCoach[h.coach] = h.points; });
+  const open = !!state.modal.ccDetail;
+  const histOpen = !!state.modal.ccHistory;
+  let detail = '';
+  if(open){
+    if(histOpen){
+      detail = `<div class="stat-detail-panel">
+        <div class="stat-detail-head"><span>${icon('chart',13)} Alle coaches die ${p.Speler} dit seizoen hadden</span><button onclick="togglePlayerCCHistory()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;">×</button></div>
+        <div class="stat-detail-body">
+          ${history.length ? history.map(h=>`<div class="stat-detail-row" style="cursor:pointer;" onclick="openCoachTeamModal('${h.coach.replace(/'/g,"\\'")}')">
+            <div class="stat-detail-info">
+              <div class="stat-detail-match">${h.coach} <span style="color:var(--text-dim);font-size:11px;">(${h.team})</span></div>
+              <div class="stat-detail-sub">${h.points} pnt (incl. bankregel)</div>
+            </div>
+            <div class="stat-detail-pts" style="color:var(--def);">${h.rounds}/${totalRounds}</div>
+          </div>`).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:12px;">Geen coaches gevonden.</div>`}
+        </div>
+      </div>`;
+    } else {
+      detail = `<div class="stat-detail-panel">
+        <div class="stat-detail-head"><span>${icon('shirt',13)} Coaches die ${p.Speler} nu hebben</span><button onclick="togglePlayerCCDetail()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;">×</button></div>
+        <div class="stat-detail-body">
+          ${cur.coaches.length ? cur.coaches.map(c=>`<div class="stat-detail-row" style="cursor:pointer;" onclick="openCoachTeamModal('${c.coach.replace(/'/g,"\\'")}')">
+            <div class="stat-detail-info">
+              <div class="stat-detail-match">${c.coach} <span style="color:var(--text-dim);font-size:11px;">(${c.team})</span></div>
+              <div class="stat-detail-sub">${c.reserve?'bank':'basis'} · ${pointsByCoach[c.coach]||0} pnt (incl. bankregel)</div>
+            </div>
+            <div class="stat-detail-pts" style="color:var(--def);">${roundsByCoach[c.coach]||0}/${totalRounds}</div>
+          </div>`).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:12px;">Geen enkele coach heeft deze speler momenteel.</div>`}
+          <div style="padding:10px 14px;">
+            <button class="btn ghost" style="width:100%;" onclick="togglePlayerCCHistory()">${icon('clock',12)} Bekijk hele seizoen (alle coaches, per ronde)</button>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
+  return `
+    <div onclick="togglePlayerCCDetail()" style="cursor:pointer;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:12px;margin-top:2px;margin-bottom:${open?'0':'12px'};background:linear-gradient(90deg, rgba(242,184,7,0.12), rgba(242,184,7,0.02));border:1px solid ${open?'var(--accent)':'var(--accent-dim, var(--line))'};">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(242,184,7,0.18);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">${icon('trophy',17)}</div>
+        <div>
+          <div style="font-family:'Oswald';font-weight:700;font-size:13px;color:var(--text);">Casting Couch — coaches nu</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${everCount}/${cur.total} ooit gehad</div>
+        </div>
+      </div>
+      <div style="font-family:'JetBrains Mono';font-size:22px;font-weight:700;color:var(--accent);flex-shrink:0;">${cur.count}/${cur.total}</div>
+    </div>
+    ${detail}
+  `;
+}
 function playerInjuryHistory(naam, team){
   return INJURY_HISTORY.filter(h=>h.Speler===naam && h.Team===team);
 }
@@ -6057,10 +6270,10 @@ function playerRankMeta(p){
 }
 function rankListHtml(items, unit){
   if(items.length===0) return `<div style="color:var(--text-dim);font-size:13px;">Geen data voor dit seizoen.</div>`;
-  const q = (state.rankHighlight||'').trim().toLowerCase();
+  const q = normSearch(state.rankHighlight);
   return `<ol style="list-style:none;padding:0;margin:0;">
     ${items.map(({p,val},i)=>{
-      const isHit = q && p.Speler.toLowerCase().includes(q);
+      const isHit = q && normSearch(p.Speler).includes(q);
       const inTeam = isInMyTeam(p);
       const rowStyle = isHit ? 'background:rgba(242,184,7,0.18);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);'
         : inTeam ? 'background:rgba(79,160,224,0.14);border-radius:6px;box-shadow:inset 0 0 0 1px var(--def);' : '';
@@ -6080,10 +6293,10 @@ function rankListHtml(items, unit){
 // rankListHtml, want daar is geen apart "aantal" van toepassing.
 function rankListHtmlDual(items, countUnit, ptsPerUnit){
   if(items.length===0) return `<div style="color:var(--text-dim);font-size:13px;">Geen data voor dit seizoen.</div>`;
-  const q = (state.rankHighlight||'').trim().toLowerCase();
+  const q = normSearch(state.rankHighlight);
   return `<ol style="list-style:none;padding:0;margin:0;">
     ${items.map(({p,count,val},i)=>{
-      const isHit = q && p.Speler.toLowerCase().includes(q);
+      const isHit = q && normSearch(p.Speler).includes(q);
       const inTeam = isInMyTeam(p);
       const rowStyle = isHit ? 'background:rgba(242,184,7,0.18);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);'
         : inTeam ? 'background:rgba(79,160,224,0.14);border-radius:6px;box-shadow:inset 0 0 0 1px var(--def);' : '';
@@ -6509,7 +6722,10 @@ function renderRankingsTab(){
         <label style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);">Prijs t/m €${state.rankPriceMax.toFixed(2)}M</label>
         <input type="range" min="0" max="4.5" step="0.25" value="${state.rankPriceMax}" oninput="setRankPriceMax(this.value)">
       </div>
-      <input type="text" id="input-rank-highlight" placeholder="Highlight speler..." value="${state.rankHighlight}" oninput="setRankHighlight(this.value)" style="min-width:180px;">
+      <div style="position:relative;">
+        <input type="text" id="input-rank-highlight" placeholder="Highlight speler..." value="${state.rankHighlight}" oninput="setRankHighlight(this.value)" style="min-width:180px;" autocomplete="off">
+        ${renderPlayerAutocomplete(state.rankHighlight, 'input-rank-highlight', 'selectRankHighlight')}
+      </div>
     </div>
     ${state.rankHighlight.trim() ? `<div class="news-note" style="border-color:var(--accent);">${icon('star',13)} Highlight actief voor "<b>${state.rankHighlight}</b>".</div>` : ''}
     ${is2627 ? `<div class="news-note">2026/27-statistieken worden opgebouwd uit de wedstrijddata die jij per speelronde aanlevert. ${fromRound||toRound?`Gefilterd op ronde ${fromRound||1} t/m ${toRound||Math.max(...rounds)}.`:'Alle beschikbare rondes.'}</div>` : ''}
@@ -6583,7 +6799,7 @@ function renderCoachRankContent(){
   const keyAssistCounts = {}; // club -> aantal
   keyAssistSubs.forEach(k=>{ keyAssistCounts[k.club] = (keyAssistCounts[k.club]||0)+1; });
   const rows = Object.entries(COACH_MATCH_STATS).map(([coach,s])=>({coach, ...s, keyAssistSubs: keyAssistCounts[s.club]||0}));
-  const q = (state.rankHighlight||'').trim().toLowerCase();
+  const q = normSearch(state.rankHighlight);
   function card(title, field, ascending){
     const sorted = [...rows].sort((a,b)=> ascending ? a[field]-b[field] : b[field]-a[field]);
     const top5 = sorted.slice(0,5);
@@ -6591,7 +6807,7 @@ function renderCoachRankContent(){
       <div class="label rank-label-click" style="margin-bottom:10px;" onclick="openCoachStatModal('${title}','${field}',${!!ascending})">Top 5 — ${title} <span class="rank-label-arrow">&rarr;</span></div>
       <ol style="list-style:none;padding:0;margin:0;">
         ${top5.map((r,i)=>{
-          const isHit = q && r.coach.toLowerCase().includes(q);
+          const isHit = q && normSearch(r.coach).includes(q);
           return `<li onclick="openCoachProfileModal('${r.coach.replace(/'/g,"\\'")}');event.stopPropagation();" style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${isHit?'background:rgba(242,184,7,0.18);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);':''}">
             <span style="font-family:'Oswald';color:var(--text-dim);width:18px;">${i+1}</span>
             <span style="width:22px;">${teamLogo(r.club)}</span>
@@ -6658,7 +6874,7 @@ function renderCoachRankContent(){
 function renderRefRankContent(){
   const cumulative = computeRefereeCumulative();
   const rows = Object.entries(cumulative).map(([naam,s])=>({naam, geel:s.geel, rood:s.rood, kaartenTotaal:s.geel+s.rood, penaltys:s.penaltys, overtredingen:s.overtredingen, wedstrijden:s.wedstrijden}));
-  const q = (state.rankHighlight||'').trim().toLowerCase();
+  const q = normSearch(state.rankHighlight);
   function card(title, field){
     const sorted = [...rows].sort((a,b)=>b[field]-a[field]);
     const top5 = sorted.slice(0,5);
@@ -6666,7 +6882,7 @@ function renderRefRankContent(){
       <div class="label rank-label-click" style="margin-bottom:10px;" onclick="openRefStatModal('${title}','${field}')">Top 5 — ${title} <span class="rank-label-arrow">&rarr;</span></div>
       <ol style="list-style:none;padding:0;margin:0;">
         ${top5.map((r,i)=>{
-          const isHit = q && r.naam.toLowerCase().includes(q);
+          const isHit = q && normSearch(r.naam).includes(q);
           return `<li onclick="openRefProfileModal('${r.naam.replace(/'/g,"\\'")}');event.stopPropagation();" style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${isHit?'background:rgba(242,184,7,0.18);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);':''}">
             <span style="font-family:'Oswald';color:var(--text-dim);width:18px;">${i+1}</span>
             <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent);':''}">${r.naam}</span>
@@ -6714,8 +6930,8 @@ function renderPickerModal(){
   const f = state.modal;
   let list = PLAYERS.filter(p=>p.Positie===def.pos && !p.former);
   if(f.search){
-    const q = f.search.toLowerCase();
-    list = list.filter(p=>p.Speler.toLowerCase().includes(q)||p.Team.toLowerCase().includes(q));
+    const q = normSearch(f.search);
+    list = list.filter(p=>normSearch(p.Speler).includes(q)||normSearch(p.Team).includes(q));
   }
   if(f.teamFilter && f.teamFilter!=='ALL') list = list.filter(p=>p.Team===f.teamFilter);
   if(f.priceMin) list = list.filter(p=>p.Prijs >= parseFloat(f.priceMin));
@@ -7532,6 +7748,7 @@ function renderPlayerModal(){
           ${statTile(playerSuspensionHistory(p.Speler, p.Team).length, 'Aantal keer geschorst', {key:'SuspensionHistory'})}
         </div>
         ${renderStatDetailPanel(p, sel)}
+        ${sel==='2026/27' ? renderPlayerCastingCouchSection(p) : ''}
         ${sel==='2026/27' ? renderPointsDonut(p) : ''}
         <div style="font-size:11px;color:var(--text-dim);margin:-8px 0 16px;">Waarden zijn puntenbijdrages volgens het CVHJ-puntensysteem (bijv. clean sheet-punten ÷ 5 = aantal clean sheets als verdediger), geen ruwe telling.${sel==='2026/27' ? ' Voor 2026/27 zijn doelpunten/assists/clean sheets/kaarten/penalty\'s live opgeteld uit de rondedata, inclusief de bevestigde CVHJ-waardes (penalty gescoord = 4 pnt vast, penalty gemist = -2 pnt vast, los van een gewoon doelpunt). "Punten reddingen" is een SCHATTING (schoten op doel tegen − tegengoals per wedstrijd, ÷5 afgerond naar beneden), geen exacte CVHJ-telling — die staat namelijk nergens los vermeld in de wedstrijddata. Penalty gestopt blijft "n.b." (zit niet in de schoten-op-doel-schatting).' : ''}</div>
         ` : `<div class="news-note">Geen data voor seizoen ${sel}${sel==='2026/27' ? ' — nog geen ronde-data dit seizoen voor deze speler.' : ' — speler zat toen (nog) niet in de Eredivisie-dataset.'}</div>`}
@@ -7647,6 +7864,7 @@ function renderModal(){
   if(state.modal.type==='saveLoad') return renderSaveLoadModal();
   if(state.modal.type==='compare') return renderCompareModal();
   if(state.modal.type==='coachStats') return renderCoachStatsModal();
+  if(state.modal.type==='coachTeam') return renderCoachTeamModal();
   if(state.modal.type==='manageSandbox') return renderManageSandboxModal();
   if(state.modal.type==='timeMachine') return renderTimeMachineModal();
   if(state.modal.type==='fullConfig') return renderFullConfigModal();
@@ -7882,7 +8100,7 @@ function render(){
       ${groupTabs.map(t=>`<button class="${state.tab===t?'active':''}" style="${state.tab===t?`color:${NAV_GROUPS.find(g=>g.id===activeGroup).color};border-color:${NAV_GROUPS.find(g=>g.id===activeGroup).color};`:''}" onclick="setTab('${t}')">${TAB_LABELS[t]}</button>`).join('')}
     </nav>` : ''}
     <main>
-      ${state.tab==='home' ? renderHomeTab() : state.tab==='scout' ? renderScoutTab() : state.tab==='team' ? renderTeamTab() : state.tab==='clubs' ? renderClubsTab() : state.tab==='stats' ? renderStatsTab() : state.tab==='personal' ? renderPersonalTab() : state.tab==='league' ? renderLeagueTab() : state.tab==='leagueStats' ? renderLeagueStatsTab() : state.tab==='coachTeamView' ? renderCoachTeamViewTab() : state.tab==='hof' ? renderHallOfFameTab() : state.tab==='wissels' ? renderWisselsTab() : state.tab==='parels' ? renderParelsTab() : state.tab==='matches' ? renderMatchesTab() : state.tab==='calendar' ? renderCalendarTab() : state.tab==='injuries' ? renderInjuriesTab() : state.tab==='injuryHistory' ? renderInjuryHistoryTab() : state.tab==='suspensions' ? renderSuspensionsTab() : state.tab==='standings' ? renderStandingsTab() : state.tab==='rankings' ? renderRankingsTab() : state.tab.startsWith('week_') ? renderWeekTab() : renderNewsTab()}
+      ${state.tab==='home' ? renderHomeTab() : state.tab==='scout' ? renderScoutTab() : state.tab==='team' ? renderTeamTab() : state.tab==='clubs' ? renderClubsTab() : state.tab==='stats' ? renderStatsTab() : state.tab==='personal' ? renderPersonalTab() : state.tab==='league' ? renderLeagueTab() : state.tab==='leagueStats' ? renderLeagueStatsTab() : state.tab==='spelersZoeker' ? renderSpelersZoekerTab() : state.tab==='coachTeamView' ? renderCoachTeamViewTab() : state.tab==='hof' ? renderHallOfFameTab() : state.tab==='wissels' ? renderWisselsTab() : state.tab==='parels' ? renderParelsTab() : state.tab==='matches' ? renderMatchesTab() : state.tab==='calendar' ? renderCalendarTab() : state.tab==='injuries' ? renderInjuriesTab() : state.tab==='injuryHistory' ? renderInjuryHistoryTab() : state.tab==='suspensions' ? renderSuspensionsTab() : state.tab==='standings' ? renderStandingsTab() : state.tab==='rankings' ? renderRankingsTab() : state.tab.startsWith('week_') ? renderWeekTab() : renderNewsTab()}
     </main>
     ${renderModal()}
     ${renderDialog()}
@@ -7965,7 +8183,38 @@ function goToScoutFromRank(sortKey, opts){
   render();
 }
 function toggleRankTeamPicker(){ state.rankTeamPickerOpen = !state.rankTeamPickerOpen; render(); }
+// Herbruikbare autocomplete-dropdown: toont bij het typen meteen aanklikbare spelersnamen die
+// de zoekterm bevatten, zodat je niet de volledige naam hoeft te typen. `inputId` is het element
+// waar de dropdown onder moet verschijnen; `onSelect` is de naam van de globale functie die wordt
+// aangeroepen (met de gekozen spelersnaam als argument) bij een klik.
+function renderPlayerAutocomplete(query, inputId, onSelect, maxResults){
+  const q = normSearch(query);
+  if(q.length<1) return '';
+  // Als de zoekterm al exact (hoofdletterongevoelig, accentongevoelig) een volledige spelersnaam
+  // is, is er net al een keuze gemaakt — dan hoeft de dropdown niet meer open te staan.
+  if(PLAYERS.some(p=>normSearch(p.Speler)===q)) return '';
+  const seen = new Set();
+  const matches = [];
+  for(const p of PLAYERS){
+    if(p.former) continue;
+    if(seen.has(p.Speler)) continue;
+    if(normSearch(p.Speler).includes(q)){
+      matches.push(p);
+      seen.add(p.Speler);
+      if(matches.length>=(maxResults||8)) break;
+    }
+  }
+  if(!matches.length) return '';
+  return `<div class="autocomplete-dropdown" style="position:relative;z-index:40;">
+    <div style="position:absolute;top:2px;left:0;right:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.35);overflow:hidden;max-width:280px;">
+      ${matches.map(p=>`<div style="padding:8px 12px;font-size:12.5px;cursor:pointer;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;" onmousedown="event.preventDefault();${onSelect}('${p.Speler.replace(/'/g,"\\'")}')">
+        ${teamLogo(p.Team)}<span>${p.Speler}</span><span style="color:var(--text-dim);font-size:10.5px;margin-left:auto;">${POS_SHORT[p.Positie]||''} · ${p.Team}</span>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
 function setRankHighlight(v){ state.rankHighlight = v; render(); }
+function selectRankHighlight(naam){ state.rankHighlight = naam; render(); }
 function setRankGroup(g){ state.rankGroup = g; state.rankStat = null; render(); }
 function setRankStat(s){ state.rankStat = s; render(); }
 function rankGoBack(){ if(state.rankStat) state.rankStat = null; else state.rankGroup = null; render(); }
@@ -8860,6 +9109,25 @@ function viewLeagueTeam(coach){
   }
 }
 function setViewingCoachTeamRound(v){ state.viewingCoachTeamRound = v?parseInt(v):null; render(); }
+function openCoachTeamModal(coach){
+  state.viewingCoachTeam = coach;
+  state.viewingCoachTeamRound = null;
+  state.modal = {type:'coachTeam', coach, prevModal: state.modal};
+  render();
+}
+function renderCoachTeamModal(){
+  const coach = state.modal.coach;
+  const info = CASTING_COUCH_COACHES.find(c=>c.coach===coach);
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:900px;">
+      <div class="head"><h4>Team — ${coach}${info?` (${info.team})`:''}</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <button class="btn ghost" style="margin-bottom:10px;" onclick="closeModal();viewCoachTeam('${coach.replace(/'/g,"\\'")}')">${icon('shirt',13)} Naar volledige teampagina</button>
+        ${renderCoachTeamViewTab()}
+      </div>
+    </div>
+  </div>`;
+}
 function openCoachStatsModal(coach){
   state.statsCoach = coach;
   state.statsSource = 'team';
