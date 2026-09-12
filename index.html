@@ -5550,6 +5550,10 @@ function setStatsMetric(v){ state.statsMetric=v; render(); }
 function setStatsPosFilter(v){ state.statsPosFilter=v; render(); }
 function setTeamStatsSeason(v){ state.teamStatsSeason=v; render(); }
 function setStatsCoach(v){ state.statsCoach=v; render(); }
+function setStatsCoachOrJumpToPerfectTeam(v){
+  if(v==='__PERFECTTEAM__'){ state.tab='week_perfectteam'; render(); return; }
+  setStatsCoach(v);
+}
 // Alle gebeurtenissen van een specifieke puntopbouw-categorie voor het VOLLEDIGE team van een coach
 // (over alle rondes, alleen tellend voor de speler(s) die die ronde daadwerkelijk in het team
 // zaten) — hergebruikt dezelfde detectie als op het spelersprofiel (findStatMatches), maar dan
@@ -6124,6 +6128,7 @@ function renderTeamStatDetailPanel(coach){
   </div>`;
 }
 function renderStatsTab(){
+  ensurePerfectTeamInjected();
   const source = state.statsSource || 'team';
   if(source==='all'){
     const season = state.scoutSeason;
@@ -6320,9 +6325,10 @@ function renderStatsTab(){
       <select onchange="setTeamStatsSeason(this.value)" style="font-weight:600;">${SEASON_ORDER.map(s=>`<option value="${s}" ${teamSeason===s?'selected':''}>Seizoen: ${s}</option>`).join('')}</select>
       ${useWeekly ? `<select onchange="setStatsCoach(this.value)" style="font-weight:600;">
         <option value="__ALL__" ${statsCoach==='__ALL__'?'selected':''}>Alle coaches samen</option>
+        <option value="__PERFECTTEAM__" ${statsCoach==='__PERFECTTEAM__'?'selected':''}>⭐ Perfect Team (theoretisch maximum)</option>
         ${CASTING_COUCH_COACHES.map(c=>`<option value="${c.coach}" ${statsCoach===c.coach?'selected':''}>Coach: ${c.coach} (${c.team})</option>`).join('')}
       </select>` : ''}
-      ${useWeekly && statsCoach!=='__ALL__' ? `<button class="btn ghost" onclick="viewCoachTeam('${statsCoach.replace(/'/g,"\\'")}')">${icon('shirt',13)} Team bekijken</button>` : ''}
+      ${useWeekly && statsCoach!=='__ALL__' && statsCoach!=='__PERFECTTEAM__' ? `<button class="btn ghost" onclick="viewCoachTeam('${statsCoach.replace(/'/g,"\\'")}')">${icon('shirt',13)} Team bekijken</button>` : ''}
     </div>
     ${!anyData ? `<div class="news-note">Nog geen data voor ${teamSeason}${teamSeason==='2026/27'?' — het seizoen is nog niet begonnen. Zodra er speeldata is, vult dit zich vanzelf.':''}. Kies eventueel een ander seizoen hierboven om historische prestaties te bekijken.</div>` : ''}
     ${useWeekly ? `<div class="news-note">${icon('info',11)} Dit is het team van <b>${statsCoach}</b> zoals het er élke week écht stond${statsCoach===(state.followedCoach||'Jelle Coachman')?' (jouw team)':''}, niet met terugwerkende kracht toegepast — een speler die inmiddels is gewisseld, telt hier alleen mee voor de ronde(s) waarin hij daadwerkelijk in het team zat. Kies hierboven een andere coach om zijn/haar statistieken te zien.</div>` : ''}
@@ -10907,6 +10913,24 @@ function computeRefereeCumulative(){
 // wissels ingezet op de zwakste plekken van dat moment t.o.v. de best beschikbare vervanger
 // voor DIE ronde specifiek — geen vooruitkijken naar latere rondes.
 let __perfectTeamCache = null;
+// Injecteert de Perfect Team-geschiedenis als een "synthetische coach" (__PERFECTTEAM__) in
+// CASTING_COUCH_TEAM_SQUADS, zodat alle bestaande statistiek-berekeningen (renderStatsTab e.d.)
+// hem automatisch net als een echte coach kunnen behandelen — geen aparte parallelle berekening
+// nodig voor dezelfde uitgebreide statistieken (punten per speler, per linie, bank, wissels, etc.).
+let __perfectTeamGeinjecteerd = false;
+function ensurePerfectTeamInjected(){
+  if(__perfectTeamGeinjecteerd) return;
+  const data = computePerfectTeamHistory();
+  if(!data) return;
+  data.geschiedenis.forEach(g=>{
+    if(!CASTING_COUCH_TEAM_SQUADS[g.ronde]) return;
+    CASTING_COUCH_TEAM_SQUADS[g.ronde]['__PERFECTTEAM__'] = {
+      team: 'Perfect Team', formatie: '3-4-3',
+      squad: g.squad.map(s=>({key: s.p.Speler+'|'+s.p.Team, naam: s.p.Speler, club: s.p.Team, pos: s.p.Positie, reserve: !s.basis})),
+    };
+  });
+  __perfectTeamGeinjecteerd = true;
+}
 function computePerfectTeamHistory(){
   if(__perfectTeamCache) return __perfectTeamCache;
   const rondes = availableSnapshotRounds();
@@ -11078,13 +11102,23 @@ function renderPerfectTeamTab(){
         </div>
       `).join('')}
     <div class="section-title" style="margin-top:14px;"><span>Team deze ronde</span><span class="line"></span></div>
+    <div class="summary-cards" style="margin-bottom:12px;">
+      <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('save',18)}</div><div class="label">Teamwaarde</div><div class="value">${fmtEuro(huidige.squad.reduce((s,g)=>s+g.p.Prijs,0))}</div></div>
+      <div class="summary-card"><div class="summary-card-icon">${icon('trophy',18)}</div><div class="label">Gem. sterren</div><div class="value">${(huidige.squad.reduce((s,g)=>s+(g.p._stars||0),0)/huidige.squad.length).toFixed(1)}★</div></div>
+    </div>
     ${['Goalkeeper','Defender','Midfielder','Forward'].map(pos=>`
       <div style="margin-bottom:8px;">
         <div style="font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:4px;">${POS_LABEL[pos]}</div>
         ${huidige.squad.filter(g=>g.p.Positie===pos).map(g=>`
-          <div style="display:flex;justify-content:space-between;padding:5px 8px;background:${g.basis?'var(--surface)':'transparent'};border-radius:6px;margin-bottom:2px;">
-            <span style="font-size:12px;${g.basis?'':'color:var(--text-dim);'}">${teamLogo(g.p.Team)}${g.p.Speler}${!g.basis?' (bank)':''}</span>
-            <span style="font-family:'JetBrains Mono';font-size:12px;">${g.basis?g.pts:Math.floor(g.pts*0.5)+' (½ van '+g.pts+', afgerond naar beneden)'} pnt</span>
+          <div style="cursor:pointer;padding:7px 8px;background:${g.basis?'var(--surface)':'transparent'};border-radius:6px;margin-bottom:2px;" onclick="openPlayerModal('${encodeURIComponent(g.p.Speler)}','${encodeURIComponent(g.p.Team)}')">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;${g.basis?'':'color:var(--text-dim);'}">${teamLogo(g.p.Team)}${g.p.Speler}${!g.basis?' (bank)':''}</span>
+              <span style="font-family:'JetBrains Mono';font-size:12px;">${g.basis?g.pts:Math.floor(g.pts*0.5)+' (½ van '+g.pts+', afgerond naar beneden)'} pnt</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
+              <span style="font-size:10px;color:var(--text-dim);">${g.p.Team} · ${fmtEuro(g.p.Prijs)}</span>
+              ${starRatingHtml(g.p, 11)}
+            </div>
           </div>
         `).join('')}
       </div>
