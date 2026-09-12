@@ -8018,12 +8018,13 @@ function downloadPuntenopbouw(r){
   const rows = [header];
   PLAYERS.filter(p=>!p.former).forEach(p=>{
     const key = p.Speler+'|'+p.Team;
-    const heeftData = snap.playerRoundPoints && (key in snap.playerRoundPoints);
-    if(!heeftData) return; // speler kwam deze ronde helemaal niet voor in de scrape
+    // Belangrijk: GEEN speler overslaan, ook niet als hij deze ronde nergens in de scrape
+    // voorkomt (bijv. niet opgesteld door een coach) — die telt dan gewoon als 0 punten, zoals
+    // expliciet gevraagd ("geef ook spelers die 0 hebben gescoord").
     rows.push([
       p.Speler, p.Team, POS_KORT[p.Positie]||p.Positie,
       cumulatiefTotaal(key),
-      snap.playerRoundPoints[key] ?? 0,
+      snap.playerRoundPoints ? (snap.playerRoundPoints[key] ?? 0) : 0,
       snap.playerRoundMinutes ? (snap.playerRoundMinutes[key] ?? 0) : 0,
       snap.playerRoundGoals ? (snap.playerRoundGoals[key] ?? 0) : 0,
       snap.playerRoundAssists ? (snap.playerRoundAssists[key] ?? 0) : 0,
