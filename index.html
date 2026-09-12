@@ -149,7 +149,7 @@
   .sidebar-btn.active::before{content:'';position:absolute;left:-9px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--accent);border-radius:0 3px 3px 0;}
   .sidebar-spacer{flex:1;}
   @media (max-width: 760px){
-    .wrap{padding-left:20px; padding-bottom:150px;}
+    .wrap{padding-left:20px; padding-bottom:210px;}
     .sidebar{
       left:0; right:0; top:auto; bottom:0; width:100%; height:auto; flex-direction:row; flex-wrap:wrap;
       justify-content:center; align-items:center; border-right:none; border-top:1px solid var(--line); padding:6px 4px 8px; gap:0;
@@ -589,7 +589,17 @@
   .tutorial-dot.active{background:var(--accent);width:18px;border-radius:3px;}
   .tutorial-nav{display:flex;gap:10px;}
   .tutorial-nav .btn{flex:1;}
-  @media (max-width:760px){ .tutorial-card{bottom:76px;padding:18px;} }
+  @media (max-width:760px){ .tutorial-card{bottom:210px;padding:18px;} }
+  @media (max-width:760px){
+    /* De onderste navigatiebalk is op mobiel 2 rijen hoog (10 secties, 5 per rij) — alle
+       zwevende knoppen die normaal vanaf de onderkant van het scherm gepositioneerd zijn,
+       moeten hier extra ruimte voor vrijhouden, anders verdwijnen ze er half achter. */
+    .bankie-launcher{bottom:150px;}
+    .calc-launcher{bottom:218px;}
+    .quick-actions-stack{bottom:276px;}
+    .quick-actions-toggle{bottom:150px;}
+    .compare-bar{bottom:150px;}
+  }
   .bankie-alert{display:flex;justify-content:space-between;align-items:center;gap:8px;background:rgba(242,184,7,0.08);border:1px solid var(--accent-dim);border-radius:8px;padding:9px 10px;margin-bottom:6px;font-size:12px;}
   .bankie-alert button{background:var(--accent);color:#0B0B0C;border:none;border-radius:6px;width:22px;height:22px;cursor:pointer;flex-shrink:0;font-weight:700;}
   .bankie-launcher:hover{transform:translate(var(--float-dx,0px),var(--float-dy,0px)) scale(1.06);}
@@ -626,6 +636,16 @@
     border:2px solid rgba(255,255,255,0.35); border-radius:14px;
     padding:14px 8px; display:flex; flex-direction:column; justify-content:space-between; gap:4px;
     position:relative;
+  }
+  .pitch-blue{
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 12%, rgba(255,255,255,0.09) 12% 24%),
+      linear-gradient(180deg, #1B5E8E, #144A72);
+  }
+  .pitch-team-label{
+    position:absolute; left:8px; bottom:8px; font-family:'JetBrains Mono'; font-size:10px; font-weight:600;
+    color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px;
+    max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; z-index:5;
   }
   .pitch-screenshot-btn{
     position:absolute; bottom:6px; right:6px; width:42px; height:42px; border-radius:50%;
@@ -1344,7 +1364,77 @@ const NATIONALITEITEN = {
 'Mats Lemmens|Willem II': 'België',
 'Hidde ter Avest|Willem II': 'Nederland',
 'Tonny Vilhena|Willem II': 'Nederland',
-'Kasper Boogaard|Willem II': 'Nederland'
+'Kasper Boogaard|Willem II': 'Nederland',
+'Thomas Beelen|Feyenoord': 'Nederland',
+'Tsuyoshi Watanabe|Feyenoord': 'Japan',
+'Gijs Smal|Feyenoord': 'Nederland',
+'Jakub Moder|Feyenoord': 'Polen',
+'Quinten Timber|Feyenoord': 'Nederland',
+'Jeremiah St. Juste|Feyenoord': 'Nederland',
+'Ayase Ueda|Feyenoord': 'Japan',
+'Cyle Larin|Feyenoord': 'Canada',
+'Gonçalo Borges|Feyenoord': 'Portugal',
+'Steven Benda|Feyenoord': 'Duitsland',
+'Sem Steijn|Feyenoord': 'Nederland',
+'Jordan Bos|Feyenoord': 'Australië',
+'Leo Sauer|Feyenoord': 'Slowakije',
+'Casper Tengstedt|Feyenoord': 'Denemarken',
+'Gernot Trauner|Feyenoord': 'Oostenrijk',
+'Raheem Sterling|Feyenoord': 'Engeland',
+'Mats Deijl|Feyenoord': 'Nederland',
+'Anel Ahmedhodzic|Feyenoord': 'Bosnië-Herzegovina',
+'Timon Wellenreuther|Feyenoord': 'Duitsland',
+'Anis Hadj Moussa|Feyenoord': 'Algerije',
+'Thijs Kraaijeveld|Feyenoord': 'Nederland',
+'Shiloh \'t Zand|Feyenoord': 'Suriname',
+'Givairo Read|Feyenoord': 'Nederland',
+'Gaoussou Diarra|Feyenoord': 'Mali',
+'Oussama Targhalline|Feyenoord': 'Marokko',
+'Jordan Lotomba|Feyenoord': 'Zwitserland',
+'Malcolm Jeng|Feyenoord': 'Zweden',
+'Jaden Slory|Feyenoord': 'Nederland',
+'Liam Bossin|Feyenoord': 'Ierland',
+'Luciano Valente|Feyenoord': 'Nederland',
+'Gjivai Zechiël|Feyenoord': 'Nederland',
+'Sven Mijnans|PSV': 'Nederland',
+'Joey Veerman|PSV': 'Nederland',
+'Sami Ouaissa|PSV': 'Nederland',
+'Couhaib Driouech|PSV': 'Marokko',
+'Kodai Sano|PSV': 'Japan',
+'Joël Drommel|PSV': 'Nederland',
+'Filip Kostic|PSV': 'Servië',
+'Kasper Dolberg|Ajax': 'Denemarken',
+'Maarten Paes|Ajax': 'Verenigde Staten',
+'Dies Janse|Ajax': 'Nederland',
+'Jofre Torrents|Ajax': 'Spanje',
+'Dušan Tadic|N.E.C.': 'Servië',
+'Emre Mor|N.E.C.': 'Turkije',
+'Dennis Geiger|N.E.C.': 'Duitsland',
+'Charles Vanhoutte|Feyenoord': 'België',
+'Mika Mármol|Feyenoord': 'Spanje',
+'Luka Ivanušec|Feyenoord': 'Kroatië',
+'Tjark Ernst|Feyenoord': 'Duitsland',
+'Javi López|Feyenoord': 'Spanje',
+'Nacho Ferri|Feyenoord': 'Spanje',
+'Wout Weghorst|FC Twente': 'Nederland',
+'Remko Pasveer|FC Twente': 'Nederland',
+'Malcolm Jeng|FC Groningen': 'Zweden',
+'Pelle Clement|FC Groningen': 'Nederland',
+'Rijk Janse|FC Groningen': 'Nederland',
+'Zidane Iqbal|FC Utrecht': 'Irak',
+'Calvin Stengs|AZ': 'Nederland',
+'Troy Parrott|AZ': 'Ierland',
+'Jari De Busser|AZ': 'België',
+'Stije Resink|AZ': 'Nederland',
+'Dave Kwakman|AZ': 'Nederland',
+'Lewis Schouten|AZ': 'Nederland',
+'Thomas Didillon-Hödl|Willem II': 'Frankrijk',
+'Isaac Babadi|PSV': 'Nederland',
+'Younes Jaber el Meftahi|Sparta Rotterdam': 'Nederland',
+'Kaylen Reitmaier|Fortuna Sittard': 'Nederland',
+'Nils Eggens|FC Groningen': 'Nederland',
+'Noam Emeran|FC Groningen': 'Frankrijk',
+'Malcolm Jeng|FC Groningen': 'Zweden'
 };
 const NATIONALITEIT_VLAG = {
   'Nederland':'🇳🇱', 'Curacao':'🇨🇼', 'Frankrijk':'🇫🇷', 'Marokko':'🇲🇦', 'Belgie':'🇧🇪', 'België':'🇧🇪',
@@ -1357,6 +1447,7 @@ const NATIONALITEIT_VLAG = {
   'Mexico':'🇲🇽', 'Nigeria':'🇳🇬', 'Oekraïne':'🇺🇦', 'Deniemarken':'🇩🇰', 'Denemarken':'🇩🇰', 'Engeland':'🏴󠁧󠁢󠁥󠁮󠁧󠁿',
   'Venezuela':'🇻🇪', 'Servië':'🇷🇸', 'Letland':'🇱🇻', 'Bulgarije':'🇧🇬', 'Nieuw-Zeeland':'🇳🇿', 'Guinee-Bissau':'🇬🇼',
   'Burkina Faso':'🇧🇫', 'Guinee':'🇬🇳', 'Hongarije':'🇭🇺', 'Australië':'🇦🇺', 'Zweden':'🇸🇪', 'Rusland':'🇷🇺',
+  'Mali':'🇲🇱', 'Irak':'🇮🇶',
 };
 const PLAYER_BIO = {
   'Nick Olij|PSV': {nationaliteit:'Nederland', geboortedatum:'1996-06-15'},
@@ -4549,6 +4640,37 @@ function toggleExportClub(club){
   if(i>=0) state.modal.customClubs.splice(i,1); else state.modal.customClubs.push(club);
   render();
 }
+// Opent de bestaande (volledige, met thema's) screenshot-kiezer voor een WILLEKEURIG team i.p.v.
+// alleen je eigen team — door tijdelijk state.squad/state.formation te vervangen. Zo hoeft het
+// hele thema-systeem (met bank, meerdere stijlen) niet apart opnieuw gebouwd te worden voor elk
+// veld; closeModal() zet alles automatisch weer terug zodra de kiezer sluit.
+function openScreenshotThemePickerForSquad(perPlayer, label){
+  const basisPerPos = {Defender:0, Midfielder:0, Forward:0};
+  perPlayer.filter(p=>!p.reserve).forEach(p=>{ if(basisPerPos[p.pos]!=null) basisPerPos[p.pos]++; });
+  let formatie = Object.keys(FORMATIONS).find(f=>{
+    const f2 = FORMATIONS[f];
+    return f2.Defender===basisPerPos.Defender && f2.Midfielder===basisPerPos.Midfielder && f2.Forward===basisPerPos.Forward;
+  }) || '3-4-3';
+
+  state.__savedSquad = state.squad; state.__savedFormation = state.formation;
+  state.formation = formatie;
+  const nieuwSquad = {};
+  const tellers = {Goalkeeper:0, Defender:0, Midfielder:0, Forward:0};
+  const prefix = {Goalkeeper:'GK', Defender:'DEF', Midfielder:'MID', Forward:'FWD'};
+  perPlayer.forEach(pl=>{
+    const speler = PLAYERS.find(p=>p.Speler===(pl.speler||pl.naam) && p.Team===pl.club);
+    if(!speler) return;
+    if(pl.reserve){
+      nieuwSquad[prefix[pl.pos]+'R'] = speler;
+    } else {
+      tellers[pl.pos] = (tellers[pl.pos]||0)+1;
+      nieuwSquad[prefix[pl.pos]+tellers[pl.pos]] = speler;
+    }
+  });
+  state.squad = nieuwSquad;
+  state.__screenshotLabel = label;
+  openScreenshotThemePicker();
+}
 function openScreenshotThemePicker(context){
   context = context || 'team';
   const lastTheme = context==='league' ? state.lastLeagueExportTheme : state.lastExportTheme;
@@ -4891,6 +5013,31 @@ function renderGamerExportCard(basis, reserve, total){
     <div style="margin-top:20px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:#444;position:relative;">GLHF · ${new Date().toLocaleDateString('nl-NL')} · De Geleerde Bank</div>
   </div>`;
 }
+// Eenvoudige, generieke screenshot voor elk veld dat via renderFantasySquadPitch getoond wordt
+// (coach-teamweergaves, Team v/d Week, Perfect Team) — legt het veld direct vast, zonder het
+// uitgebreide thema-systeem van "Mijn Team" (dat is specifiek gebouwd rond state.squad).
+async function downloadGenericPitchScreenshot(pitchId, label){
+  if(typeof html2canvas === 'undefined'){
+    showInfo('De screenshot-functie kon niet laden (html2canvas is niet beschikbaar). Probeer het later opnieuw.');
+    return;
+  }
+  const target = document.getElementById(pitchId);
+  if(!target){ showInfo('Kon dit veld niet vinden om vast te leggen.'); return; }
+  try{
+    const canvas = await html2canvas(target, {backgroundColor:null, scale:2});
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    const veiligeNaam = label.replace(/[^a-z0-9]+/gi,'-').toLowerCase().slice(0,40);
+    a.download = `cvhj-${veiligeNaam}-${new Date().toISOString().slice(0,10)}.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showInfo('Screenshot gedownload!');
+  }catch(e){
+    showInfo('Er ging iets mis bij het maken van de screenshot. Probeer het opnieuw.');
+  }
+}
 async function downloadTeamScreenshot(theme){
   theme = theme || state.lastExportTheme || 'standaard';
   state.lastExportTheme = theme;
@@ -5024,7 +5171,10 @@ function renderTeamTab(){
 
 // Toont een CVHJ-fantasyteam (Coach v/d week, Couch v/d week, Algemeen Klassement) als een echt
 // voetbalveld i.p.v. platte tekst — hergebruikt dezelfde .pitch-stijl als renderMatchLineupPitch.
-function renderFantasySquadPitch(perPlayer, round){
+function renderFantasySquadPitch(perPlayer, round, pitchVariant, label){
+  const pitchId = 'pitch-'+Math.random().toString(36).slice(2,9);
+  window.__pitchSquadData = window.__pitchSquadData || {};
+  window.__pitchSquadData[pitchId] = perPlayer;
   const basis = perPlayer.filter(x=>!x.reserve);
   const reserve = perPlayer.filter(x=>x.reserve);
   const rows = [
@@ -5054,7 +5204,7 @@ function renderFantasySquadPitch(perPlayer, round){
   }
   return `
     <div class="pitch-wrap">
-      <div class="pitch">
+      <div id="${pitchId}" class="pitch${pitchVariant==='blauw'?' pitch-blue':''}">
         <svg class="pitch-markings" viewBox="0 0 300 420" preserveAspectRatio="none">
           <rect x="4" y="4" width="292" height="412" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
           <line x1="4" y1="210" x2="296" y2="210" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
@@ -5066,6 +5216,8 @@ function renderFantasySquadPitch(perPlayer, round){
         </svg>
         ${rows.map(r=>r.defs.length ? `<div class="pitch-row">${r.defs.map(chip).join('')}</div>` : '').join('')}
         <div class="pitch-goal"></div>
+        ${label ? `<div class="pitch-team-label">${label}</div>` : ''}
+        <button class="pitch-screenshot-btn" onclick="openScreenshotThemePickerForSquad(window.__pitchSquadData['${pitchId}'], '${(label||'team').replace(/'/g,"\\'")}')" title="Download screenshot van dit team (met bank en thema's)">${icon('camera',18)}</button>
       </div>
     </div>
     ${reserve.length ? `
@@ -5123,7 +5275,7 @@ function computeAllCoachTransfers(round){
     const t = computeCoachTransfer(coach, round);
     if(t && (t.uit.length || t.erin.length)){
       const info = CASTING_COUCH_COACHES.find(c=>c.coach===coach);
-      out.push({coach, team: info?info.team:'', uit: t.uit, erin: t.erin, clubChanged: t.clubChanged||[]});
+      out.push({coach, team: info?info.team:'', uit: t.uit, erin: t.erin, clubChanged: t.clubChanged||[], uitVrijwillig: t.uitVrijwillig, uitGedwongen: t.uitGedwongen});
     }
   });
   return out;
@@ -5379,7 +5531,7 @@ function renderCoachSquadModal(){
           </div>
           ${transfer.clubChanged && transfer.clubChanged.length ? `<div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${icon('info',11)} ${transfer.clubChanged.map(c=>`${c.naam} bleef in het team, maar wisselde in het echt van ${c.van} naar ${c.naar}`).join(' · ')}</div>` : ''}
         </div>` : `<div class="news-note" style="margin-bottom:14px;">Geen wissel t.o.v. ronde ${transfer.prevRound} — zelfde team aangehouden.${transfer.clubChanged && transfer.clubChanged.length ? ` (wel: ${transfer.clubChanged.map(c=>`${c.naam} ${c.van}→${c.naar}`).join(', ')})` : ''}</div>`) : ''}
-        ${renderFantasySquadPitch(perPlayer, round)}
+        ${renderFantasySquadPitch(perPlayer, round, coach===state.followedCoach ? 'groen' : 'blauw', `${coach} (${team})`)}
       </div>
     </div>
   </div>`;
@@ -5493,6 +5645,7 @@ function renderPitchView(basis, reserve){
         </svg>
         ${rows.map(r=>`<div class="pitch-row">${r.defs.map(chip).join('')}</div>`).join('')}
         <div class="pitch-goal"></div>
+        <div class="pitch-team-label">Mijn Team</div>
         <button class="pitch-screenshot-btn" onclick="openScreenshotThemePicker()" title="Download screenshot van je team">${icon('camera',18)}</button>
       </div>
     </div>
@@ -9528,6 +9681,12 @@ function resetPickerFilters(){
 }
 function closeModal(){
   if(state.modal && state.modal.type==='bingoEditor') flushBingoSave();
+  // Als er tijdelijk een ander team in state.squad stond t.b.v. een screenshot met themakeuze
+  // (zie openScreenshotThemePickerForSquad), zet dat nu terug naar het eigen team.
+  if(state.__savedSquad){
+    state.squad = state.__savedSquad; state.formation = state.__savedFormation;
+    state.__savedSquad = null; state.__savedFormation = null;
+  }
   state.modal=null; render();
 }
 function toggleBankie(){ state.bankieOpen = !state.bankieOpen; render(); }
@@ -10415,7 +10574,7 @@ function renderCoachTeamViewTab(){
       </div>
       ${transfer.clubChanged && transfer.clubChanged.length ? `<div style="font-size:11px;color:var(--text-dim);margin-top:6px;">${icon('info',11)} ${transfer.clubChanged.map(c=>`${c.naam} bleef in het team, maar wisselde in het echt van ${c.van} naar ${c.naar}`).join(' · ')}</div>` : ''}
     </div>` : `<div class="news-note" style="margin-bottom:14px;">Geen wissel t.o.v. ronde ${transfer.prevRound} — zelfde team aangehouden.${transfer.clubChanged && transfer.clubChanged.length ? ` (wel: ${transfer.clubChanged.map(c=>`${c.naam} ${c.van}→${c.naar}`).join(', ')})` : ''}</div>`) : ''}
-    ${renderFantasySquadPitch(perPlayer, selected)}
+    ${renderFantasySquadPitch(perPlayer, selected, coach===state.followedCoach ? 'groen' : 'blauw', `${coach} (${data.team})`)}
   `;
 }
 function previewScheduledSwapStatus(s){
@@ -10885,6 +11044,7 @@ function setWeekRound(v){ state.weekRound = v?parseInt(v):null; render(); }
 function setAlgemeenDetail(coach){ state.algemeenDetail = state.algemeenDetail===coach ? null : coach; render(); }
 function setRefDetail(naam){ state.refDetail = naam; render(); }
 function setRefView(v){ state.refView = v; state.refDetail = null; render(); }
+function setAlgemeenSortMode(v){ state.algemeenSortMode = v; render(); }
 // Cumulatief "Algemeen klassement" voor scheidsrechters: telt REFEREE_STATS van alle rondes
 // tot nu toe bij elkaar op (per scheidsrechter, per wedstrijd blijft de individuele wedstrijd
 // zichtbaar in perWedstrijd zodat het detailoverzicht ook in deze weergave werkt).
@@ -10944,25 +11104,33 @@ function computePerfectTeamHistory(){
     const key = p.Speler+'|'+p.Team;
     return snap && snap.playerRoundPoints && (key in snap.playerRoundPoints) ? snap.playerRoundPoints[key] : null;
   }
-  // Beschikbaar op ronde r = had die ronde daadwerkelijk data (dus speelde toen nog in de
-  // Eredivisie/CVHJ) — dit i.p.v. blind op p.former filteren. Een speler die halverwege het
-  // seizoen is getransferd (zoals Ayase Ueda, actief t/m ronde 4, weg vanaf ronde 5) is voor de
-  // eerdere rondes wél degelijk een geldige, kiesbare speler; alleen bij p.former altijd uitsluiten
-  // zou hem onterecht het hele seizoen negeren, ook in de rondes waarin hij gewoon meespeelde.
   function beschikbaarOpRonde(p, r){ return puntenOpRonde(p, r) != null; }
   function restwaarde(p, vanafRonde){
     return rondes.filter(r=>r>=vanafRonde).reduce((s,r)=>s+(puntenOpRonde(p,r)??0), 0);
   }
-  function bouwBesteElftal(r, waardeFn){
+  function waardeTotRonde(p, totRonde){
+    return rondes.filter(r=>r<=totRonde).reduce((s,r)=>s+(puntenOpRonde(p,r)??0), 0);
+  }
+  function bouwBesteElftal(r, waardeFn, variant){
+    // variant=0 is de zuivere gulzige (beste) keuze. Bij variant>0 wordt bij één van de linies
+    // een net-niet-beste kandidaat gepakt i.p.v. de allerbeste — dit levert een net iets andere,
+    // maar nog steeds sterke, startopstelling op. Door vanaf meerdere van zulke varianten de hele
+    // berekening opnieuw te draaien (multi-start), ontsnapt de zoektocht vaker aan een lokaal
+    // optimum dan wanneer er slechts van ÉÉN startpunt wordt vertrokken.
     let kosten = 0;
     const gebruikteClubs = new Set();
     const gekozen = [];
+    let variantTeller = 0;
     function kiesLinie(pos, aantal){
       const kandidaten = PLAYERS.filter(p=>p.Positie===pos && beschikbaarOpRonde(p, r))
         .map(p=>({p, waarde: waardeFn(p)})).filter(x=>x.waarde>0).sort((a,b)=>b.waarde-a.waarde);
+      // Bij deze variant: sla precies de kandidaat over die overeenkomt met dit linie-nummer.
+      const overSlaanIndex = (variant>0 && variantTeller===(variant-1)%4) ? Math.min(aantal-1, kandidaten.length-1) : -1;
+      variantTeller++;
       let n = 0;
-      for(const k of kandidaten){
-        if(n>=aantal) break;
+      for(let ci=0; ci<kandidaten.length && n<aantal; ci++){
+        if(ci===overSlaanIndex) continue;
+        const k = kandidaten[ci];
         if(gebruikteClubs.has(k.p.Team)) continue;
         if(kosten + k.p.Prijs > BUDGET) continue;
         gekozen.push(k.p); gebruikteClubs.add(k.p.Team); kosten += k.p.Prijs; n++;
@@ -10972,89 +11140,232 @@ function computePerfectTeamHistory(){
     ['Goalkeeper','Defender','Midfielder','Forward'].forEach(pos=>kiesLinie(pos, BANK[pos]));
     return gekozen;
   }
-  function besteVervanger(pos, r, budgetRuimte, overigeClubs, uitgeslotenKeys){
-    return PLAYERS.filter(p=>p.Positie===pos && beschikbaarOpRonde(p, r)
+  function besteVervanger(pos, waardeFn, budgetRuimte, overigeClubs, uitgeslotenKeys){
+    return PLAYERS.filter(p=>p.Positie===pos
         && !uitgeslotenKeys.has(p.Speler+'|'+p.Team) && !overigeClubs.has(p.Team) && p.Prijs<=budgetRuimte)
-      .map(p=>({p, waarde: restwaarde(p, r)})).sort((a,b)=>b.waarde-a.waarde)[0];
+      .map(p=>({p, waarde: waardeFn(p)})).filter(x=>x.waarde>0).sort((a,b)=>b.waarde-a.waarde)[0];
+  }
+  function berekenIndelingEnTotaal(huidigPerRonde){
+    // Bankregel: per linie de hoogste-scorende spelers DIE RONDE in de basis, rest op de bank (50%, naar beneden afgerond)
+    let cumulatief = 0;
+    const geschiedenis = [];
+    rondes.forEach(r=>{
+      const huidig = huidigPerRonde[r];
+      const metPuntenDezeRonde = huidig.squad.map(p=>({p, pts: puntenOpRonde(p, r) ?? 0}));
+      const perLinie = {};
+      metPuntenDezeRonde.forEach(g=>{ (perLinie[g.p.Positie]=perLinie[g.p.Positie]||[]).push(g); });
+      let rondeTotaal = 0;
+      const indeling = [];
+      Object.entries(perLinie).forEach(([pos, lijst])=>{
+        lijst.sort((a,b)=>b.pts-a.pts);
+        lijst.forEach((g,i)=>{
+          const basis = i<FORMATIE[pos];
+          rondeTotaal += basis ? g.pts : Math.floor(g.pts*0.5);
+          indeling.push({p:g.p, pts:g.pts, basis});
+        });
+      });
+      cumulatief += rondeTotaal;
+      geschiedenis.push({
+        ronde:r, toegestaan:huidig.toegestaan, wissels:huidig.wissels, squad:indeling,
+        rondeTotaal: Math.round(rondeTotaal*10)/10, cumulatief: Math.round(cumulatief*10)/10,
+      });
+    });
+    return {geschiedenis, totaal: Math.round(cumulatief*10)/10};
   }
 
-  // Ronde 1: bouw het fundament op basis van de waarde over het HELE seizoen — je kiest immers
-  // vooraf, dus met terugwerkende kracht wil je meteen de sterkste basis neerzetten. Alleen
-  // spelers die in ronde 1 ook echt beschikbaar waren komen in aanmerking.
-  let huidig = bouwBesteElftal(rondes[0], p=>restwaarde(p, rondes[0]));
-  const geschiedenis = [];
-  let cumulatief = 0;
-
-  rondes.forEach((r, idx)=>{
-    let wissels = [];
-    const toegestaanRegulier = windowAllowanceForRound(r);
-    let toegestaan = toegestaanRegulier;
-    if(idx>0){
-      const uitgeslotenKeys = new Set(huidig.map(p=>p.Speler+'|'+p.Team));
-      const gebruikteClubs = new Set(huidig.map(p=>p.Team));
-      let kostenHuidig = huidig.reduce((s,p)=>s+p.Prijs,0);
-
-      // Stap 1: GRATIS gedwongen wissels — spelers die deze ronde geen data meer hebben (dus
-      // niet meer beschikbaar zijn, bijv. door een transfer) MOETEN vervangen worden en tellen
-      // niet mee als reguliere transfer.
-      const nietMeerBeschikbaar = huidig.filter(p=>!beschikbaarOpRonde(p, r));
-      nietMeerBeschikbaar.forEach(vertrokkene=>{
-        const budgetRuimte = BUDGET - kostenHuidig + vertrokkene.Prijs;
-        const overigeClubs = new Set([...gebruikteClubs].filter(c=>c!==vertrokkene.Team));
-        const beste = besteVervanger(vertrokkene.Positie, r, budgetRuimte, overigeClubs, uitgeslotenKeys);
-        if(beste){
-          wissels.push({uit:vertrokkene, uitPts:0, in:beste.p, inPts:puntenOpRonde(beste.p,r)??0, gratis:true});
-          uitgeslotenKeys.delete(vertrokkene.Speler+'|'+vertrokkene.Team);
-          uitgeslotenKeys.add(beste.p.Speler+'|'+beste.p.Team);
-          gebruikteClubs.delete(vertrokkene.Team); gebruikteClubs.add(beste.p.Team);
-          kostenHuidig += beste.p.Prijs - vertrokkene.Prijs;
-          huidig = huidig.map(p=>p===vertrokkene ? beste.p : p);
+  // ---- Pass 1: VOORUIT (chronologisch) — bouw ronde 1 op met kennis van het hele seizoen,
+  // en wissel daarna elke ronde op basis van RESTERENDE (toekomstige) seizoenswaarde. ----
+  function runForwardPass(startVariant){
+    let huidig = bouwBesteElftal(rondes[0], p=>restwaarde(p, rondes[0]), startVariant||0);
+    const perRonde = {};
+    rondes.forEach((r, idx)=>{
+      let wissels = [];
+      const toegestaanRegulier = windowAllowanceForRound(r);
+      if(idx>0){
+        const uitgeslotenKeys = new Set(huidig.map(p=>p.Speler+'|'+p.Team));
+        const gebruikteClubs = new Set(huidig.map(p=>p.Team));
+        let kostenHuidig = huidig.reduce((s,p)=>s+p.Prijs,0);
+        const nietMeerBeschikbaar = huidig.filter(p=>!beschikbaarOpRonde(p, r));
+        nietMeerBeschikbaar.forEach(vertrokkene=>{
+          const budgetRuimte = BUDGET - kostenHuidig + vertrokkene.Prijs;
+          const overigeClubs = new Set([...gebruikteClubs].filter(c=>c!==vertrokkene.Team));
+          const beste = besteVervanger(vertrokkene.Positie, p=>restwaarde(p,r), budgetRuimte, overigeClubs, uitgeslotenKeys);
+          if(beste){
+            wissels.push({uit:vertrokkene, uitPts:0, in:beste.p, inPts:puntenOpRonde(beste.p,r)??0, gratis:true});
+            uitgeslotenKeys.delete(vertrokkene.Speler+'|'+vertrokkene.Team); uitgeslotenKeys.add(beste.p.Speler+'|'+beste.p.Team);
+            gebruikteClubs.delete(vertrokkene.Team); gebruikteClubs.add(beste.p.Team);
+            kostenHuidig += beste.p.Prijs - vertrokkene.Prijs;
+            huidig = huidig.map(p=>p===vertrokkene ? beste.p : p);
+          }
+        });
+        // Stap 2: reguliere (beperkte) wissels — probeer ALLE combinaties van wélke plekken je
+        // wisselt (niet alleen "de N zwakste"), en kies de combinatie die het meeste totale
+        // waarde oplevert. Bij weinig toegestane wissels (1-3) is dit prima te doorrekenen
+        // (maximaal een paar honderd combinaties) en geeft het een sterkere uitkomst dan altijd
+        // blind de zwakste plek(ken) aanpakken — soms is een net-niet-zwakste plek vervangen
+        // waardevoller omdat er daar een véél betere vervanger beschikbaar is.
+        const nogWelBeschikbaar = huidig.filter(p=>beschikbaarOpRonde(p, r));
+        function combinaties(lijst, k){
+          if(k===0) return [[]];
+          if(lijst.length<k) return [];
+          const [eerste, ...rest] = lijst;
+          const metEerste = combinaties(rest, k-1).map(c=>[eerste, ...c]);
+          const zonderEerste = combinaties(rest, k);
+          return [...metEerste, ...zonderEerste];
         }
-      });
-
-      // Stap 2: reguliere (beperkte) wissels op basis van resterende seizoenswaarde, alleen
-      // toegepast op spelers die nog wél gewoon beschikbaar zijn (gedwongen vertrekkers zijn al
-      // in stap 1 verwerkt en tellen niet dubbel mee).
-      const nogWelBeschikbaar = huidig.filter(p=>beschikbaarOpRonde(p, r));
-      const metWaarde = nogWelBeschikbaar.map(p=>({p, waarde: restwaarde(p, r)})).sort((a,b)=>a.waarde-b.waarde);
-      for(let i=0;i<toegestaanRegulier && i<metWaarde.length;i++){
-        const zwakste = metWaarde[i];
-        const budgetRuimte = BUDGET - kostenHuidig + zwakste.p.Prijs;
-        const overigeClubs = new Set([...gebruikteClubs].filter(c=>c!==zwakste.p.Team));
-        const beste = besteVervanger(zwakste.p.Positie, r, budgetRuimte, overigeClubs, uitgeslotenKeys);
-        if(beste && beste.waarde > zwakste.waarde){
-          wissels.push({uit:zwakste.p, uitPts:puntenOpRonde(zwakste.p,r)??0, in:beste.p, inPts:puntenOpRonde(beste.p,r)??0, gratis:false});
-          uitgeslotenKeys.delete(zwakste.p.Speler+'|'+zwakste.p.Team);
-          uitgeslotenKeys.add(beste.p.Speler+'|'+beste.p.Team);
-          gebruikteClubs.delete(zwakste.p.Team); gebruikteClubs.add(beste.p.Team);
-          kostenHuidig += beste.p.Prijs - zwakste.p.Prijs;
-          huidig = huidig.map(p=>p===zwakste.p ? beste.p : p);
+        let besteComboWinst = 0, besteComboWissels = null, besteComboKosten = kostenHuidig;
+        for(let k=0; k<=toegestaanRegulier && k<=nogWelBeschikbaar.length; k++){
+          combinaties(nogWelBeschikbaar, k).forEach(combo=>{
+            let tijdKosten = kostenHuidig, tijdWinst = 0, geldig = true;
+            const tijdUitgesloten = new Set(uitgeslotenKeys), tijdClubs = new Set(gebruikteClubs);
+            const tijdWissels = [];
+            combo.forEach(uitSpeler=>{
+              const budgetRuimte = BUDGET - tijdKosten + uitSpeler.Prijs;
+              const overigeClubsCombo = new Set([...tijdClubs].filter(c=>c!==uitSpeler.Team));
+              const beste = besteVervanger(uitSpeler.Positie, p=>restwaarde(p,r), budgetRuimte, overigeClubsCombo, tijdUitgesloten);
+              if(!beste){ geldig=false; return; }
+              const winstDeze = beste.waarde - restwaarde(uitSpeler, r);
+              tijdWinst += winstDeze;
+              tijdUitgesloten.delete(uitSpeler.Speler+'|'+uitSpeler.Team); tijdUitgesloten.add(beste.p.Speler+'|'+beste.p.Team);
+              tijdClubs.delete(uitSpeler.Team); tijdClubs.add(beste.p.Team);
+              tijdKosten += beste.p.Prijs - uitSpeler.Prijs;
+              tijdWissels.push({uit:uitSpeler, uitPts:puntenOpRonde(uitSpeler,r)??0, in:beste.p, inPts:puntenOpRonde(beste.p,r)??0, gratis:false});
+            });
+            if(geldig && tijdWinst > besteComboWinst){
+              besteComboWinst = tijdWinst; besteComboWissels = tijdWissels; besteComboKosten = tijdKosten;
+            }
+          });
+        }
+        if(besteComboWissels){
+          besteComboWissels.forEach(w=>{
+            uitgeslotenKeys.delete(w.uit.Speler+'|'+w.uit.Team); uitgeslotenKeys.add(w.in.Speler+'|'+w.in.Team);
+            gebruikteClubs.delete(w.uit.Team); gebruikteClubs.add(w.in.Team);
+            huidig = huidig.map(p=>p===w.uit ? w.in : p);
+            wissels.push(w);
+          });
+          kostenHuidig = besteComboKosten;
         }
       }
-    }
-    // Bankregel toepassen: per linie de hoogste-scorende spelers DIE RONDE in de basis, rest op de bank (50%)
-    const metPuntenDezeRonde = huidig.map(p=>({p, pts: puntenOpRonde(p, r) ?? 0}));
-    const perLinie = {};
-    metPuntenDezeRonde.forEach(g=>{ (perLinie[g.p.Positie]=perLinie[g.p.Positie]||[]).push(g); });
-    let rondeTotaal = 0;
-    const indeling = [];
-    Object.entries(perLinie).forEach(([pos, lijst])=>{
-      lijst.sort((a,b)=>b.pts-a.pts);
-      lijst.forEach((g,i)=>{
-        const basis = i<FORMATIE[pos];
-        rondeTotaal += basis ? g.pts : Math.floor(g.pts*0.5);
-        indeling.push({p:g.p, pts:g.pts, basis});
-      });
+      perRonde[r] = {squad:huidig.slice(), toegestaan:toegestaanRegulier, wissels};
     });
-    cumulatief += rondeTotaal;
-    geschiedenis.push({
-      ronde:r, toegestaan, wissels, squad:indeling,
-      rondeTotaal: Math.round(rondeTotaal*10)/10, cumulatief: Math.round(cumulatief*10)/10,
+    return berekenIndelingEnTotaal(perRonde);
+  }
 
+  // ---- Pass 2: ACHTERUIT — bouw de LAATSTE ronde op met kennis van het hele seizoen, en werk
+  // dan terug naar ronde 1 met wissels op basis van reeds-behaalde (voorgaande) seizoenswaarde.
+  // Dit vangt gevallen op die de vooruit-versie kan missen (bijv. een speler die je heel het
+  // seizoen wil vasthouden omdat hij later nog veel oplevert, ook al is hij nu net iets zwakker). ----
+  function runBackwardPass(startVariant){
+    const omgekeerd = rondes.slice().reverse();
+    let huidig = bouwBesteElftal(omgekeerd[0], p=>waardeTotRonde(p, omgekeerd[0]), startVariant||0);
+    const perRondeTmp = {};
+    omgekeerd.forEach((r, idx)=>{
+      let wissels = [];
+      // De transferlimiet die bij de overgang r -> volgende-ronde-in-kalendervolgorde hoort:
+      // vanuit het perspectief van deze achteruit-berekening is dat windowAllowanceForRound van
+      // de ronde die we NET vandaan komen (de kalender-latere ronde).
+      const kalenderLatereRonde = idx>0 ? omgekeerd[idx-1] : null;
+      const toegestaanRegulier = kalenderLatereRonde!=null ? windowAllowanceForRound(kalenderLatereRonde) : windowAllowanceForRound(r);
+      if(idx>0){
+        const uitgeslotenKeys = new Set(huidig.map(p=>p.Speler+'|'+p.Team));
+        const gebruikteClubs = new Set(huidig.map(p=>p.Team));
+        let kostenHuidig = huidig.reduce((s,p)=>s+p.Prijs,0);
+        const nietBeschikbaarHier = huidig.filter(p=>!beschikbaarOpRonde(p, r));
+        nietBeschikbaarHier.forEach(ongeschikte=>{
+          const budgetRuimte = BUDGET - kostenHuidig + ongeschikte.Prijs;
+          const overigeClubs = new Set([...gebruikteClubs].filter(c=>c!==ongeschikte.Team));
+          const beste = besteVervanger(ongeschikte.Positie, p=>waardeTotRonde(p,r), budgetRuimte, overigeClubs, uitgeslotenKeys);
+          if(beste){
+            wissels.push({uit:beste.p, uitPts:0, in:ongeschikte, inPts:0, gratis:true});
+            uitgeslotenKeys.delete(ongeschikte.Speler+'|'+ongeschikte.Team); uitgeslotenKeys.add(beste.p.Speler+'|'+beste.p.Team);
+            gebruikteClubs.delete(ongeschikte.Team); gebruikteClubs.add(beste.p.Team);
+            kostenHuidig += beste.p.Prijs - ongeschikte.Prijs;
+            huidig = huidig.map(p=>p===ongeschikte ? beste.p : p);
+          }
+        });
+        const nogWelBeschikbaar = huidig.filter(p=>beschikbaarOpRonde(p, r));
+        function combinatiesTerug(lijst, k){
+          if(k===0) return [[]];
+          if(lijst.length<k) return [];
+          const [eerste, ...rest] = lijst;
+          const metEerste = combinatiesTerug(rest, k-1).map(c=>[eerste, ...c]);
+          const zonderEerste = combinatiesTerug(rest, k);
+          return [...metEerste, ...zonderEerste];
+        }
+        let besteComboWinst = 0, besteComboWissels = null, besteComboKosten = kostenHuidig;
+        for(let k=0; k<=toegestaanRegulier && k<=nogWelBeschikbaar.length; k++){
+          combinatiesTerug(nogWelBeschikbaar, k).forEach(combo=>{
+            let tijdKosten = kostenHuidig, tijdWinst = 0, geldig = true;
+            const tijdUitgesloten = new Set(uitgeslotenKeys), tijdClubs = new Set(gebruikteClubs);
+            const tijdWissels = [];
+            combo.forEach(uitSpeler=>{
+              const budgetRuimte = BUDGET - tijdKosten + uitSpeler.Prijs;
+              const overigeClubsCombo = new Set([...tijdClubs].filter(c=>c!==uitSpeler.Team));
+              const beste = besteVervanger(uitSpeler.Positie, p=>waardeTotRonde(p,r), budgetRuimte, overigeClubsCombo, tijdUitgesloten);
+              if(!beste){ geldig=false; return; }
+              tijdWinst += beste.waarde - waardeTotRonde(uitSpeler, r);
+              tijdUitgesloten.delete(uitSpeler.Speler+'|'+uitSpeler.Team); tijdUitgesloten.add(beste.p.Speler+'|'+beste.p.Team);
+              tijdClubs.delete(uitSpeler.Team); tijdClubs.add(beste.p.Team);
+              tijdKosten += beste.p.Prijs - uitSpeler.Prijs;
+              tijdWissels.push({uit:uitSpeler, in:beste.p});
+            });
+            if(geldig && tijdWinst > besteComboWinst){
+              besteComboWinst = tijdWinst; besteComboWissels = tijdWissels; besteComboKosten = tijdKosten;
+            }
+          });
+        }
+        if(besteComboWissels){
+          besteComboWissels.forEach(w=>{
+            uitgeslotenKeys.delete(w.uit.Speler+'|'+w.uit.Team); uitgeslotenKeys.add(w.in.Speler+'|'+w.in.Team);
+            gebruikteClubs.delete(w.uit.Team); gebruikteClubs.add(w.in.Team);
+            huidig = huidig.map(p=>p===w.uit ? w.in : p);
+          });
+          kostenHuidig = besteComboKosten;
+        }
+      }
+      perRondeTmp[r] = {squad:huidig.slice()};
     });
-  });
+    // Wissels/toegestaan opnieuw in kalendervolgorde afleiden (vooruit vergelijken opeenvolgende
+    // rondes) zodat de weergave (wie ging eruit/erin per ronde) klopt, ongeacht de rekenrichting.
+    const perRonde = {};
+    rondes.forEach((r, idx)=>{
+      const toegestaanRegulier = windowAllowanceForRound(r);
+      let wissels = [];
+      if(idx>0){
+        const vorige = perRondeTmp[rondes[idx-1]].squad;
+        const huidigeSquad = perRondeTmp[r].squad;
+        const vorigeKeys = new Set(vorige.map(p=>p.Speler+'|'+p.Team));
+        const huidigeKeys = new Set(huidigeSquad.map(p=>p.Speler+'|'+p.Team));
+        const uit = vorige.filter(p=>!huidigeKeys.has(p.Speler+'|'+p.Team));
+        const inn = huidigeSquad.filter(p=>!vorigeKeys.has(p.Speler+'|'+p.Team));
+        for(let i=0;i<Math.max(uit.length,inn.length);i++){
+          if(uit[i] || inn[i]) wissels.push({uit:uit[i]||{Speler:'—',Team:''}, uitPts: uit[i]?(puntenOpRonde(uit[i],r)??0):0, in:inn[i]||{Speler:'—',Team:''}, inPts: inn[i]?(puntenOpRonde(inn[i],r)??0):0, gratis:false});
+        }
+      }
+      perRonde[r] = {squad:perRondeTmp[r].squad, toegestaan:toegestaanRegulier, wissels};
+    });
+    return berekenIndelingEnTotaal(perRonde);
+  }
 
-  __perfectTeamCache = {geschiedenis, totaal: Math.round(cumulatief*10)/10};
+  // Multi-start: probeer per richting meerdere licht-verschillende startopstellingen (variant
+  // 0 t/m 4 — variant 0 is de zuiver gulzige beste keuze, de rest wijkt bij één linie net iets
+  // af) en houd van alle pogingen de hoogste uitkomst aan. Dit voorkomt dat de zoektocht blijft
+  // hangen in het eerste lokale optimum dat de gulzige startkeuze toevallig oplevert.
+  let besteVooruit = null, besteAchteruit = null;
+  for(let variant=0; variant<=4; variant++){
+    const poging = runForwardPass(variant);
+    if(!besteVooruit || poging.totaal > besteVooruit.totaal) besteVooruit = poging;
+  }
+  for(let variant=0; variant<=4; variant++){
+    const poging = runBackwardPass(variant);
+    if(!besteAchteruit || poging.totaal > besteAchteruit.totaal) besteAchteruit = poging;
+  }
+  const beste = besteAchteruit.totaal > besteVooruit.totaal ? besteAchteruit : besteVooruit;
+  beste.methode = besteAchteruit.totaal > besteVooruit.totaal ? 'achteruit' : 'vooruit';
+  beste.vooruitTotaal = besteVooruit.totaal;
+  beste.achteruitTotaal = besteAchteruit.totaal;
+
+  __perfectTeamCache = beste;
   return __perfectTeamCache;
 }
 function setPerfectTeamRonde(r){ state.perfectTeamRonde = Number(r); render(); }
@@ -11065,10 +11376,11 @@ function renderPerfectTeamTab(){
   const r = state.perfectTeamRonde || rondes[rondes.length-1];
   const huidige = data.geschiedenis.find(g=>g.ronde===r);
   return `
-    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Het theoretisch best mogelijke team tot nu toe, achteraf berekend: elke ronde worden de daadwerkelijk toegestane wissels (incl. periodewissel-bonusrondes) ingezet op de zwakste plekken t.o.v. de beste beschikbare vervanger vóór díe ronde. Geen vooruitkijken — puur wat je op dat moment het beste had kunnen doen.</div>
+    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Het best haalbare team tot nu toe, achteraf berekend: bij elke ronde-overgang worden ALLE combinaties van wélke plekken je zou wisselen doorgerekend (niet blind "de zwakste plek"), en dat twee kanten op — van ronde 1 vooruit én van de laatste ronde terug — waarna het beste van de twee wordt getoond. Geen wiskundig bewezen absoluut optimum (dat zou alle mogelijke combinaties van 500+ spelers moeten doorrekenen, onhaalbaar), maar wel de sterkste haalbare benadering.</div>
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:11px;color:var(--text-dim);">Cumulatief maximaal haalbaar t/m ronde ${Math.max(...rondes)}</div>
       <div style="font-family:'Oswald';font-size:28px;font-weight:700;color:var(--accent);">${data.totaal} pnt</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Berekend ${data.methode==='achteruit'?'van ronde ' + Math.max(...rondes) + ' terug naar ronde 1':'van ronde 1 vooruit naar ronde ' + Math.max(...rondes)} (beste van de twee) — vooruit gaf ${data.vooruitTotaal} pnt, achteruit gaf ${data.achteruitTotaal} pnt.</div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
       <span style="font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);">Bekijk ronde:</span>
@@ -11102,6 +11414,8 @@ function renderPerfectTeamTab(){
         </div>
       `).join('')}
     <div class="section-title" style="margin-top:14px;"><span>Team deze ronde</span><span class="line"></span></div>
+    ${renderFantasySquadPitch(huidige.squad.map(g=>({speler:g.p.Speler, naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.basis?g.pts:Math.floor(g.pts*0.5), reserve:!g.basis})), huidige.ronde, 'blauw', 'Perfect Team')}
+    <div class="section-title" style="margin-top:14px;"><span>Detailoverzicht per speler</span><span class="line"></span></div>
     <div class="summary-cards" style="margin-bottom:12px;">
       <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('save',18)}</div><div class="label">Teamwaarde</div><div class="value">${fmtEuro(huidige.squad.reduce((s,g)=>s+g.p.Prijs,0))}</div></div>
       <div class="summary-card"><div class="summary-card-icon">${icon('trophy',18)}</div><div class="label">Gem. sterren</div><div class="value">${(huidige.squad.reduce((s,g)=>s+(g.p._stars||0),0)/huidige.squad.length).toFixed(1)}★</div></div>
@@ -11157,7 +11471,7 @@ function renderWeekTab(){
         <div class="summary-card ${mine!=null && mine<tow.total ? 'grad-rose':'grad-teal'}"><div class="summary-card-icon">${icon('shirt',18)}</div><div class="label">Jouw team die ronde</div><div class="value">${mine!=null?mine:'—'} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${mine!=null?`${tow.total-mine} punten onder het optimale team`:'Geen data'}</div></div>
       </div>
       <div class="section-title"><span>Het beste team van ronde ${round}</span><span class="line"></span></div>
-      ${renderFantasySquadPitch(tow.players.map(x=>({speler:x.p.Speler, naam:x.p.Speler, club:x.p.Team, pos:x.p.Positie, points:x.points, reserve:x.reserve})), round)}
+      ${renderFantasySquadPitch(tow.players.map(x=>({speler:x.p.Speler, naam:x.p.Speler, club:x.p.Team, pos:x.p.Positie, points:x.points, reserve:x.reserve})), round, 'blauw', 'Beste team v/d week')}
     `;
   } else if(state.tab==='week_players'){
     const wk = weekTopPlayers(round);
@@ -11221,14 +11535,22 @@ function renderWeekTab(){
     // Algemeen Klassement Top20-scrape (Ronde-variant), gesorteerd op Totaal.
     // Zelfde kaartjes-stijl als "Coach v/d week", voor visuele consistentie.
     const standings = NATIONAL_STANDINGS[round];
+    const algemeenSort = state.algemeenSortMode || 'totaal';
+    const toggleAlgemeenHtml = `
+      <div class="view-toggle" style="margin-bottom:10px;">
+        <button class="${algemeenSort==='totaal'?'active':''}" onclick="setAlgemeenSortMode('totaal')">Totaal</button>
+        <button class="${algemeenSort==='gemiddelde'?'active':''}" onclick="setAlgemeenSortMode('gemiddelde')">Gemiddelde per ronde</button>
+      </div>`;
     body = !standings ? `<div class="news-note">Nog geen Algemeen Klassement-data voor deze ronde. Geef me na een ronde de Algemeen Klassement-scrape (top 20), dan bouw ik dit overzicht op.</div>` : `
-    <div class="news-note" style="margin-bottom:10px;">Klik op een coach om zijn team van die ronde als speelveld te zien.</div>
-    ${standings.slice().sort((a,b)=>b.totaal-a.totaal).map((r,i)=>{
+    ${toggleAlgemeenHtml}
+    <div class="news-note" style="margin-bottom:10px;">${algemeenSort==='gemiddelde' ? `Gesorteerd op gemiddeld aantal punten per ronde (totaal ÷ ${round} gespeelde ronde${round===1?'':'s'}), van hoogste naar laagste.` : 'Klik op een coach om zijn team van die ronde als speelveld te zien.'}</div>
+    ${standings.slice().sort((a,b)=> algemeenSort==='gemiddelde' ? (b.totaal/round)-(a.totaal/round) : b.totaal-a.totaal).map((r,i)=>{
+      const gemiddelde = (r.totaal/round);
       return `
       <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:8px;flex-direction:column;align-items:stretch;cursor:pointer;" onclick="openAlgemeenSquad(${round},'${r.coach.replace(/'/g,"\\'")}','${r.team.replace(/'/g,"\\'")}')">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div><b>${i===0?icon('medal',14)+' ':''}${r.coach}</b> <span style="color:var(--text-dim);font-size:12px;">(${r.team}${r.plaats?', '+r.plaats:''})</span></div>
-          <div style="font-family:'Oswald';font-weight:700;color:var(--accent);">${r.totaal} pnt <span style="color:var(--text-dim);font-weight:400;font-size:11px;">(ronde: ${r.ronde})</span></div>
+          <div style="font-family:'Oswald';font-weight:700;color:var(--accent);">${algemeenSort==='gemiddelde' ? `${gemiddelde.toFixed(1)} gem/ronde` : `${r.totaal} pnt`} <span style="color:var(--text-dim);font-weight:400;font-size:11px;">${algemeenSort==='gemiddelde' ? `(totaal: ${r.totaal})` : `(ronde: ${r.ronde})`}</span></div>
         </div>
       </div>
     `;}).join('')}
@@ -11254,7 +11576,14 @@ function renderWeekTab(){
       body = toggleHtml + `
         <button class="btn ghost" style="margin-bottom:10px;" onclick="setRefDetail(null)">${icon('arrow-left',13)} Terug naar ranglijst</button>
         <div class="section-title"><span>${naam} — ${isAlgemeen?'algemeen totaal':'deze ronde'} ${s.punten.toFixed(1)} pnt</span><span class="line"></span></div>
-        <div class="news-note" style="margin-bottom:14px;">${s.wedstrijden} wedstrijd(en) gefloten · ${s.geel} gele kaart(en) · ${s.rood} rode kaart(en) · ${s.overtredingen} overtreding(en) gefloten · ${s.penaltys} penalty('s) toegekend</div>
+        <div class="news-note" style="margin-bottom:10px;">${s.wedstrijden} wedstrijd(en) gefloten · ${s.geel} gele kaart(en) · ${s.rood} rode kaart(en) · ${s.overtredingen} overtreding(en) gefloten · ${s.penaltys} penalty('s) toegekend</div>
+        <div class="summary-cards" style="margin-bottom:14px;">
+          <div class="summary-card"><div class="label">Gem. geel/wedstrijd</div><div class="value">${(s.geel/s.wedstrijden).toFixed(1)}</div></div>
+          <div class="summary-card"><div class="label">Gem. rood/wedstrijd</div><div class="value">${(s.rood/s.wedstrijden).toFixed(2)}</div></div>
+          <div class="summary-card"><div class="label">Gem. overtr./wedstrijd</div><div class="value">${(s.overtredingen/s.wedstrijden).toFixed(1)}</div></div>
+          <div class="summary-card"><div class="label">Gem. penalty's/wedstrijd</div><div class="value">${(s.penaltys/s.wedstrijden).toFixed(2)}</div></div>
+          <div class="summary-card grad-gold"><div class="label">Gem. punten/wedstrijd</div><div class="value">${(s.punten/s.wedstrijden).toFixed(1)}</div></div>
+        </div>
         <div class="table-wrap"><table class="data-table">
           <thead><tr><th>Wedstrijd</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Penalty's</th><th>Punten</th></tr></thead>
           <tbody>
