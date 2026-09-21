@@ -658,6 +658,14 @@
   .tutorial-nav{display:flex;gap:10px;}
   .tutorial-nav .btn{flex:1;}
   @media (max-width:760px){ .tutorial-card{bottom:210px;padding:18px;} }
+  .onboarding-backdrop{position:fixed;inset:0;background:rgba(4,5,6,0.55);z-index:210;}
+  .onboarding-card{
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(560px,92vw);
+    max-height:88vh;overflow-y:auto;
+    background:var(--bg-alt);border:1px solid var(--accent-dim);border-radius:20px;padding:26px 28px;
+    box-shadow:0 24px 70px rgba(0,0,0,0.65),0 0 0 1px rgba(242,184,7,0.15);z-index:211;
+  }
+  @media (max-width:760px){ .onboarding-card{padding:18px 16px;width:94vw;} }
   @media (max-width:760px){
     /* De onderste navigatiebalk is op mobiel 2 rijen hoog (10 secties, 5 per rij) — alle
        zwevende knoppen die normaal vanaf de onderkant van het scherm gepositioneerd zijn,
@@ -695,7 +703,16 @@
   .calc-key.calc-eq-tall{grid-row:span 2;}
   .calc-key.calc-zero{grid-column:span 2;}
   .calc-key.calc-clear{color:var(--danger);}
-  .pitch-wrap{display:flex;justify-content:center;margin-bottom:20px;}
+  .pitch-wrap{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:20px;}
+  .pitch-history-btn{
+    flex-shrink:0; width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:var(--surface); border:1px solid var(--line); color:var(--text-dim); cursor:not-allowed; opacity:0.35; transition:all .15s;
+  }
+  .pitch-history-btn.active{
+    color:var(--accent); border-color:var(--accent); cursor:pointer; opacity:1;
+    box-shadow:0 0 0 2px rgba(242,184,7,0.25), 0 0 12px rgba(242,184,7,0.35);
+  }
+  .pitch-history-btn.active:hover{ background:rgba(242,184,7,0.1); }
   .pitch{
     width:100%; max-width:420px; aspect-ratio:300/420;
     background:
@@ -2297,7 +2314,8 @@ let state = {
   homeWidgetOrder:['team','teamlineup','club','clubstats','standingscc','weekteam','injuries','h2h'],
   homeWidgetEnabled:{team:true, teamlineup:false, club:true, clubstats:false, standingscc:false, weekteam:true, injuries:true, h2h:true}, // nieuw toegevoegde widgets (teamlineup/clubstats/standingscc) staan qua ontwerp uit totdat de gebruiker ze zelf aanzet; voor bestaande opgeslagen voorkeuren geldt: ontbrekende sleutel = aan (zie renderHomeTab)
   homeSettingsOpen:false,
-  tutorialActive:false, tutorialStep:0, scoutList:[], mobileMoreOpen:false, lastExportTheme:'standaard', lastLeagueExportTheme:'standaard', floatOffset:{x:0,y:0}, transferLog:[], bingoCards:[],
+  tutorialActive:false, tutorialStep:0, onboardingActive:false, onboardingStep:0, scoutList:[], mobileMoreOpen:false, lastExportTheme:'standaard', lastLeagueExportTheme:'standaard', floatOffset:{x:0,y:0}, transferLog:[], bingoCards:[],
+  teamCompareGroup:'castingcouch', teamCompareMode:'coach', teamCompareCoach:'', teamCompareRound:null, teamCompareRankingSort:'totaal',
   scheduledSwaps:[], swapFailures:[], recentlyAppliedSwaps:[], readAlertKeys:[],
   calcOpen:false, calcDisplay:'0', calcPrev:null, calcOp:null, calcResetNext:false,
   theme:'standaard',
@@ -2408,6 +2426,33 @@ function currentRoundNumber(){
   return round;
 }
 function currentPeriodLabel(){ return PERIOD_LABELS[periodIdForRound(currentRoundNumber()||1)]; }
+// ---- Wedstrijden zonder dekking: voor de eerstvolgende nog te spelen speelronde, welke
+// Eredivisie-duels bevatten geen enkele speler uit je squad? Daar kun je dus hoe dan ook geen
+// punten uit halen die ronde — puur informatief, geen suggestie. ----
+function computeUncoveredMatches(){
+  const squadClubs = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Team));
+  if(squadClubs.size===0) return {round:null, matches:[], totalRoundMatches:0};
+  function roundNumFor(m){
+    const match = /Ronde\s*(\d+)/i.exec(m.competitie||'');
+    return match ? parseInt(match[1]) : null;
+  }
+  const upcoming = MATCHES.filter(m=>m.type==='Eredivisie' && m.homeScore==null && roundNumFor(m)!=null);
+  if(!upcoming.length) return {round:null, matches:[], totalRoundMatches:0};
+  const round = Math.min(...upcoming.map(roundNumFor));
+  const roundMatches = upcoming.filter(m=>roundNumFor(m)===round);
+  const matches = roundMatches.filter(m=>!squadClubs.has(m.home) && !squadClubs.has(m.away));
+  return {round, matches, totalRoundMatches: roundMatches.length};
+}
+function renderUncoveredMatchesNote(){
+  const {round, matches, totalRoundMatches} = computeUncoveredMatches();
+  if(!round || matches.length===0) return '';
+  return `<div class="news-note" style="margin-bottom:14px;border-color:#E0A526;">
+    ${icon('warning',12)} <b>Ronde ${round}</b>: ${matches.length} van de ${totalRoundMatches} wedstrijden bevat geen enkele speler uit jouw team — daar kun je dus sowieso geen punten uit halen.
+    <div style="margin-top:6px;display:flex;flex-direction:column;gap:3px;">
+      ${matches.map(m=>`<span style="font-size:11.5px;color:var(--text-dim);">${icon('ball',11)} ${teamLogo(m.home)}${m.home} – ${teamLogo(m.away)}${m.away}</span>`).join('')}
+    </div>
+  </div>`;
+}
 function windowAllowanceForRound(r){ return PERIOD_FIRST_ROUND.has(r) ? 3 : 1; }
 function effectiveRoundNumber(){
   // als je met de tijdmachine vooruit reist binnen 2026/27, geldt die ronde voor wisselboekhouding
@@ -2595,10 +2640,12 @@ async function loadModeSquad(mode){
       const parsed = JSON.parse(res.value);
       state.formation = parsed.formation || '4-3-3';
       state.squad = parsed.squad || {};
+      resetSquadHistory();
       return;
     }
   }catch(e){}
   state.formation = '4-3-3'; state.squad = {};
+  resetSquadHistory();
 }
 async function saveModeSquad(){
   const key = squadStorageKey(state.mode);
@@ -2755,7 +2802,7 @@ async function loadSquad(){
   await loadEstimateState();
   await loadLockedPlayers();
   await loadHomeWidgetPrefs();
-  await checkTutorialSeen();
+  await checkOnboardingSeen();
   await loadScoutList();
   await loadFloatOffset();
   await loadTransferLog();
@@ -4319,7 +4366,38 @@ const TUTORIAL_STEPS = [
     tab: 'league',
     icon: 'trophy',
     title: 'Casting Couch Ranglijst',
-    body: `De ranglijst van jullie eigen vriendengroep-league. Kies bij Persoonlijk wie jij bent, dan wordt jouw team hier gemarkeerd. Zodra het seizoen loopt en jij me de standen geeft, houd ik dit bij — inclusief stijging/daling per ronde.`,
+    body: `De ranglijst van jullie eigen vriendengroep-league. Je gekozen coachnaam wordt hier automatisch gemarkeerd. Zodra het seizoen loopt en jij me de standen geeft, houd ik dit bij — inclusief stijging/daling per ronde, wissels en meer, allemaal onder dit tabje.`,
+  },
+  {
+    tab: 'week_team',
+    icon: 'medal',
+    title: 'Stats v/d Week',
+    body: `Alles rond de laatst gespeelde ronde op een rij: het beste elftal, spelers en koopjes van de week, de flop van de week, en het Perfect Team achteraf.`,
+  },
+  {
+    tab: 'personal',
+    icon: 'user',
+    title: 'Persoonlijk',
+    body: `Hier stel je je favoriete club en je coachnaam in (dat kan ook altijd rechtsboven), bekijk je je persoonlijke records en je transfergeschiedenis, en kun je deze rondleiding herstarten.`,
+  },
+  {
+    tab: 'news',
+    icon: 'news',
+    title: 'Nieuws & Transfers',
+    body: `Het laatste Eredivisie-nieuws en een overzicht van transfers, zodat je op de hoogte blijft van wat er speelt buiten je eigen team om.`,
+  },
+  {
+    tab: null,
+    icon: 'couch',
+    highlightId: 'bankie-launcher-btn',
+    title: 'Bankie, je bank-adviseur',
+    body: `Rechtsonder (kijk naar het gouden gloeiende knopje) zit <b>Bankie</b> — een klein menu met simpele, regelgebaseerde tips over jouw team: blessures, aflopende wissels, een leeg plekje, dat soort dingen. Geen AI-gesprek, gewoon snel en eerlijk advies.`,
+  },
+  {
+    tab: 'downloads',
+    icon: 'download',
+    title: 'Downloads',
+    body: `Hier vind je losse exports en downloads terug, zoals eerder gemaakte teamscreenshots.`,
   },
   {
     tab: null,
@@ -4368,6 +4446,162 @@ async function checkTutorialSeen(){
     const r = await storageGet('cvhj-tutorial-seen', false);
     if(!r || !r.value){ startTutorial(); }
   }catch(e){}
+}
+// ==================== ONBOARDING — EERSTE-KEER-WIZARD ====================
+// Loopt vóór de tab-rondleiding (TUTORIAL_STEPS hierboven): coachkeuze → thema → home-indeling,
+// en mondt daarna automatisch uit in de bestaande rondleiding langs de tabjes.
+const ONBOARDING_STEP_META = [
+  {icon:'couch', title:'Welkom bij De Geleerde Bank'},
+  {icon:'gem', title:'Kies een thema'},
+  {icon:'bars', title:'Home naar eigen smaak'},
+];
+const ONBOARDING_WIDGET_LABELS = {team:'Jouw team (statistieken)', teamlineup:'Jouw team (op het veld)', club:'Jouw club', clubstats:'Clubstatistieken (favoriete club)', standingscc:'Casting Couch klassement', weekteam:'Team van de week', injuries:'Blessure-overzicht', h2h:'Head-to-head'};
+const ONBOARDING_WIDGET_META = {
+  team:{icon:'shirt', desc:'Je basisself en bank, met punten en budget.'},
+  teamlineup:{icon:'shirt', desc:'Je team getekend op het veld.'},
+  club:{icon:'news', desc:'Nieuws en informatie over je favoriete club.'},
+  clubstats:{icon:'trophy', desc:'Statistieken van je favoriete club.'},
+  standingscc:{icon:'trophy', desc:'De actuele Casting Couch-ranglijst.'},
+  weekteam:{icon:'medal', desc:'Het beste team van de afgelopen speelronde.'},
+  injuries:{icon:'cross', desc:'Blessures en twijfelgevallen binnen jouw team.'},
+  h2h:{icon:'scale', desc:'Vergelijking met een andere coach uit de league.'},
+};
+function startOnboarding(){
+  state.onboardingActive = true;
+  state.onboardingStep = 0;
+  state.tab = 'home';
+  render();
+}
+function onboardingNext(){
+  if(state.onboardingStep >= ONBOARDING_STEP_META.length-1){ finishOnboardingIntro(); return; }
+  state.onboardingStep++;
+  render();
+}
+function onboardingSkipStep(){ onboardingNext(); }
+function onboardingPrev(){
+  if(state.onboardingStep<=0) return;
+  state.onboardingStep--;
+  render();
+}
+function onboardingSkipAll(){
+  state.onboardingActive = false;
+  saveOnboardingSeen();
+  render();
+}
+function finishOnboardingIntro(){
+  state.onboardingActive = false;
+  saveOnboardingSeen();
+  startTutorial();
+}
+async function saveOnboardingSeen(){
+  try{ await storageSet('cvhj-onboarding-seen', 'true', false); }catch(e){}
+}
+async function checkOnboardingSeen(){
+  try{
+    const r = await storageGet('cvhj-onboarding-seen', false);
+    if(!r || !r.value){ startOnboarding(); }
+  }catch(e){}
+}
+function renderOnboardingStep0(){
+  return `
+    <div class="tutorial-body" style="margin-bottom:14px;">
+      Dit dashboard is een uitbreiding op <b>Coach van het Jaar</b>, speciaal gemaakt voor onze eigen <b>Casting Couch</b>-subleague. Hier plan je je team, vergelijk je jezelf met je mede-coaches en houd je alles rond CVHJ bij op één plek.
+    </div>
+    <div style="margin-bottom:6px;font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);">Welke coach ben jij in de Casting Couch?</div>
+    <select onchange="setFollowedCoach(this.value)" style="width:100%;font-weight:600;padding:10px 12px;margin-bottom:4px;">
+      <option value="">— Nog niet kiezen —</option>
+      ${CASTING_COUCH_COACHES.map(c=>`<option value="${c.coach}" ${state.followedCoach===c.coach?'selected':''}>${c.coach} (${c.team})</option>`).join('')}
+    </select>
+    <div style="font-size:11px;color:var(--text-dim);">Dit bepaalt welk team in de ranglijst van jou is en zorgt dat de site je met naam aanspreekt. Je kunt dit later altijd nog aanpassen rechtsboven.</div>
+  `;
+}
+function renderOnboardingStep1(){
+  const t = state.theme || 'standaard';
+  const basicThemes = EXPORT_THEMES.filter(th=>!th.isClub);
+  const clubThemes = EXPORT_THEMES.filter(th=>th.isClub);
+  return `
+    <div class="tutorial-body" style="margin-bottom:14px;">Kies een thema voor het dashboard — dit bepaalt de kleuren en uitstraling. Je kunt dit later altijd nog wijzigen via het gem-icoontje linksonder in de zijbalk.</div>
+    <select onchange="setAppTheme(this.value)" style="width:100%;font-weight:600;padding:10px 12px;">
+      <optgroup label="Basisthema's">
+        ${basicThemes.map(th=>`<option value="${th.id}" ${t===th.id?'selected':''}>${th.label}</option>`).join('')}
+      </optgroup>
+      <optgroup label="Clubthema's">
+        ${clubThemes.map(th=>`<option value="${th.id}" ${t===th.id?'selected':''}>${th.label}</option>`).join('')}
+      </optgroup>
+    </select>
+  `;
+}
+// Sleepstatus voor de mini-mockup — puur voor deze sessie, geen state nodig (geen re-render
+// tijdens het slepen zelf, alleen bij drop).
+let __onboardingDragId = null;
+function onboardingMockupDragStart(id){ __onboardingDragId = id; }
+function onboardingMockupDrop(targetId){
+  const dragId = __onboardingDragId;
+  __onboardingDragId = null;
+  if(!dragId || dragId===targetId) return;
+  const order = state.homeWidgetOrder;
+  const fromIdx = order.indexOf(dragId), toIdx = order.indexOf(targetId);
+  if(fromIdx<0 || toIdx<0) return;
+  order.splice(fromIdx,1);
+  order.splice(toIdx,0,dragId);
+  saveHomeWidgetPrefs();
+  render();
+}
+// Kleine, visueel duidelijk ándere weergave dan de instellingenlijst erboven: een compacte
+// pagina-mockup die ALLEEN de geselecteerde onderdelen toont (leeg = niks aangevinkt), en die je
+// direct kunt slepen om de volgorde te wijzigen — los van de pijltjes hierboven, dezelfde volgorde.
+function renderOnboardingHomeMockup(){
+  const order = state.homeWidgetOrder;
+  const enabledOrder = order.filter(id=>state.homeWidgetEnabled[id]!==false);
+  return `
+    <div style="width:210px;margin:0 auto;background:var(--bg);border:2px solid var(--line);border-radius:18px;padding:12px 9px;box-shadow:0 6px 20px rgba(0,0,0,0.3);">
+      <div style="height:5px;width:44px;background:var(--line);border-radius:3px;margin:0 auto 10px;"></div>
+      ${enabledOrder.length===0 ? `<div style="font-size:10px;color:var(--text-dim);text-align:center;padding:26px 4px;">Vink hierboven iets aan om 'm hier te zien verschijnen</div>` : enabledOrder.map(id=>{
+        const meta = ONBOARDING_WIDGET_META[id] || {icon:'info'};
+        return `<div draggable="true"
+          ondragstart="onboardingMockupDragStart('${id}')"
+          ondragover="event.preventDefault()"
+          ondrop="event.preventDefault();onboardingMockupDrop('${id}')"
+          title="Sleep om te herschikken"
+          style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--accent-dim);border-radius:7px;padding:7px 8px;margin-bottom:5px;cursor:grab;">
+          <span style="color:var(--text-dim);flex-shrink:0;font-size:10px;">${icon('gripDots',10)}</span>
+          <span style="color:var(--accent);flex-shrink:0;">${icon(meta.icon,12)}</span>
+          <span style="font-size:9.5px;font-family:'JetBrains Mono';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ONBOARDING_WIDGET_LABELS[id]||id}</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+function renderOnboardingStep2(){
+  return `
+    <div class="tutorial-body" style="margin-bottom:12px;">Kies welke onderdelen je op je Home-pagina wilt zien. Dit kun je later altijd aanpassen via "Pagina aanpassen" boven Home.</div>
+    ${renderHomeSettingsPanel()}
+    <div style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);margin:16px 0 10px;text-transform:uppercase;letter-spacing:0.04em;text-align:center;">Zo komt je Home-pagina eruit te zien — sleep om de volgorde te wijzigen</div>
+    ${renderOnboardingHomeMockup()}
+  `;
+}
+function renderOnboardingOverlay(){
+  if(!state.onboardingActive) return '';
+  const step = state.onboardingStep;
+  const meta = ONBOARDING_STEP_META[step];
+  const isLast = step === ONBOARDING_STEP_META.length-1;
+  const bodyHtml = step===0 ? renderOnboardingStep0() : step===1 ? renderOnboardingStep1() : renderOnboardingStep2();
+  return `<div class="onboarding-backdrop" onclick="if(event.target===this) onboardingSkipAll()"></div>
+  <div class="onboarding-card">
+    <div class="tutorial-head">
+      <span class="tutorial-icon">${icon(meta.icon,20)}</span>
+      <div class="tutorial-progress">Stap ${step+1} van ${ONBOARDING_STEP_META.length}</div>
+      <button class="tutorial-skip" onclick="onboardingSkipAll()">${icon('x',13)} Alles overslaan</button>
+    </div>
+    <h3 class="tutorial-title">${meta.title}</h3>
+    ${bodyHtml}
+    <div class="tutorial-dots" style="margin-top:16px;">${ONBOARDING_STEP_META.map((s,i)=>`<span class="tutorial-dot ${i===step?'active':''}"></span>`).join('')}</div>
+    <div class="tutorial-nav">
+      <button class="btn ghost" onclick="onboardingPrev()" ${step===0?'disabled':''}>← Vorige</button>
+      <button class="btn ghost" onclick="onboardingSkipStep()">Stap overslaan</button>
+      <button class="btn primary" onclick="onboardingNext()">${isLast?'Naar de rondleiding →':'Volgende →'}</button>
+    </div>
+  </div>`;
 }
 function renderTutorialOverlay(){
   if(!state.tutorialActive) return '';
@@ -4586,7 +4820,66 @@ function renderTimeMachineBar(){
 function timeUnavailableNote(feature){
   return `<div class="news-note" style="border-color:#9B6BC4;">${icon('clock',14)} <b>${feature}</b> is niet beschikbaar tijdens tijdreizen naar ${roundTravelLabel(state.timeMachine.round).toLowerCase()} — er is nog geen momentopname van dat moment opgeslagen (vraag me tijdens/na die ronde om een update). Klik "${icon('pin',12)} Terug naar nu" om dit weer te zien.</div>`;
 }
-async function saveSquad(){ await saveModeSquad(); }
+// ---- Ongedaan maken / opnieuw voor teamwijzigingen. Eén centraal aanknopingspunt: elke
+// mutatie van state.squad wordt gevolgd door saveSquad(), dus daar vergelijken we het huidige
+// team met de laatst bekende stand — verschilt die, dan gaat de OUDE stand op de undo-stack. ----
+let __squadUndoStack = [];
+let __squadRedoStack = [];
+let __lastSquadSnapshot = null;
+function snapshotSquad(squad){
+  const snap = {};
+  Object.entries(squad||{}).forEach(([slotId,p])=>{ if(p) snap[slotId] = p.Speler+'|'+p.Team; });
+  return snap;
+}
+function squadSnapshotsEqual(a,b){
+  const ak = Object.keys(a), bk = Object.keys(b);
+  if(ak.length!==bk.length) return false;
+  return ak.every(k=>a[k]===b[k]);
+}
+function restoreSquadFromSnapshot(snap){
+  const squad = {};
+  Object.entries(snap).forEach(([slotId, key])=>{
+    const idx = key.lastIndexOf('|');
+    const naam = key.slice(0,idx), club = key.slice(idx+1);
+    const p = PLAYERS.find(pl=>pl.Speler===naam && pl.Team===club);
+    if(p) squad[slotId] = p;
+  });
+  return squad;
+}
+function resetSquadHistory(){
+  __squadUndoStack = []; __squadRedoStack = [];
+  __lastSquadSnapshot = snapshotSquad(state.squad);
+}
+function canUndoSquad(){ return __squadUndoStack.length>0; }
+function canRedoSquad(){ return __squadRedoStack.length>0; }
+function undoSquad(){
+  if(!__squadUndoStack.length) return;
+  const prev = __squadUndoStack.pop();
+  __squadRedoStack.push(snapshotSquad(state.squad));
+  state.squad = restoreSquadFromSnapshot(prev);
+  __lastSquadSnapshot = snapshotSquad(state.squad);
+  saveModeSquad();
+  render();
+}
+function redoSquad(){
+  if(!__squadRedoStack.length) return;
+  const next = __squadRedoStack.pop();
+  __squadUndoStack.push(snapshotSquad(state.squad));
+  state.squad = restoreSquadFromSnapshot(next);
+  __lastSquadSnapshot = snapshotSquad(state.squad);
+  saveModeSquad();
+  render();
+}
+async function saveSquad(){
+  const cur = snapshotSquad(state.squad);
+  if(__lastSquadSnapshot && !squadSnapshotsEqual(__lastSquadSnapshot, cur)){
+    __squadUndoStack.push(__lastSquadSnapshot);
+    if(__squadUndoStack.length>20) __squadUndoStack.shift();
+    __squadRedoStack = [];
+  }
+  __lastSquadSnapshot = cur;
+  await saveModeSquad();
+}
 function fmtEuro(v){ return '€'+v.toFixed(2)+'M'; }
 function fmtDate(iso){
   const d = new Date(iso+'T12:00:00');
@@ -5801,8 +6094,6 @@ function renderTeamTab(){
     </div>`;
   }
   return `
-    ${renderPointsStatsCards()}
-    ${renderRoundEstimateCard()}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
       <span style="font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);">${icon('user',14)} Jouw coach:</span>
       <select onchange="setFollowedCoach(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 10px;font-family:'JetBrains Mono';font-size:12px;">
@@ -5842,16 +6133,44 @@ function renderTeamTab(){
     ` : ''}
     <div class="formation-row">
       ${Object.keys(FORMATIONS).map(f=>`<button class="${state.formation===f?'active':''}" onclick="setFormation('${f}')">${f}</button>`).join('')}
-      <button class="btn primary" style="padding:8px 14px;font-size:12px;" onclick="autofillTeam()">${icon('refresh',13)} Vul automatisch aan</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="clearTeam()">${icon('trash',13)} Maak leeg</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openSwapSuggestions()">${icon('gem',13)} Wisselsuggesties</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openFormationAdvice()">${icon('scale',13)} Formatie-advies</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openScreenshotThemePicker('team')">${icon('camera',13)} Download screenshot</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openQuickFutureSwap()">${icon('clock',13)} Wissel voor toekomst plannen</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTextImport()">${icon('clipboard',13)} Team importeren (tekst)</button>
-      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openSaveLoad()">${icon('save',13)} Opslaan/laden</button>
+      <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="toggleTeamTools()">${icon('gripDots',13)} Team-hulpmiddelen ${icon('chevronDown',11)}</button>
       <div class="budget-pill ${over?'over':''}" style="margin-left:auto;">Budget <b>${total.toFixed(2)}M</b> / ${BUDGET_CAP}M</div>
     </div>
+    ${state.teamToolsOpen ? (()=>{
+      // Alleen "Maak leeg" is functioneel echt geblokkeerd zodra het echte seizoen loopt (zou de
+      // wisselregels omzeilen) — zie clearTeam(). De andere tools blijven altijd bruikbaar (soms
+      // met een beperking die pas bij een klik wordt uitgelegd), en in Sandbox-modus is er nooit
+      // een seizoensbeperking.
+      const clearLocked = state.mode==='real' && (seasonStarted() || state.timeMachine.active);
+      function toolBtn(label, ic, onclick, locked, lockReason){
+        if(locked) return `<button class="btn ghost" disabled title="${lockReason}" style="padding:8px 14px;font-size:12px;opacity:0.45;cursor:not-allowed;">${icon('lock',12)} ${label}</button>`;
+        return `<button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="${onclick}">${icon(ic,13)} ${label}</button>`;
+      }
+      function groupLabel(txt){
+        return `<div style="width:100%;font-family:'JetBrains Mono';font-size:10px;font-weight:600;letter-spacing:0.04em;color:var(--text-dim);text-transform:uppercase;margin:${txt==='Advies & planning'?'0':'10px'} 0 2px 0;">${txt}</div>`;
+      }
+      return `
+      <div class="team-tools-panel" style="padding:12px;margin-bottom:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;">
+        <button class="btn primary" style="padding:8px 14px;font-size:12px;margin-bottom:10px;" onclick="autofillTeam()">${icon('refresh',13)} Vul automatisch aan</button>
+        ${groupLabel('Advies & planning')}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openSwapSuggestions()">${icon('gem',13)} Wisselsuggesties</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openFormationAdvice()">${icon('scale',13)} Formatie-advies</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openQuickFutureSwap()">${icon('clock',13)} Wissel voor toekomst plannen</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openInjuryCheck()">${icon('warning',13)} Blessure- & bankspelercheck</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openBudgetOptimizer()">${icon('save',13)} Budget-optimalisatie</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTeamCompare()">${icon('scale',13)} Vergelijk met een team</button>
+        </div>
+        ${groupLabel('Beheer')}
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openScreenshotThemePicker('team')">${icon('camera',13)} Download screenshot</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openSaveLoad()">${icon('save',13)} Opslaan/laden</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTextImport()">${icon('clipboard',13)} Team importeren (tekst)</button>
+          <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTextExport()">${icon('clipboard',13)} Team exporteren (tekst)</button>
+          ${toolBtn('Maak leeg', 'trash', "clearTeam()", clearLocked, clearLocked ? "Niet mogelijk zodra het seizoen bezig is (zou de wisselregels omzeilen) — gebruik Sandbox-modus om vrij te experimenteren." : '')}
+        </div>
+      </div>`;
+    })() : ''}
     <div class="view-toggle" style="margin-bottom:14px;">
       <button class="${state.teamView==='pitch'?'active':''}" onclick="setTeamView('pitch')">${icon('ball',14)} Veld</button>
       <button class="${state.teamView==='list'?'active':''}" onclick="setTeamView('list')">${icon('bars',14)} Lijst</button>
@@ -5864,6 +6183,11 @@ function renderTeamTab(){
     <div class="slot-grid">${reserve.map(slotHtml).join('')}</div>
     `}
     ${over ? `<div style="margin-top:16px;color:var(--danger);font-family:'JetBrains Mono';font-size:13px;">${icon('warning',13)} Je zit boven het budget van €${BUDGET_CAP}M — pas je selectie aan.</div>` : ''}
+    <div style="margin-top:20px;">
+      ${renderUncoveredMatchesNote()}
+      ${renderPointsStatsCards()}
+      ${renderRoundEstimateCard()}
+    </div>
     <div style="margin-top:28px;">${renderScoutingWatchlist()}</div>
     <div style="margin-top:28px;">${renderHeadToHead()}</div>
   `;
@@ -6307,6 +6631,15 @@ function renderMatchLineupPitch(m){
   </div>
   <div style="font-size:10px;color:var(--text-dim);text-align:center;margin-top:6px;">Rood pijltje = gewisseld tijdens de wedstrijd. Klik op een speler voor zijn spelerspagina.</div>`;
 }
+function squadHistoryButton(direction){
+  const active = direction==='undo' ? canUndoSquad() : canRedoSquad();
+  const fn = direction==='undo' ? 'undoSquad' : 'redoSquad';
+  const label = direction==='undo' ? 'Ongedaan maken (laatste teamwijziging)' : 'Opnieuw (herstel ongedaan gemaakte wijziging)';
+  const rotate = direction==='redo' ? 'transform:scaleX(-1);' : '';
+  return `<button class="pitch-history-btn ${active?'active':''}" title="${label}" ${active?`onclick="${fn}()"`:''}>
+    <span style="${rotate}display:inline-flex;">${icon('back',20)}</span>
+  </button>`;
+}
 function renderPitchView(basis, reserve){
   // groepeer basis-slots per linie voor rijen op het veld (aanval boven, keeper onder)
   const rows = [
@@ -6333,6 +6666,7 @@ function renderPitchView(basis, reserve){
   }
   return `
     <div class="pitch-wrap">
+      ${squadHistoryButton('undo')}
       <div class="pitch">
         <svg class="pitch-markings" viewBox="0 0 300 420" preserveAspectRatio="none">
           <rect x="4" y="4" width="292" height="412" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
@@ -6348,6 +6682,7 @@ function renderPitchView(basis, reserve){
         <div class="pitch-team-label">Mijn Team</div>
         <button class="pitch-screenshot-btn" onclick="openScreenshotThemePicker()" title="Download screenshot van je team">${icon('camera',18)}</button>
       </div>
+      ${squadHistoryButton('redo')}
     </div>
     <div class="section-title"><span>Bank (1 per linie)</span><span class="line"></span></div>
     <div class="slot-grid">${reserve.map(d=>{
@@ -7336,6 +7671,14 @@ const TEAM_CARD_LABELS = {
   Gewonnen:'Punten gewonnen wedstrijden', Gelijk:'Punten gelijkgespeeld', PenM:'Punten pen. gescoord',
   PenMis:'Punten pen. gemist', Kaarten:'Puntenverlies kaarten', Reddingen:'Reddingen-punten',
 };
+function toggleTeamTools(){
+  state.teamToolsOpen = !state.teamToolsOpen;
+  render();
+}
+function toggleTeamLinieDetail(pos){
+  state.teamLinieDetailPos = state.teamLinieDetailPos===pos ? null : pos;
+  render();
+}
 function toggleTeamStatDetail(key){
   state.teamStatDetailKey = state.teamStatDetailKey===key ? null : key;
   render();
@@ -7704,17 +8047,43 @@ function renderStatsTab(){
       })()}
     </div>
     <div class="section-title"><span>Punten per linie</span><span class="line"></span></div>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">${icon('info',11)} Klik op een linie om te zien welke spelers dat totaal opbouwen.</div>
     ${(()=>{
       const byPos = {};
-
       POS_ORDER.forEach(pos=>{ byPos[pos] = rows0.filter(r=>r.p.Positie===pos).reduce((s,r)=>s+(r.d?.Totaal||0),0); });
-      return barChartSvg(POS_ORDER.map(pos=>({name:POS_LABEL[pos], pts:byPos[pos]})), 'name', 'pts', 'var(--c-blue)');
+      const openPos = state.teamLinieDetailPos;
+      const tiles = POS_ORDER.map(pos=>{
+        const isOpen = openPos===pos;
+        return `<div class="stat-box" onclick="toggleTeamLinieDetail('${pos}')" style="cursor:pointer;${isOpen?'box-shadow:inset 0 0 0 1px var(--accent);background:rgba(242,184,7,0.06);':''}">
+          <div class="n" style="${byPos[pos]<0?'color:var(--danger);':''}">${byPos[pos]}</div><div class="l">${POS_LABEL[pos]}</div>
+        </div>`;
+      }).join('');
+      const chart = barChartSvg(POS_ORDER.map(pos=>({name:POS_LABEL[pos], pts:byPos[pos]})), 'name', 'pts', 'var(--c-blue)');
+      const detail = openPos ? (()=>{
+        const spelers = rows0.filter(r=>r.p.Positie===openPos && r.d).slice().sort((a,b)=>(a.d.Totaal)-(b.d.Totaal));
+        const closeBtn = `<button onclick="toggleTeamLinieDetail('${openPos}')" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;">×</button>`;
+        return `<div class="stat-detail-panel">
+          <div class="stat-detail-head"><span>${icon('shirt',13)} ${POS_LABEL[openPos]} — punten per speler (totaal ${byPos[openPos]})</span>${closeBtn}</div>
+          <div class="stat-detail-body" style="max-height:360px;">
+            ${spelers.length ? spelers.map(r=>`
+              <div class="stat-detail-row" style="cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(r.p.Speler)}','${encodeURIComponent(r.p.Team)}')">
+                <div class="stat-detail-info">
+                  <div class="stat-detail-match">${teamLogo(r.p.Team)}${r.p.Speler} <span style="color:var(--text-dim);font-size:11px;">(${r.p.Team})</span></div>
+                  ${useWeekly && r.d.Weken!=null ? `<div class="stat-detail-sub">${r.d.Weken} ${r.d.Weken===1?'week':'weken'} in team</div>` : ''}
+                </div>
+                <div class="stat-detail-pts" style="color:${r.d.Totaal>0?'var(--def)':r.d.Totaal<0?'var(--danger)':'var(--text-dim)'};">${r.d.Totaal>0?'+':''}${r.d.Totaal}</div>
+              </div>
+            `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:12px;">Geen spelers op deze linie.</div>`}
+          </div>
+        </div>`;
+      })() : '';
+      return `<div class="stat-grid">${tiles}</div>${chart}${detail}`;
     })()}
     ${useWeekly ? (()=>{
       const totalBank = rows0.reduce((s,r)=>s+((r.d && r.d.BankPunten)||0),0);
       const byPosBank = {};
       POS_ORDER.forEach(pos=>{ byPosBank[pos] = rows0.filter(r=>r.p.Positie===pos).reduce((s,r)=>s+((r.d&&r.d.BankPunten)||0),0); });
-      const bankPlayers = rows0.filter(r=>r.d && r.d.BankPunten>0).sort((a,b)=>b.d.BankPunten-a.d.BankPunten);
+      const bankPlayers = rows0.filter(r=>r.d && r.d.BankPunten!==0).sort((a,b)=>b.d.BankPunten-a.d.BankPunten);
       return `
       <div class="section-title"><span>Punten vanuit de bank</span><span class="line"></span></div>
       <div class="summary-cards" style="margin-bottom:14px;">
@@ -7726,7 +8095,7 @@ function renderStatsTab(){
       ${bankPlayers.length ? `<div style="display:flex;flex-direction:column;gap:5px;margin-top:10px;">
         ${bankPlayers.map(r=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(r.p.Speler)}','${encodeURIComponent(r.p.Team)}')">
           <span>${teamLogo(r.p.Team)}${r.p.Speler} <span style="color:var(--text-dim);font-size:11px;">(${POS_SHORT[r.p.Positie]})</span></span>
-          <span style="font-family:'JetBrains Mono';color:var(--accent);">+${r.d.BankPunten}</span>
+          <span style="font-family:'JetBrains Mono';color:${r.d.BankPunten<0?'var(--danger)':'var(--accent)'};">${r.d.BankPunten>0?'+':''}${r.d.BankPunten}</span>
         </div>`).join('')}
       </div>` : ''}
       `;
@@ -10463,6 +10832,8 @@ function renderModal(){
   if(state.modal.type==='player') return renderPlayerModal();
   if(state.modal.type==='match') return renderMatchModal();
   if(state.modal.type==='swapSuggestions') return renderSwapSuggestionsModal();
+  if(state.modal.type==='injuryCheck') return renderInjuryCheckModal();
+  if(state.modal.type==='budgetOptimizer') return renderBudgetOptimizerModal();
   if(state.modal.type==='formationAdvice') return renderFormationAdviceModal();
   if(state.modal.type==='clubPlayerList') return renderClubPlayerListModal();
   if(state.modal.type==='statList') return renderStatListModal();
@@ -10475,7 +10846,10 @@ function renderModal(){
   if(state.modal.type==='bingoEditor') return renderBingoEditorModal();
   if(state.modal.type==='bingoPdfTheme') return renderBingoPdfThemeModal();
   if(state.modal.type==='appTheme') return renderAppThemeModal();
+  if(state.modal.type==='coachPicker') return renderCoachPickerModal();
+  if(state.modal.type==='teamCompare') return renderTeamCompareModal();
   if(state.modal.type==='textImport') return renderTextImportModal();
+  if(state.modal.type==='textExport') return renderTextExportModal();
   if(state.modal.type==='saveLoad') return renderSaveLoadModal();
   if(state.modal.type==='compare') return renderCompareModal();
   if(state.modal.type==='coachStats') return renderCoachStatsModal();
@@ -10723,6 +11097,7 @@ function render(){
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="budget-pill" style="cursor:pointer;display:flex;align-items:center;gap:6px;" onclick="openCoachPicker()" title="Wissel van coach">${icon('user',12)} <b>${state.followedCoach || 'Kies coach'}</b> ${icon('chevronDown',10)}</button>
         <div id="mode-toggle-el" class="mode-toggle ${tutorialHighlightClass('mode-toggle-el')}">
           <button class="${state.mode==='real'?'active':''}" onclick="switchMode('real')">${icon('shirt',14)} Mijn team</button>
           <button class="${state.mode==='sandbox'?'active':''}" onclick="switchMode('sandbox')">${icon('beach',14)} Sandbox</button>
@@ -10763,6 +11138,7 @@ function render(){
     ${renderCalculator()}
     ${renderQuickActionsStack()}
     ${renderTutorialOverlay()}
+    ${renderOnboardingOverlay()}
   `;
   updateTimeParticles();
   if(activeId){
@@ -11241,6 +11617,21 @@ const CASTING_COUCH_COACHES = [
   {coach:'Mike', team:'Miquel Dons', plaats:'Callantsoog'}
 ];
 function setFollowedClub(v){ state.followedClub=v; storageSet('cvhj-followed-club', v, false).catch(()=>{}); render(); }
+function openCoachPicker(){ state.modal = {type:'coachPicker'}; render(); }
+function renderCoachPickerModal(){
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:420px;">
+      <div class="head"><h4>${icon('user',18)} Wissel van coach</h4><button class="close" onclick="closeModal()">✕</button></div>
+      <div class="body-scroll">
+        <div class="news-note">Dit bepaalt welk team in de Casting Couch-ranglijst van jou is, en hoe de site je aanspreekt.</div>
+        <select onchange="setFollowedCoach(this.value)" style="width:100%;font-weight:600;padding:10px 12px;margin-top:8px;">
+          <option value="">— Niet gekozen —</option>
+          ${CASTING_COUCH_COACHES.map(c=>`<option value="${c.coach}" ${state.followedCoach===c.coach?'selected':''}>${c.coach} (${c.team})</option>`).join('')}
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
 function setFollowedCoach(v){
   const prevCoach = state.followedCoach;
   state.followedCoach = v;
@@ -13250,6 +13641,7 @@ function renderHomeTab(){
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${coachEntry ? (teamTabSnap ? `Van ${rows.length} teams` : 'Nog geen ronde-data beschikbaar') : 'Kies je coachnaam bij Persoonlijk'}</div>
       </div>
     </div>
+    ${renderUncoveredMatchesNote()}
     ${renderPointsStatsCards()}
     ${!isComplete ? `<div class="news-note" style="margin-bottom:28px;">Je team is nog niet compleet — ga naar <a href="#" onclick="setTab('team');return false;" style="color:var(--accent);">Mijn Team</a> om de laatste plekken te vullen, of gebruik "${icon('refresh',13)} Vul automatisch aan".</div>` : ''}
   `;
@@ -13399,7 +13791,7 @@ function renderHomeTab(){
   return `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
       <div>
-        <h2 style="font-family:'Oswald';font-size:22px;margin:0 0 4px;">Welkom terug</h2>
+        <h2 style="font-family:'Oswald';font-size:22px;margin:0 0 4px;">Welkom terug${state.followedCoach ? ' ' + state.followedCoach : ''}</h2>
         <div style="color:var(--text-dim);font-size:13px;">Hier is je snelle overzicht.</div>
       </div>
       <button class="btn ghost ${tutorialHighlightClass('home-settings-btn')}" style="padding:8px 12px;font-size:11px;flex-shrink:0;" onclick="toggleHomeSettings()">${icon('bars',13)} Pagina aanpassen</button>
@@ -13906,7 +14298,10 @@ function renderPersonalTab(){
   const today = new Date().toISOString().slice(0,10);
   return `
     <div class="section-title" style="margin-top:0;"><span>${icon('info',16)} Hulp</span><span class="line"></span></div>
-    <button class="btn ghost" style="margin-bottom:20px;" onclick="startTutorial()">${icon('info',13)} Bekijk de rondleiding opnieuw</button>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;">
+      <button class="btn ghost" onclick="startTutorial()">${icon('info',13)} Bekijk de rondleiding langs de tabjes opnieuw</button>
+      <button class="btn ghost" onclick="startOnboarding()">${icon('gem',13)} Doorloop de volledige introductie opnieuw</button>
+    </div>
     ${renderPersonalRecordsSection()}
     ${renderBingoSection()}
     ${renderTransferHistorySection()}
@@ -14064,6 +14459,355 @@ function computePlayerForm(p){
   const totaalGewicht = gewichten.reduce((a,b)=>a+b,0);
   const score = laatste3.reduce((s,g,i)=>s+g.pts*gewichten[i],0)/totaalGewicht;
   return Math.round(score*100)/100;
+}
+// Gemiddelde speelminuten van een speler over zijn laatste 3 gespeelde rondes — gebruikt om bij
+// de blessure-check kandidaten te herkennen die bij hun club écht basisspeler zijn (veel
+// minuten) i.p.v. een Eredivisie-bankzitter die zelf weinig aan spelen toekomt.
+function computeRecentMinutes(p){
+  const rounds = availableSnapshotRounds();
+  const key = p.Speler+'|'+p.Team;
+  const gespeeld = [];
+  rounds.forEach(r=>{
+    const snap = SEASON_2627_SNAPSHOTS[r];
+    if(snap && snap.playerRoundMinutes && (key in snap.playerRoundMinutes)){
+      gespeeld.push({r, min: snap.playerRoundMinutes[key]});
+    }
+  });
+  if(!gespeeld.length) return null;
+  gespeeld.sort((a,b)=>b.r-a.r);
+  const laatste3 = gespeeld.slice(0,3);
+  return Math.round(laatste3.reduce((s,g)=>s+g.min,0)/laatste3.length);
+}
+// ---- Blessure- & bankspelercheck: scan de HELE selectie (basis én bank) op blessures/schorsingen/
+// twijfelgevallen, én op spelers die bij hun eigen club in het echt geen basisspeler zijn (gem.
+// <60 min. over de laatste 3 gespeelde rondes — los van de CVHJ-basis/bank-indeling). Geef per
+// getroffen plek vervangers: bij een "echte bankzitter" krijgt een clubgenoot die wél basisspeler
+// is voorrang (dezelfde club is toegestaan, want de bestaande speler van die club wordt vervangen),
+// anders (bij blessure/schorsing) voorkeur voor spelers die bij hun club écht basisspeler zijn
+// (gem. ≥60 min.), pas daarna gesorteerd op vormscore. ----
+function computeInjuryCheckIssues(){
+  const defs = slotDefs(); // basis én bank
+  const huidigeSpelers = defs.map(d=>({...d, speler: state.squad[d.id]})).filter(x=>x.speler);
+  if(!huidigeSpelers.length) return [];
+  const huidigeKeys = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team));
+  const huidigeClubs = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Team));
+  const beschikbaar = BUDGET_CAP - squadTotalPrice();
+  const problemen = [];
+  huidigeSpelers.forEach(({id, pos, label, reserve, speler})=>{
+    const inj = findInjury(speler.Speler, speler.Team);
+    const minuten = computeRecentMinutes(speler);
+    const isRealBench = !inj && minuten!=null && minuten<60; // los van blessure: speelt bij zijn club écht weinig
+    if(!inj && !isRealBench) return; // niets aan de hand bij deze speler
+    const maxPrijs = speler.Prijs + beschikbaar;
+    const overigeClubs = new Set([...huidigeClubs].filter(c=>c!==speler.Team));
+    let kandidaten = PLAYERS.filter(pl=>
+      pl.Positie===pos && !pl.former
+      && !huidigeKeys.has(pl.Speler+'|'+pl.Team)
+      && pl.Prijs<=maxPrijs
+      && !overigeClubs.has(pl.Team)
+      && !findInjury(pl.Speler, pl.Team)
+    );
+    kandidaten = kandidaten.map(pl=>({ p: pl, minuten: computeRecentMinutes(pl), vorm: computePlayerForm(pl) }));
+    kandidaten.sort((a,b)=>{
+      // bij een "echte bankzitter"-probleem: geef een clubgenoot die wél basisspeler is voorrang,
+      // zodat je makkelijk binnen dezelfde club kunt schuiven
+      if(isRealBench){
+        const aSameClub = a.p.Team===speler.Team, bSameClub = b.p.Team===speler.Team;
+        if(aSameClub!==bSameClub) return aSameClub ? -1 : 1;
+      }
+      const aBasis = a.minuten!=null && a.minuten>=60;
+      const bBasis = b.minuten!=null && b.minuten>=60;
+      if(aBasis!==bBasis) return aBasis ? -1 : 1;
+      return b.vorm-a.vorm;
+    });
+    problemen.push({slotId:id, label, reserve, speler, inj, isRealBench, minuten, kandidaten: kandidaten.slice(0,3)});
+  });
+  // blessures/schorsingen eerst, dan bankrisico; binnen elke categorie: basis vóór bank
+  problemen.sort((a,b)=>{
+    const aSev = a.inj ? 0 : 1, bSev = b.inj ? 0 : 1;
+    if(aSev!==bSev) return aSev-bSev;
+    if(a.reserve!==b.reserve) return a.reserve ? 1 : -1;
+    return 0;
+  });
+  return problemen;
+}
+// ---- Budget-optimalisatie: per linie, is er met je resterende (onbenutte) budget een dúidelijk
+// betere speler te halen dan je huidige zwakste op die linie? Anders dan Wisselsuggesties (die
+// draait om vormverschil, ongeacht budget) kijkt dit puur naar "je hebt geld over, gebruik je dat
+// slim" — en toont per linie alleen iets als het verschil overduidelijk is. ----
+function computeBudgetUpgrades(){
+  const beschikbaar = BUDGET_CAP - squadTotalPrice();
+  if(beschikbaar<=0.01) return {beschikbaar, upgrades:[]};
+  const defs = slotDefs().filter(d=>!d.reserve);
+  const huidigeSpelers = defs.map(d=>({...d, speler: state.squad[d.id]})).filter(x=>x.speler);
+  if(!huidigeSpelers.length) return {beschikbaar, upgrades:[]};
+  const huidigeKeys = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team));
+  const huidigeClubs = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Team));
+  const upgrades = [];
+  POS_ORDER.forEach(pos=>{
+    const opLinie = huidigeSpelers.filter(x=>x.pos===pos);
+    if(!opLinie.length) return;
+    // de zwakste (op vormscore) op deze linie is de kandidaat om te upgraden
+    const metVorm = opLinie.map(x=>({...x, vorm: computePlayerForm(x.speler)}));
+    metVorm.sort((a,b)=>a.vorm-b.vorm);
+    const zwakste = metVorm[0];
+    const maxPrijs = zwakste.speler.Prijs + beschikbaar;
+    const overigeClubs = new Set([...huidigeClubs].filter(c=>c!==zwakste.speler.Team));
+    const kandidaten = PLAYERS.filter(pl=>
+      pl.Positie===pos && !pl.former
+      && !huidigeKeys.has(pl.Speler+'|'+pl.Team)
+      && pl.Prijs>zwakste.speler.Prijs && pl.Prijs<=maxPrijs
+      && !overigeClubs.has(pl.Team)
+    );
+    let beste = null, besteVorm = -Infinity;
+    kandidaten.forEach(pl=>{
+      const v = computePlayerForm(pl);
+      if(v>besteVorm){ besteVorm=v; beste=pl; }
+    });
+    if(!beste) return;
+    const winst = Math.round((besteVorm-zwakste.vorm)*100)/100;
+    if(winst<1.0) return; // alleen tonen als het verschil overduidelijk is
+    upgrades.push({
+      pos, label: POS_LABEL[pos], slotId: zwakste.id,
+      uit: zwakste.speler, uitVorm: zwakste.vorm,
+      in: beste, inVorm: besteVorm, winst,
+      kostendelta: Math.round((beste.Prijs-zwakste.speler.Prijs)*100)/100,
+    });
+  });
+  upgrades.sort((a,b)=>b.winst-a.winst);
+  return {beschikbaar, upgrades};
+}
+function openBudgetOptimizer(){ state.modal = {type:'budgetOptimizer'}; render(); }
+function renderBudgetOptimizerModal(){
+  const {beschikbaar, upgrades} = computeBudgetUpgrades();
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box">
+      <div class="head"><h4>${icon('save',13)} Budget-optimalisatie</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <div class="news-note">Kijkt per linie of je met je resterende budget van <b>${fmtEuro(Math.max(0,beschikbaar))}</b> een dúidelijk betere speler kunt halen dan je huidige zwakste op die linie — dus alleen puur op prijs/waarde, los van Wisselsuggesties (die kijkt naar vormverschil ongeacht budget).</div>
+        ${beschikbaar<=0.01 ? `<div class="news-note">Je hebt geen budget meer over — niets te optimaliseren.</div>` :
+          upgrades.length===0 ? `<div class="news-note">Geen duidelijke upgrade gevonden binnen je resterende budget — je selectie zit er al goed bij voor dit budget.</div>` : ''}
+        ${upgrades.map(u=>`
+          <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:8px;flex-direction:column;align-items:stretch;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);">${u.label}</span>
+              <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--accent);">+${u.winst.toFixed(1)} pnt/ronde · +${fmtEuro(u.kostendelta)}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${u.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(u.uit.Team)}${u.uit.Team} · vorm ${u.uitVorm} · ${fmtEuro(u.uit.Prijs)}</div></div>
+              <span style="color:var(--accent);">→</span>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${u.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(u.in.Team)}${u.in.Team} · vorm ${u.inVorm} · ${fmtEuro(u.in.Prijs)}</div></div>
+              <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="applySwapSuggestion('${u.slotId}','${encodeURIComponent(u.in.Speler)}','${encodeURIComponent(u.in.Team)}')">Toepassen</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+// ---- Vergelijk mijn team: zet je eigen team naast een gekozen "tegenstander"-team, gegroepeerd
+// per bron. Casting Couch > kies zelf een coach (met een ranglijst van diens spelers, op totaal-
+// én weekpunten) of het beste Casting Couch-team van een gekozen ronde; Algemeen Klassement > het
+// landelijk beste team van een ronde, of het (seizoen-cumulatieve) Perfect Team. ----
+function openTeamCompare(){
+  if(!state.teamCompareGroup) state.teamCompareGroup = 'castingcouch';
+  if(!state.teamCompareMode) state.teamCompareMode = 'coach';
+  if(!state.teamCompareCoach && typeof CASTING_COUCH_COACHES!=='undefined' && CASTING_COUCH_COACHES.length){
+    const me = state.followedCoach;
+    const other = CASTING_COUCH_COACHES.find(c=>c.coach!==me) || CASTING_COUCH_COACHES[0];
+    state.teamCompareCoach = other ? other.coach : '';
+  }
+  if(!state.teamCompareRound){
+    const availCC = Object.keys(CASTING_COUCH_TEAM_SQUADS||{}).map(Number).sort((a,b)=>a-b);
+    const availNat = availableSnapshotRounds();
+    const pool = state.teamCompareGroup==='algemeen' ? availNat : availCC;
+    if(pool.length) state.teamCompareRound = pool[pool.length-1];
+  }
+  state.modal = {type:'teamCompare'};
+  render();
+}
+function setTeamCompareGroup(v){
+  state.teamCompareGroup = v;
+  state.teamCompareMode = v==='castingcouch' ? 'coach' : 'weekteam';
+  render();
+}
+function setTeamCompareMode(v){ state.teamCompareMode = v; render(); }
+function setTeamCompareCoach(v){ state.teamCompareCoach = v; render(); }
+function setTeamCompareRound(v){ state.teamCompareRound = Number(v); render(); }
+function setTeamCompareRankingSort(v){ state.teamCompareRankingSort = v; render(); }
+function computeTeamCompareOpponent(){
+  const round = state.teamCompareRound;
+  if(state.teamCompareGroup==='castingcouch'){
+    if(typeof CASTING_COUCH_TEAM_SQUADS==='undefined') return null;
+    const roundsCC = Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).sort((a,b)=>a-b);
+    if(!roundsCC.length) return null;
+    if(state.teamCompareMode==='coach'){
+      const coach = state.teamCompareCoach;
+      const useRound = roundsCC.includes(round) ? round : roundsCC[roundsCC.length-1];
+      const data = CASTING_COUCH_TEAM_SQUADS[useRound] ? CASTING_COUCH_TEAM_SQUADS[useRound][coach] : null;
+      if(!data) return null;
+      const snap = SEASON_2627_SNAPSHOTS[useRound];
+      const perPlayer = data.squad.map(s=>({...s, points: snap && snap.playerRoundPoints ? (snap.playerRoundPoints[s.key]||0) : 0}));
+      const totals = roundRangeTotals(1, useRound);
+      const playersWithStats = data.squad.map(s=>({
+        naam: s.naam, club: s.club, pos: s.pos, reserve: s.reserve,
+        weekPunten: snap && snap.playerRoundPoints ? (snap.playerRoundPoints[s.key]||0) : 0,
+        totaalPunten: totals[s.key] || 0,
+      }));
+      return { label: `${coach} (${data.team})`, round: useRound, perPlayer, playersWithStats };
+    }
+    // weekteam: het best presterende Casting Couch-team van de gekozen ronde
+    const useRound = roundsCC.includes(round) ? round : roundsCC[roundsCC.length-1];
+    const officialTotals = (coachName, info) => { const snap = LEAGUE_ROUND_SNAPSHOTS[useRound]; return snap && snap.standings[info.team] ? snap.standings[info.team].ronde : null; };
+    const rows = computeCoachWeekScores(useRound, CASTING_COUCH_TEAM_SQUADS[useRound], officialTotals);
+    if(!rows || !rows.length) return null;
+    const top = rows[0];
+    const data = CASTING_COUCH_TEAM_SQUADS[useRound][top.coach];
+    if(!data) return null;
+    const snap = SEASON_2627_SNAPSHOTS[useRound];
+    const perPlayer = data.squad.map(s=>({...s, points: snap && snap.playerRoundPoints ? (snap.playerRoundPoints[s.key]||0) : 0}));
+    return { label: `${top.coach} (${data.team}) — beste Casting Couch-team van ronde ${useRound}`, round: useRound, perPlayer };
+  }
+  // Algemeen Klassement
+  if(state.teamCompareMode==='weekteam'){
+    const avail = availableSnapshotRounds();
+    if(!avail.length) return null;
+    const useRound = avail.includes(round) ? round : avail[avail.length-1];
+    const tow = computeTeamOfWeek(useRound);
+    if(!tow) return null;
+    const perPlayer = tow.players.map(x=>({naam:x.p.Speler, club:x.p.Team, pos:x.p.Positie, points:x.points, reserve:!!x.reserve}));
+    return { label: `Landelijk beste team van ronde ${useRound} (${tow.total} pnt, ${tow.formation})`, round: useRound, perPlayer };
+  }
+  // perfectteam
+  const data = computePerfectTeamHistory();
+  if(!data) return null;
+  const rondes = data.geschiedenis.map(g=>g.ronde);
+  const useRound = rondes.includes(round) ? round : rondes[rondes.length-1];
+  const huidige = data.geschiedenis.find(g=>g.ronde===useRound);
+  if(!huidige) return null;
+  const perPlayer = huidige.squad.map(g=>({naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.basis?g.pts:Math.floor(g.pts*0.5), reserve:!g.basis}));
+  return { label: `Perfect Team t/m ronde ${useRound} (${huidige.cumulatief} pnt cumulatief)`, round: useRound, perPlayer };
+}
+function renderTeamOverlapSection(opponentPerPlayer){
+  const mineKeys = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team));
+  const oppKeys = new Set(opponentPerPlayer.map(x=>(x.naam||x.speler)+'|'+x.club));
+  const stripName = k => k.slice(0, k.lastIndexOf('|'));
+  const gedeeld = [...mineKeys].filter(k=>oppKeys.has(k)).map(stripName);
+  const alleenIk = [...mineKeys].filter(k=>!oppKeys.has(k)).map(stripName);
+  const alleenOpp = [...oppKeys].filter(k=>!mineKeys.has(k)).map(stripName);
+  function lijstBox(titel, kleur, namen){
+    return `<div style="flex:1;min-width:170px;background:var(--surface);border-radius:10px;padding:10px;">
+      <div style="font-size:11px;color:${kleur};font-weight:600;margin-bottom:6px;">${titel} (${namen.length})</div>
+      ${namen.length ? namen.map(n=>`<div style="font-size:12px;padding:2px 0;">${n}</div>`).join('') : `<div style="font-size:11px;color:var(--text-dim);">—</div>`}
+    </div>`;
+  }
+  return `
+    <div class="section-title" style="margin-top:16px;"><span>Overlap met jouw team</span><span class="line"></span></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      ${lijstBox('In beide teams', 'var(--accent)', gedeeld)}
+      ${lijstBox('Alleen bij jou', 'var(--def)', alleenIk)}
+      ${lijstBox('Alleen bij hen', 'var(--text-dim)', alleenOpp)}
+    </div>
+  `;
+}
+function renderCompareCoachRanking(playersWithStats){
+  const sortBy = state.teamCompareRankingSort || 'totaal';
+  const sorted = playersWithStats.slice().sort((a,b)=> sortBy==='totaal' ? b.totaalPunten-a.totaalPunten : b.weekPunten-a.weekPunten);
+  return `
+    <div class="section-title" style="margin-top:16px;"><span>Spelersranglijst</span><span class="line"></span></div>
+    <div class="view-toggle" style="margin-bottom:10px;">
+      <button class="${sortBy==='totaal'?'active':''}" onclick="setTeamCompareRankingSort('totaal')">Op totaal</button>
+      <button class="${sortBy==='week'?'active':''}" onclick="setTeamCompareRankingSort('week')">Op deze week</button>
+    </div>
+    ${sorted.map((s,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 8px;border-radius:6px;cursor:pointer;${s.reserve?'opacity:0.6;':''}" onclick="openPlayerModal('${encodeURIComponent(s.naam)}','${encodeURIComponent(s.club)}')">
+        <span style="font-size:12px;">${i+1}. ${teamLogo(s.club)}${s.naam}${s.reserve?' (bank)':''}</span>
+        <span style="font-family:'JetBrains Mono';font-size:12px;">${sortBy==='totaal'?s.totaalPunten:s.weekPunten} pnt</span>
+      </div>
+    `).join('')}
+  `;
+}
+function renderTeamCompareModal(){
+  const opp = computeTeamCompareOpponent();
+  const availCC = Object.keys(CASTING_COUCH_TEAM_SQUADS||{}).map(Number).sort((a,b)=>a-b);
+  const availNat = availableSnapshotRounds();
+  const roundsForSelector = state.teamCompareGroup==='algemeen' ? availNat : availCC;
+  const showRoundSelector = roundsForSelector.length>0;
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:760px;">
+      <div class="head"><h4>${icon('scale',16)} Vergelijk mijn team</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <div class="news-note">Zet je eigen team naast een team van jouw keuze en zie meteen welke spelers je delen.</div>
+        <div class="view-toggle" style="margin:10px 0;">
+          <button class="${state.teamCompareGroup==='castingcouch'?'active':''}" onclick="setTeamCompareGroup('castingcouch')">Casting Couch</button>
+          <button class="${state.teamCompareGroup==='algemeen'?'active':''}" onclick="setTeamCompareGroup('algemeen')">Algemeen Klassement</button>
+        </div>
+        <div class="view-toggle" style="margin-bottom:12px;">
+          ${state.teamCompareGroup==='castingcouch' ? `
+            <button class="${state.teamCompareMode==='coach'?'active':''}" onclick="setTeamCompareMode('coach')">Kies coach</button>
+            <button class="${state.teamCompareMode==='weekteam'?'active':''}" onclick="setTeamCompareMode('weekteam')">Team van de week</button>
+          ` : `
+            <button class="${state.teamCompareMode==='weekteam'?'active':''}" onclick="setTeamCompareMode('weekteam')">Team van de week</button>
+            <button class="${state.teamCompareMode==='perfectteam'?'active':''}" onclick="setTeamCompareMode('perfectteam')">Perfecte team</button>
+          `}
+        </div>
+        ${state.teamCompareGroup==='castingcouch' && state.teamCompareMode==='coach' && typeof CASTING_COUCH_COACHES!=='undefined' ? `
+          <select onchange="setTeamCompareCoach(this.value)" style="width:100%;font-weight:600;padding:8px 10px;margin-bottom:10px;">
+            ${CASTING_COUCH_COACHES.map(c=>`<option value="${c.coach}" ${state.teamCompareCoach===c.coach?'selected':''}>${c.coach} (${c.team})</option>`).join('')}
+          </select>
+        ` : ''}
+        ${showRoundSelector && state.teamCompareMode!=='perfectteam' ? `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <span style="font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);">Ronde:</span>
+            <select onchange="setTeamCompareRound(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 10px;font-family:'JetBrains Mono';font-size:12px;">
+              ${roundsForSelector.map(r=>`<option value="${r}" ${state.teamCompareRound===r?'selected':''}>Ronde ${r}</option>`).join('')}
+            </select>
+          </div>
+        ` : ''}
+        ${!opp ? `<div class="news-note">Nog geen data beschikbaar voor deze keuze.</div>` : `
+          <div class="section-title" style="margin-top:0;"><span>${opp.label}</span><span class="line"></span></div>
+          ${renderFantasySquadPitch(opp.perPlayer, opp.round, 'blauw', opp.label)}
+          ${renderTeamOverlapSection(opp.perPlayer)}
+          ${opp.playersWithStats ? renderCompareCoachRanking(opp.playersWithStats) : ''}
+        `}
+      </div>
+    </div>
+  </div>`;
+}
+function openInjuryCheck(){ state.modal = {type:'injuryCheck'}; render(); }
+function injuryStatusLabel(inj){
+  if(inj.Status==='Geblesseerd') return 'Geblesseerd';
+  if(inj.Status==='Geschorst') return 'Geschorst';
+  return 'Twijfelgeval';
+}
+function renderInjuryCheckModal(){
+  const problemen = computeInjuryCheckIssues();
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box">
+      <div class="head"><h4>${icon('warning',13)} Blessure- & bankspelercheck</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <div class="news-note">Scant je hele selectie — basis én bank — op blessures, schorsingen en twijfelgevallen, én op spelers die bij hun eigen club in het echt geen basisspeler zijn (gem. &lt;60 min. over de laatste 3 gespeelde rondes, los van hoe hij bij jou staat). Bij dat laatste krijgt een clubgenoot die wél in de basis staat voorrang als vervanger — zo kun je makkelijk binnen dezelfde club schuiven. Overige vervangers komen uit de hele Eredivisie-pool, met voorkeur voor echte basisspelers (gem. ≥60 min.), pas daarna gesorteerd op vormscore.</div>
+        ${problemen.length===0 ? `<div class="news-note">Geen blessures, schorsingen, twijfelgevallen of vermoedelijke bankspelers in je huidige selectie gevonden.</div>` : ''}
+        ${problemen.map(pr=>`
+          <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:10px;flex-direction:column;align-items:stretch;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+              <span style="font-size:13px;font-weight:600;">${pr.speler.Speler} <span style="font-weight:400;color:var(--text-dim);font-size:11px;">(${pr.label}${pr.reserve?' · Bank':''} · ${teamLogo(pr.speler.Team)}${pr.speler.Team})</span></span>
+              <span style="font-family:'JetBrains Mono';font-size:11px;color:${pr.inj ? (pr.inj.Status==='Geblesseerd'?'var(--danger)':pr.inj.Status==='Geschorst'?'#8E4A2E':'#E0A526') : '#E0A526'};">${pr.inj ? `${injuryStatusLabel(pr.inj)}${pr.inj.Type?' — '+pr.inj.Type:''}` : `Waarschijnlijk bankspeler bij ${pr.speler.Team}${pr.minuten!=null?` (gem. ${pr.minuten}' laatste 3 rondes)`:''}`}</span>
+            </div>
+            ${pr.kandidaten.length===0 ? `<div style="font-size:12px;color:var(--text-dim);">Geen betaalbare vervanger gevonden binnen budget/clublimiet — pas eventueel handmatig aan.</div>` : pr.kandidaten.map(k=>`
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:600;">${teamLogo(k.p.Team)}${k.p.Speler}${k.p.Team===pr.speler.Team?` <span style="font-size:10px;color:var(--accent);">(clubgenoot)</span>`:''}</div>
+                  <div style="font-size:11px;color:var(--text-dim);">${k.p.Team} · ${fmtEuro(k.p.Prijs)} · vorm ${k.vorm}${k.minuten!=null?` · gem. ${k.minuten}' laatste 3 rondes${k.minuten>=60?' (basisspeler)':' (wisselvallige speeltijd)'}` : ' · nog geen speeltijddata'}</div>
+                </div>
+                <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="applySwapSuggestion('${pr.slotId}','${encodeURIComponent(k.p.Speler)}','${encodeURIComponent(k.p.Team)}')">Toepassen</button>
+              </div>
+            `).join('')}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
 }
 // ---- Bank/basis-suggesties: welke 4 spelers kunnen op de bank voor de komende ronde ----
 // Geen transfers, alleen rolverdeling binnen je huidige 15 spelers. Per linie (Keeper,
@@ -14695,6 +15439,45 @@ function renderTextImportModal(){
 function normName(s){
   return s.normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 }
+// ---- Team exporteren (tekst) — het spiegelbeeld van Team importeren: platte tekst om zonder
+// screenshot te kunnen plakken (bijv. in de groepsapp). ----
+function exportTeamText(){
+  const defs = slotDefs();
+  const basis = defs.filter(d=>!d.reserve);
+  const reserve = defs.filter(d=>d.reserve);
+  const lines = [];
+  lines.push(`Mijn CVHJ-team — ${state.formation} (${fmtEuro(squadTotalPrice())} / ${fmtEuro(BUDGET_CAP)})`);
+  lines.push('');
+  lines.push('Basis:');
+  basis.forEach(d=>{ const p=state.squad[d.id]; if(p) lines.push(`- ${p.Speler} (${p.Team}, ${fmtEuro(p.Prijs)})`); });
+  lines.push('');
+  lines.push('Bank:');
+  reserve.forEach(d=>{ const p=state.squad[d.id]; if(p) lines.push(`- ${p.Speler} (${p.Team}, ${fmtEuro(p.Prijs)})`); });
+  return lines.join('\n');
+}
+function openTextExport(){ state.modal = {type:'textExport'}; render(); }
+function copyTeamText(){
+  const el = document.getElementById('text-export-area');
+  const text = el ? el.value : exportTeamText();
+  if(el) el.select();
+  robustCopyToClipboard(text, "Teamtekst gekopieerd! Plak 'm bijvoorbeeld in je groepsapp.");
+}
+function renderTextExportModal(){
+  const text = exportTeamText();
+  const squadCount = Object.values(state.squad).filter(Boolean).length;
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box">
+      <div class="head"><h4>${icon('clipboard',18)} Team exporteren (tekst)</h4><button class="close" onclick="closeModal()">✕</button></div>
+      <div class="body-scroll">
+        ${squadCount===0 ? `<div class="news-note">Je team is nog leeg — er is niets te exporteren.</div>` : `
+        <div class="news-note">${icon('info',13)} Platte tekst van je huidige team, handig om zonder screenshot te delen (bijv. in de groepsapp). Voor een exacte terug te laden versie (incl. formatie) gebruik je liever de teamcode onder "Opslaan/laden".</div>
+        <textarea id="text-export-area" readonly rows="12" style="width:100%;background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:10px;font-family:'JetBrains Mono';font-size:12.5px;margin-bottom:12px;white-space:pre;">${text}</textarea>
+        <button class="btn primary" style="width:100%;" onclick="copyTeamText()">${icon('clipboard',15)} Kopieer teamtekst</button>
+        `}
+      </div>
+    </div>
+  </div>`;
+}
 function openTextImport(){
   state.modal = {type:'textImport', text:'', results:null};
   render();
@@ -15250,7 +16033,8 @@ async function saveReadAlerts(){
 }
 function renderBankie(){
   const unread = unreadBankieAlerts();
-  const launcher = !state.bankieOpen ? `<button class="bankie-launcher ${state.quickActionsHidden?'hidden':''}" onclick="toggleBankie()" title="Vraag Bankie om tips">${icon('couch',26)}${unread.length?`<span class="bankie-badge">!</span>`:''}</button>` : '';
+  const forceShowBankie = state.tutorialActive && (TUTORIAL_STEPS[state.tutorialStep]||{}).highlightId==='bankie-launcher-btn';
+  const launcher = !state.bankieOpen ? `<button id="bankie-launcher-btn" class="bankie-launcher ${tutorialHighlightClass('bankie-launcher-btn')} ${(state.quickActionsHidden && !forceShowBankie)?'hidden':''}" onclick="toggleBankie()" title="Vraag Bankie om tips">${icon('couch',26)}${unread.length?`<span class="bankie-badge">!</span>`:''}</button>` : '';
   if(!state.bankieOpen) return launcher;
   const tips = generateBankieTips();
   return `<div class="bankie-panel">
