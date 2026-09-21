@@ -6090,7 +6090,7 @@ function renderTeamTab(){
     const p = state.squad[d.id];
     const color = POS_COLOR[d.pos];
     if(!p){
-      return `<div class="slot" style="border-color:${color}66" onclick="goToScoutForSlot('${d.id}')">
+      return `<div class="slot" style="border-color:${color}66" onclick="openEmptySlotActions('${d.id}')">
         <div class="slot-label" style="color:${color}">${d.label}</div>
         <div class="empty-plus">+</div>
       </div>`;
@@ -6669,7 +6669,7 @@ function renderPitchView(basis, reserve){
   function chip(d){
     const p = state.squad[d.id];
     const color = POS_COLOR[d.pos];
-    if(!p) return `<div class="pitch-chip empty" style="border-color:${color}" onclick="goToScoutForSlot('${d.id}')">+</div>`;
+    if(!p) return `<div class="pitch-chip empty" style="border-color:${color}" onclick="openEmptySlotActions('${d.id}')">+</div>`;
     const inj = findInjury(p.Speler, p.Team);
     const lockInfo = smartLockInfo(p); const locked = lockInfo.locked;
     const nextOpp = nextOpponents(p.Team, 1)[0];
@@ -6706,7 +6706,7 @@ function renderPitchView(basis, reserve){
     <div class="slot-grid">${reserve.map(d=>{
       const p = state.squad[d.id];
       const color = POS_COLOR[d.pos];
-      if(!p) return `<div class="slot" style="border-color:${color}66" onclick="goToScoutForSlot('${d.id}')"><div class="slot-label" style="color:${color}">${d.label}</div><div class="empty-plus">+</div></div>`;
+      if(!p) return `<div class="slot" style="border-color:${color}66" onclick="openEmptySlotActions('${d.id}')"><div class="slot-label" style="color:${color}">${d.label}</div><div class="empty-plus">+</div></div>`;
       const inj = findInjury(p.Speler, p.Team);
       const lockInfo = smartLockInfo(p); const locked = lockInfo.locked;
       const roundPts = benchRoundPointsDisplay(p, d.pos);
@@ -10687,6 +10687,22 @@ function renderStatDetailPanel(p, sel){
     </div>
   </div>`;
 }
+// Kan deze speler op dit moment daadwerkelijk (met één klik, via "Toevoegen aan team") worden
+// toegevoegd? Zelfde voorwaarden als quickAdd() daadwerkelijk toepast, zodat de knop nooit
+// zichtbaar is voor een actie die toch zou mislukken.
+function canAddPlayerToTeam(p){
+  if(!p || p.former) return false;
+  const gate = canEditTeamNow();
+  if(!gate.ok) return false;
+  const squadPlayers = Object.values(state.squad).filter(Boolean);
+  if(squadPlayers.some(s=>s.Speler===p.Speler && s.Team===p.Team)) return false; // al in team
+  if(squadPlayers.some(s=>s.Team===p.Team)) return false; // club al in gebruik
+  const beschikbaar = BUDGET_CAP - squadTotalPrice();
+  if(p.Prijs > beschikbaar + 0.001) return false; // budget niet toereikend
+  const defs = slotDefs().filter(d=>d.pos===p.Positie);
+  if(!defs.some(d=>!state.squad[d.id])) return false; // geen lege plek van deze positie
+  return true;
+}
 function renderPlayerModal(){
   const {name, team, fromSlot} = state.modal;
   const p = PLAYERS.find(pl=>pl.Speler===name && pl.Team===team);
@@ -10699,10 +10715,12 @@ function renderPlayerModal(){
   const d = seasonDataForSeason(p, sel);
   const isGK = p.Positie==='Goalkeeper';
   const inj = findInjury(p.Speler, p.Team);
+  const canAdd = !fromSlot && canAddPlayerToTeam(p);
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
     <div class="box">
       <div class="head"><h4>Spelerprofiel</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
       <div class="body-scroll">
+        ${canAdd ? `<button class="btn primary" style="width:100%;margin-bottom:14px;" onclick="quickAdd('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${icon('shirt',15)} Toevoegen aan team</button>` : ''}
         <div class="player-head">
           <span class="pos-chip" style="background:${color}">${POS_SHORT[p.Positie]}</span>
           <div><h2>${p.Speler} ${injuryBadge(inj)} ${penaltyIconHtml(p.Speler, p.Team, 16)}${cornerIconHtml(p.Speler, p.Team, 16)}${freekickIconHtml(p.Speler, p.Team, 16)} ${RUGNUMMERS[p.Speler+'|'+p.Team] ? `<span style="font-family:'JetBrains Mono';font-size:14px;color:var(--text-dim);font-weight:600;">#${RUGNUMMERS[p.Speler+'|'+p.Team]}</span>` : ''}</h2><div class="sub">${jerseySvg(p.Team,16)}<a href="#" onclick="closeModal();setTab('clubs');selectClubView('${p.Team.replace(/'/g,"\\'")}');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">${teamLogo(p.Team)}${p.Team}</a> · ${fmtEuro(p.Prijs)} · prijs/punt-ratio ${p._strength ?? 'N/A'}% (o.b.v. laatst bekende seizoen)</div>
@@ -10755,11 +10773,10 @@ function renderPlayerModal(){
         ` : `<div class="news-note">Geen data voor seizoen ${sel}${sel==='2026/27' ? ' — nog geen ronde-data dit seizoen voor deze speler.' : ' — speler zat toen (nog) niet in de Eredivisie-dataset.'}</div>`}
         ${generatePlayerQuickSummary(p, sel)}
         ${sel==='2026/27' ? renderPlayerOverigeStatsSection(p) : ''}
-        <div class="modal-actions" style="margin-bottom:14px;">
-          ${fromSlot ? `<button class="btn ghost" onclick="openPicker('${fromSlot}')">Vervangen</button>
-                        <button class="btn danger" onclick="removeFromSlot('${fromSlot}');closeModal()">Verwijderen uit team</button>`
-                     : `<button class="btn primary" onclick="quickAdd('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">Toevoegen aan team</button>`}
-        </div>
+        ${fromSlot ? `<div class="modal-actions" style="margin-bottom:14px;">
+          <button class="btn ghost" onclick="openPicker('${fromSlot}')">Vervangen</button>
+          <button class="btn danger" onclick="removeFromSlot('${fromSlot}');closeModal()">Verwijderen uit team</button>
+        </div>` : ''}
         ${fromSlot ? benchSwapButtonHtml(fromSlot, p) : ''}
         ${p.former ? `<div class="news-note" style="border-color:#9B6BC4;">${icon('clock',14)} Deze speler zit niet meer in de huidige Eredivisie-spelerspool (2026/27) — hij komt hier alleen naar voren bij het bekijken van 2025/26 of 2024/25, en kan niet aan je team worden toegevoegd.</div>` : ''}
         ${p.transferHistory && p.transferHistory.length ? `<div class="news-note">${icon('refresh',12)} Transfer: ${p.transferHistory.map(t=>`${teamLogo(t.from)}${t.from} → ${teamLogo(t.to)}${t.to} (sinds seizoen ${t.season})`).join(' · ')}</div>` : ''}
@@ -10868,6 +10885,7 @@ function renderModal(){
   if(state.modal.type==='teamCompare') return renderTeamCompareModal();
   if(state.modal.type==='teamPlayerActions') return renderTeamPlayerActionsModal();
   if(state.modal.type==='benchToBasisPicker') return renderBenchToBasisPickerModal();
+  if(state.modal.type==='emptySlotActions') return renderEmptySlotActionsModal();
   if(state.modal.type==='textImport') return renderTextImportModal();
   if(state.modal.type==='textExport') return renderTextExportModal();
   if(state.modal.type==='saveLoad') return renderSaveLoadModal();
@@ -14585,12 +14603,66 @@ function renderBenchToBasisPickerModal(){
     </div>
   </div>`;
 }
-// ---- Klik op een lege plek in Mijn Team: rechtstreeks naar Scout, met alvast de juiste positie
-// gefilterd, i.p.v. het losse kiezer-modaltje. ----
+// ---- Klik op een lege plek in Mijn Team: eerst een actiemenu met wisselsuggesties, een
+// zoeker op club/positie en een link naar Scout — i.p.v. rechtstreeks naar Scout springen. ----
 function goToScoutForSlot(slotId){
   const def = slotDefs().find(d=>d.id===slotId);
   if(def){ state.posFilter = def.pos; state.scoutVisibleCount = 80; }
+  closeModal();
   setTab('scout');
+}
+// Top-kandidaten om deze lege plek direct mee te vullen: zelfde positie, past binnen je
+// resterende budget, club nog niet in gebruik, geen blessure/schorsing — gesorteerd op
+// prijs/punt-sterkte (net als de rest van de app) met vormscore als tiebreaker.
+function computeFillSuggestionsForSlot(slotId){
+  const def = slotDefs().find(d=>d.id===slotId);
+  if(!def) return [];
+  const usedKeys = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team));
+  const usedClubs = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Team));
+  const beschikbaar = BUDGET_CAP - squadTotalPrice();
+  let kandidaten = PLAYERS.filter(p=>
+    p.Positie===def.pos && !p.former
+    && !usedKeys.has(p.Speler+'|'+p.Team)
+    && p.Prijs<=beschikbaar
+    && !usedClubs.has(p.Team)
+    && !findInjury(p.Speler, p.Team)
+  );
+  kandidaten.sort((a,b)=> (b._strength??-1)-(a._strength??-1) || computePlayerForm(b)-computePlayerForm(a));
+  return kandidaten.slice(0,5);
+}
+function openEmptySlotActions(slotId){
+  if(state.squad[slotId]) return; // deze plek is inmiddels niet meer leeg
+  state.modal = {type:'emptySlotActions', slotId};
+  render();
+}
+function renderEmptySlotActionsModal(){
+  const slotId = state.modal.slotId;
+  const def = slotDefs().find(d=>d.id===slotId);
+  if(!def) return `<div class="overlay" onclick="closeModal()"><div class="box"><div class="news-note">Deze plek bestaat niet (meer).</div></div></div>`;
+  const color = POS_COLOR[def.pos];
+  const suggesties = computeFillSuggestionsForSlot(slotId);
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:420px;">
+      <div class="head"><h4 style="color:${color}">${def.label} invullen</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        ${suggesties.length ? `
+        <div class="section-title"><span>Wisselsuggesties</span><span class="line"></span></div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+          ${suggesties.map(p=>{
+            const ld = latestSeasonData(p).data;
+            return `<div class="picker-item" style="background:var(--surface);border-radius:8px;cursor:pointer;" onclick="assignToSlot('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">
+              <div><div class="pname">${teamLogo(p.Team)}${p.Speler}</div><div class="pclub">${p.Team}</div>${starRatingHtml(p)}</div>
+              <div class="pmeta"><span>${fmtEuro(p.Prijs)}</span><span>prijs/punt ${p._strength??'N'}</span><span>${ld?ld.Totaal+' pnt':'nieuw'}</span></div>
+            </div>`;
+          }).join('')}
+        </div>` : `<div class="news-note" style="margin-bottom:16px;">Geen directe suggesties binnen je resterende budget — zoek hieronder zelf verder.</div>`}
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button class="btn ghost" onclick="openPicker('${slotId}')">${icon('search',14)} Zoek op club/positie</button>
+          <button class="btn primary" onclick="goToScoutForSlot('${slotId}')">${icon('search',14)} Ga naar Scout</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 // ---- Actiemenu op een speler in Mijn Team (alleen daar — niet bij het bekijken van andermans
 // team): wissel van rol, verkoop (plek leegmaken, telt pas mee als wissel zodra je 'm weer vult),
@@ -16344,7 +16416,7 @@ function confirmDialogYes(){
 function renderDialog(){
   if(!state.dialog) return '';
   const d = state.dialog;
-  return `<div class="overlay" style="z-index:80;" onclick="if(event.target===this) closeDialog()">
+  return `<div class="overlay" style="z-index:120;" onclick="if(event.target===this) closeDialog()">
     <div class="box" style="max-width:400px;">
       <div class="body-scroll" style="padding-top:24px;text-align:center;">
         <div style="display:flex;justify-content:center;margin-bottom:10px;color:${d.type==='confirm'?'var(--danger)':'var(--accent)'};">${icon(d.type==='confirm'?'warning':'info', 30)}</div>
