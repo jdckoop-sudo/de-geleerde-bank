@@ -272,7 +272,9 @@
   .theme-toggle:hover{border-color:var(--accent-dim);}
   .mode-toggle-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
   .mode-toggle{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;}
-  .mode-toggle button{background:none;border:none;color:var(--text-dim);font-family:'Oswald';font-size:12px;text-transform:uppercase;letter-spacing:0.4px;padding:7px 16px;border-radius:999px;cursor:pointer;}
+  .mode-toggle button{background:none;border:none;color:var(--text-dim);font-family:'Oswald';font-size:12px;text-transform:uppercase;letter-spacing:0.4px;padding:7px 16px;border-radius:999px;cursor:pointer;transition:background .12s,color .12s;}
+  .mode-toggle button:not(.active):hover{background:color-mix(in srgb, var(--text) 12%, transparent);color:var(--text);}
+  .mode-toggle button:not(.active):active{background:color-mix(in srgb, var(--text) 20%, transparent);}
   .mode-toggle button.active{background:var(--accent);color:#0B0B0C;}
 
   nav.tabs{display:flex;gap:6px;margin-bottom:22px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
@@ -4810,10 +4812,10 @@ function keyMapsEqual(a,b){
 // het tegoed dus eigenlijk weer vrij zou moeten zijn. Beide horen dus bij dezelfde snapshot, ook
 // bij meerdere wissels achter elkaar (elke saveSquad()-aanroep is één stap op de stack).
 function fullSquadSnapshot(){
-  return { squad: snapshotSquad(state.squad), wissels: {...(state.wisselsUsed||{})} };
+  return { squad: snapshotSquad(state.squad), wissels: {...(state.wisselsUsed||{})}, formation: state.formation };
 }
 function fullSquadSnapshotsEqual(a,b){
-  return keyMapsEqual(a.squad, b.squad) && keyMapsEqual(a.wissels, b.wissels);
+  return keyMapsEqual(a.squad, b.squad) && keyMapsEqual(a.wissels, b.wissels) && a.formation===b.formation;
 }
 function restoreSquadFromSnapshot(snap){
   const squad = {};
@@ -4837,6 +4839,7 @@ function undoSquad(){
   __squadRedoStack.push(fullSquadSnapshot());
   state.squad = restoreSquadFromSnapshot(prev.squad);
   state.wisselsUsed = {...prev.wissels};
+  if(prev.formation) state.formation = prev.formation; // anders blijft na "terug" de formatie hangen op de nieuwe, terwijl de teruggezette spelers bij de oude formatie horen
   __lastSquadSnapshot = fullSquadSnapshot();
   saveModeSquad();
   saveWissels();
@@ -4848,6 +4851,7 @@ function redoSquad(){
   __squadUndoStack.push(fullSquadSnapshot());
   state.squad = restoreSquadFromSnapshot(next.squad);
   state.wisselsUsed = {...next.wissels};
+  if(next.formation) state.formation = next.formation;
   __lastSquadSnapshot = fullSquadSnapshot();
   saveModeSquad();
   saveWissels();
@@ -11139,8 +11143,8 @@ function render(){
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <button class="budget-pill" style="cursor:pointer;display:flex;align-items:center;gap:6px;" onclick="openCoachPicker()" title="Wissel van coach">${icon('user',12)} <b>${state.followedCoach || 'Kies coach'}</b> ${icon('chevronDown',10)}</button>
         <div id="mode-toggle-el" class="mode-toggle ${tutorialHighlightClass('mode-toggle-el')}">
-          <button class="${state.mode==='real'?'active':''}" onclick="switchMode('real')">${icon('shirt',14)} Mijn team</button>
-          <button class="${state.mode==='sandbox'?'active':''}" onclick="switchMode('sandbox')">${icon('beach',14)} Sandbox</button>
+          <button class="${state.mode==='real'?'active':''}" onclick="switchMode('real')" title="Klik om te wisselen naar je échte team">${icon('shirt',14)} Mijn team</button>
+          <button class="${state.mode==='sandbox'?'active':''}" onclick="switchMode('sandbox')" title="Klik om te wisselen naar Sandbox — vrij oefenterrein, geen wisselbeperking">${icon('beach',14)} Sandbox</button>
         </div>
         ${state.mode==='sandbox' ? `
         <select onchange="switchSandboxTeam(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 10px;font-family:'JetBrains Mono';font-size:12px;">
@@ -11359,10 +11363,47 @@ function setInjStatus(s){ state.injStatusFilter=s; render(); }
 function setInjTeam(t){ state.injTeamFilter=t; render(); }
 function setStandingsView(v){ state.standingsView=v; render(); }
 function setFormation(f){
-  state.formation=f;
-  const validIds = new Set(slotDefs().map(d=>d.id));
-  Object.keys(state.squad).forEach(k=>{ if(!validIds.has(k)) delete state.squad[k]; });
-  saveSquad(); render();
+  if(f===state.formation) return;
+  // Simpelweg de plekken die in de nieuwe formatie niet meer bestaan leegmaken (oude gedrag)
+  // liet spelers zomaar uit het team verdwijnen — bv. bij 4-3-3 -> 3-4-3 verloor de 4e
+  // verdediger zijn basisplek en werd hij domweg verwijderd, ook al was de bank van die linie
+  // nog vrij. Nu proberen we zo'n speler eerst naar een vrije plek van dezelfde linie te
+  // verplaatsen (basis of bank), en verwijderen we iemand pas — na expliciete bevestiging —
+  // als er écht nergens meer plek voor is.
+  const newDefs = FORMATIONS[f];
+  const newValidIds = new Set(['GK1','GKR','DEFR','MIDR','FWDR']);
+  for(let i=1;i<=newDefs.Defender;i++) newValidIds.add('DEF'+i);
+  for(let i=1;i<=newDefs.Midfielder;i++) newValidIds.add('MID'+i);
+  for(let i=1;i<=newDefs.Forward;i++) newValidIds.add('FWD'+i);
+
+  const newSquad = {};
+  const displaced = [];
+  Object.entries(state.squad).forEach(([slotId,p])=>{
+    if(!p) return;
+    if(newValidIds.has(slotId)) newSquad[slotId] = p;
+    else displaced.push(p);
+  });
+  const posPrefixFor = pos => pos==='Goalkeeper'?'GK':pos==='Defender'?'DEF':pos==='Midfielder'?'MID':'FWD';
+  const stillHomeless = [];
+  displaced.forEach(player=>{
+    const posPrefix = posPrefixFor(player.Positie);
+    const candidateId = [...newValidIds].find(id=>id.startsWith(posPrefix) && !newSquad[id]);
+    if(candidateId) newSquad[candidateId] = player;
+    else stillHomeless.push(player);
+  });
+
+  const apply = ()=>{
+    state.formation = f;
+    state.squad = newSquad;
+    saveSquad(); render();
+  };
+  if(stillHomeless.length){
+    const names = stillHomeless.map(p=>p.Speler).join(', ');
+    const meervoud = stillHomeless.length>1;
+    showConfirm(`Bij formatie ${f} is er geen basis- of bankplek meer over voor ${meervoud?'':'  '}${names} (die linie zit al helemaal vol) — ${meervoud?'zij verdwijnen':'deze verdwijnt'} uit je team als je doorgaat. Zet anders eerst een bankspeler van die linie om of verkoop iemand, of ga toch door.`, apply);
+  } else {
+    apply();
+  }
 }
 function clearTeam(){
   if(Object.keys(state.squad).length===0) return;
