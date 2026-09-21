@@ -2474,6 +2474,17 @@ function wisselsRemaining(){
     : 0;
   return Math.max(0, allowance - spent - planned);
 }
+// ---- Handmatig herstel van het wisseltegoed voor de huidige ronde — vangnet voor als het
+// tegoed door een oude/foutieve staat (bijv. van vóór een bugfix) ten onrechte op 0 blijft
+// staan, terwijl je team eigenlijk weer je volledige tegoed zou moeten hebben. ----
+function resetRoundWissels(){
+  const r = effectiveRoundNumber();
+  showConfirm(`Wisseltegoed voor speelronde ${r} terugzetten naar ${windowAllowanceForRound(r)}? Gebruik dit alleen als je zeker weet dat je team eigenlijk geen (of minder) wissels deze ronde heeft gebruikt.`, ()=>{
+    delete state.wisselsUsed['r'+r];
+    saveWissels();
+    render();
+  });
+}
 function trySpendWissel(slotId){
   if(state.mode==='sandbox') return true;
   const r = effectiveRoundNumber();
@@ -2861,11 +2872,9 @@ function applyAppTheme(){
       root.setProperty('--mid', colors.mid);
       root.setProperty('--fwd', colors.fwd);
     }
-    // Eigen SVG-badge i.p.v. het lage-resolutie rasterlogo — blijft op elke grootte haarscherp en
-    // is van nature transparant. Klein en scherp rechtsboven, plus een grote, heel lichte kleurwas
-    // op de achtergrond voor sfeer.
-    const badgeSvg = clubBadgeSVG(club);
-    const badgeUri = 'data:image/svg+xml,' + encodeURIComponent(badgeSvg);
+    // Het echte clublogo (PNG) rechtsboven op de achtergrond, plus een grote, heel lichte
+    // kleurwas voor sfeer — i.p.v. de eerdere zelfgetekende SVG-badge.
+    const badgeUri = CLUB_LOGO[club] || null;
     const bgBase = variant==='light' ? '#F4F3EF' : '#0A0A0A';
     // Bij de lichte variant is de voorberekende (donkere) accentDim té donker als waskleur —
     // gebruik dan een lichte tint van de accentkleur zelf i.p.v. de donkere variant.
@@ -2880,15 +2889,29 @@ function applyAppTheme(){
     const pattern = shirtSvg
       ? `url("data:image/svg+xml,${encodeURIComponent(shirtSvg)}") no-repeat center center / cover fixed, `
       : '';
-    document.body.style.background = badgeSvg
+    document.body.style.background = badgeUri
       ? `radial-gradient(1600px 800px at 88% -20%, ${wash}, transparent 55%), ${pattern}url("${badgeUri}") no-repeat 97% 3% / 64px, ${bgBase}`
-      : bgBase;
+      : `radial-gradient(1600px 800px at 88% -20%, ${wash}, transparent 55%), ${pattern}${bgBase}`;
     document.body.style.backgroundColor = bgBase;
   } else {
     // Terug naar niet-club-thema: verwijder eventuele inline overrides van een vorig clubthema.
     document.body.style.cssText = '';
     document.body.className = t==='standaard' ? '' : (t==='light' ? 'light' : 'theme-'+t);
   }
+}
+// Klein themed regeltje onder de titel — vooral voor de thema's waar de gekozen "taal/toon" ook
+// echt ergens anders dan de screenshot-export terugkomt (gamer-slang, e-girl-taal, Fries bij
+// Cambuur/Heerenveen).
+function themedTaglineHtml(){
+  const t = state.theme || 'standaard';
+  const lines = {
+    gamer: 'GLHF — grind die punten 🎮',
+    egirl: 'bestie era unlocked ✨💅',
+    'club-SC Cambuur': 'Mei geel-blau troch it seizoen 💙💛',
+    'club-sc Heerenveen': 'Hup Hearrenfean, hup dyn team!',
+  };
+  const line = lines[t];
+  return line ? `<div style="font-family:'JetBrains Mono';font-size:10px;color:var(--accent);margin-top:2px;">${line}</div>` : '';
 }
 function openAppThemePicker(){ state.modal = {type:'appTheme'}; render(); }
 function renderAppThemeModal(){
@@ -2899,9 +2922,9 @@ function renderAppThemeModal(){
   function tile(th){
     const active = t===th.id;
     const swatch = th.isClub ? CLUB_THEME_COLORS[th.club] : null;
-    return `<button class="tile" style="text-align:center;cursor:pointer;padding:16px 10px;color:var(--text);${active?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="setAppTheme('${th.id}')">
+    return `<button class="tile" style="text-align:center;cursor:pointer;padding:16px 10px;color:var(--text);${active?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="confirmThenSetAppTheme('${th.id}')">
       <div style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;color:${active?'var(--accent)':'var(--text)'};">
-        ${th.isClub ? `<div style="width:34px;height:38px;">${clubBadgeSVG(th.club)}</div>` : icon(th.icon,22)}
+        ${th.isClub ? (CLUB_LOGO[th.club] ? `<img src="${CLUB_LOGO[th.club]}" style="width:34px;height:34px;object-fit:contain;" alt="${th.club}">` : `<div style="width:34px;height:38px;">${clubBadgeSVG(th.club)}</div>`) : icon(th.icon,22)}
       </div>
       <div style="font-family:'Oswald';font-size:13px;font-weight:600;color:${active?'var(--accent)':'var(--text)'};">${th.label}</div>
       ${swatch ? `<div style="margin-top:4px;height:4px;border-radius:2px;background:linear-gradient(90deg, ${swatch.accent} 0 50%, ${swatch.secondary} 50% 100%);"></div>` : ''}
@@ -2930,6 +2953,15 @@ function renderAppThemeModal(){
       </div>
     </div>
   </div>`;
+}
+// Kleine grap: bij het kiezen van het Feyenoord-thema eerst een bevestiging vragen — verder
+// functioneel identiek aan elk ander clubthema.
+function confirmThenSetAppTheme(t){
+  if(t==='club-Feyenoord'){
+    showConfirm('Feyenoord? Gun je niemand.', ()=>setAppTheme(t));
+    return;
+  }
+  setAppTheme(t);
 }
 function setAppTheme(t){
   state.theme = t;
@@ -4299,113 +4331,49 @@ const TUTORIAL_STEPS = [
     icon: 'home',
     title: 'Welkom bij De Geleerde Bank',
     body: `Dit dashboard helpt je bij het spelen van Coach van het Jaar: spelers vergelijken, je team plannen, blessures bijhouden en meer.<br><br>
-    <b style="color:var(--danger);">Belangrijk om te weten:</b> dit is een los planningshulpmiddel. Het team dat je hier samenstelt wordt <b>niet automatisch</b> doorgezet naar het échte Coach van het Jaar-spel — dat moet je zelf, apart, invoeren op de officiële CVHJ-site/app.`,
+    <b style="color:var(--danger);">Let op:</b> dit is een los planningshulpmiddel — je team wordt <b>niet automatisch</b> doorgezet naar het échte CVHJ-spel, dat blijf je zelf apart invoeren. Deze korte rondleiding neemt je mee langs de knoppen rechts in beeld.`,
   },
   {
     tab: 'home',
     icon: 'shirt',
     highlightId: 'mode-toggle-el',
     title: 'Mijn Team vs. Sandbox',
-    body: `Rechtsboven (kijk naar de gouden gloed) schakel je tussen <b>"Mijn team"</b> — je échte, serieuze team — en <b>"Sandbox"</b> — een los oefenterrein. Hierna lopen we eerst je échte team en Scout door; de Sandbox leggen we straks apart uit.`,
+    body: `Rechtsboven schakel je tussen <b>"Mijn team"</b> (je échte team) en <b>"Sandbox"</b> (los oefenterrein zonder wisselbeperkingen, handig om strategieën te proberen).`,
   },
   {
     tab: 'home',
     icon: 'bars',
     highlightId: 'home-settings-btn',
     title: 'Home naar eigen smaak',
-    body: `Bovenaan Home vind je <b>"Pagina aanpassen"</b> (kijk naar het gouden gloeiende knopje) — daarmee zet je onderdelen als je team, je favoriete club, blessures en head-to-head aan of uit, en versleep je ze met de pijltjes naar de volgorde die jij wilt.`,
-  },
-  {
-    tab: 'team',
-    icon: 'shirt',
-    title: 'Mijn Team',
-    body: `Hier stel je je basiself en bank samen (max €32M, 15 spelers).<br><br>
-    • <b>"Vul automatisch aan"</b> vult lege plekken met de sterkste betaalbare spelers binnen je budget.<br>
-    • Kies boven je team een andere <b>formatie</b> (3-4-3, 4-3-3, etc.) — je bestaande spelers blijven zoveel mogelijk staan.<br>
-    • Klik het <b>slotje</b> bij een speler om 'm te vergrendelen, zodat automatisch aanvullen/formatie-advies hem nooit verwijdert.`,
-  },
-  {
-    tab: 'scout',
-    icon: 'search',
-    title: 'Scout',
-    body: `Doorzoek en filter alle Eredivisie-spelers. Op elke tegel zie je twee handige knopjes rechtsboven:<br><br>
-    • ${icon('scale',13)} <b>Vergelijken</b> — selecteer tot 4 spelers en zet ze naast elkaar.<br>
-    • ${icon('bookmark',13)} <b>Markeer voor scouting</b> — hou een speler in de gaten zonder 'm meteen aan je team toe te voegen. Gemarkeerde spelers verschijnen terug onderaan <b>Mijn Team</b> in je scouting-lijst.`,
-  },
-  {
-    tab: 'home',
-    icon: 'beach',
-    highlightId: 'mode-toggle-el',
-    title: 'De Sandbox',
-    body: `Terug naar die knop rechtsboven: <b>Sandbox</b> is een compleet los oefenteam, handig omdat:<br><br>
-    • Je er <b>altijd</b> een compleet team kan opstellen, ook los van de echte spelregels.<br>
-    • Er <b>geen wisselbeperkingen</b> gelden — experimenteer zoveel je wilt.<br>
-    • Je <b>meerdere sandboxteams</b> naast elkaar kan maken, bijvoorbeeld om verschillende strategieën te vergelijken.`,
-  },
-  {
-    tab: 'injuries',
-    icon: 'cross',
-    title: 'Blessurelijst',
-    body: `Overzicht van blessures, schorsingen en twijfelgevallen in de Eredivisie, met filters op status en club (of "Mijn Team" om alleen jouw spelers te zien).<br><br>
-    Deze lijst wordt bijgewerkt zodra jij daarom vraagt in de chat — vraag gerust regelmatig om een update.`,
-  },
-  {
-    tab: 'calendar',
-    icon: 'calendar',
-    title: 'Wedstrijden & Kalender',
-    body: `Bekijk het volledige speelschema, filter op club of competitie, en zie per dag welke wedstrijden er zijn. Een rood stipje betekent dat er een speler uit jouw team meespeelt die dag.`,
+    body: `Ook rechtsboven op Home: <b>"Pagina aanpassen"</b> — zet onderdelen aan/uit en versleep de volgorde naar wat jij wilt zien.`,
   },
   {
     tab: null,
     icon: 'clock',
     highlightId: 'quick-clock-btn',
     title: 'De Tijdmachine',
-    body: `Kijk rechtsonder naar het <b>gouden gloeiende klok-icoon</b> — dat is de tijdmachine. Daarmee reis je naar een andere speelronde of een eerder seizoen om spelersstatistieken en standen van dat moment te bekijken.`,
+    body: `Rechtsonder: het <b>klok-icoon</b> is de tijdmachine, waarmee je naar een andere speelronde of eerder seizoen reist om standen en statistieken van dat moment te bekijken.`,
   },
   {
-    tab: 'league',
-    icon: 'trophy',
-    title: 'Casting Couch Ranglijst',
-    body: `De ranglijst van jullie eigen vriendengroep-league. Je gekozen coachnaam wordt hier automatisch gemarkeerd. Zodra het seizoen loopt en jij me de standen geeft, houd ik dit bij — inclusief stijging/daling per ronde, wissels en meer, allemaal onder dit tabje.`,
-  },
-  {
-    tab: 'week_team',
-    icon: 'medal',
-    title: 'Stats v/d Week',
-    body: `Alles rond de laatst gespeelde ronde op een rij: het beste elftal, spelers en koopjes van de week, de flop van de week, en het Perfect Team achteraf.`,
-  },
-  {
-    tab: 'personal',
-    icon: 'user',
-    title: 'Persoonlijk',
-    body: `Hier stel je je favoriete club en je coachnaam in (dat kan ook altijd rechtsboven), bekijk je je persoonlijke records en je transfergeschiedenis, en kun je deze rondleiding herstarten.`,
-  },
-  {
-    tab: 'news',
-    icon: 'news',
-    title: 'Nieuws & Transfers',
-    body: `Het laatste Eredivisie-nieuws en een overzicht van transfers, zodat je op de hoogte blijft van wat er speelt buiten je eigen team om.`,
+    tab: null,
+    icon: 'calc',
+    highlightId: 'calc-launcher-btn',
+    title: 'Rekenmachine',
+    body: `Daaronder: een ingebouwde <b>rekenmachine</b>, handig als je snel wisselbudgetten of puntentotalen wilt narekenen.`,
   },
   {
     tab: null,
     icon: 'couch',
     highlightId: 'bankie-launcher-btn',
     title: 'Bankie, je bank-adviseur',
-    body: `Rechtsonder (kijk naar het gouden gloeiende knopje) zit <b>Bankie</b> — een klein menu met simpele, regelgebaseerde tips over jouw team: blessures, aflopende wissels, een leeg plekje, dat soort dingen. Geen AI-gesprek, gewoon snel en eerlijk advies.`,
-  },
-  {
-    tab: 'downloads',
-    icon: 'download',
-    title: 'Downloads',
-    body: `Hier vind je losse exports en downloads terug, zoals eerder gemaakte teamscreenshots.`,
+    body: `Helemaal rechtsonder zit <b>Bankie</b>: snelle, regelgebaseerde tips over blessures, aflopende wissels en lege plekken in je team.`,
   },
   {
     tab: null,
     icon: 'save',
     highlightId: 'quick-save-btn',
     title: 'Heel belangrijk: opslaan!',
-    body: `Dit dashboard is een los bestand zonder eigen server — je team wordt <b>alleen in de browser op dít apparaat</b> bewaard. Open je 'm op een ander toestel of wist je je browsergegevens, dan ben je je team kwijt.<br><br>
-    Gebruik daarom regelmatig het <b>gouden gloeiende opslaan-icoon rechtsonder</b> (kijk maar): kopieer je configuratiecode (of mail 'm naar jezelf) en bewaar die ergens veilig. Zo kun je altijd terug naar exact deze staat, op elk apparaat.`,
+    body: `En in dat rijtje rechtsonder: het <b>opslaan-icoon</b>. Je team leeft alleen in de browser op dit apparaat — kopieer hier regelmatig je configuratiecode en bewaar 'm veilig, anders ben je 'm kwijt op een ander toestel.`,
   },
 ];
 function tutorialHighlightClass(id){
@@ -4436,7 +4404,7 @@ function tutorialPrev(){
 function tutorialFinish(){
   state.tutorialActive = false;
   saveTutorialSeen();
-  render();
+  setTab('team');
 }
 async function saveTutorialSeen(){
   try{ await storageSet('cvhj-tutorial-seen', 'true', false); }catch(e){}
@@ -4831,10 +4799,21 @@ function snapshotSquad(squad){
   Object.entries(squad||{}).forEach(([slotId,p])=>{ if(p) snap[slotId] = p.Speler+'|'+p.Team; });
   return snap;
 }
-function squadSnapshotsEqual(a,b){
+function keyMapsEqual(a,b){
   const ak = Object.keys(a), bk = Object.keys(b);
   if(ak.length!==bk.length) return false;
   return ak.every(k=>a[k]===b[k]);
+}
+// Een undo/redo-stap moet niet alleen de bezetting van de slots terugzetten, maar ook het
+// wisseltegoed (state.wisselsUsed) — anders blijft na "ongedaan maken" de hele opstelling ten
+// onrechte vergrendeld (wisselsRemaining()===0), terwijl de speler alweer terug is gewisseld en
+// het tegoed dus eigenlijk weer vrij zou moeten zijn. Beide horen dus bij dezelfde snapshot, ook
+// bij meerdere wissels achter elkaar (elke saveSquad()-aanroep is één stap op de stack).
+function fullSquadSnapshot(){
+  return { squad: snapshotSquad(state.squad), wissels: {...(state.wisselsUsed||{})} };
+}
+function fullSquadSnapshotsEqual(a,b){
+  return keyMapsEqual(a.squad, b.squad) && keyMapsEqual(a.wissels, b.wissels);
 }
 function restoreSquadFromSnapshot(snap){
   const squad = {};
@@ -4848,31 +4827,35 @@ function restoreSquadFromSnapshot(snap){
 }
 function resetSquadHistory(){
   __squadUndoStack = []; __squadRedoStack = [];
-  __lastSquadSnapshot = snapshotSquad(state.squad);
+  __lastSquadSnapshot = fullSquadSnapshot();
 }
 function canUndoSquad(){ return __squadUndoStack.length>0; }
 function canRedoSquad(){ return __squadRedoStack.length>0; }
 function undoSquad(){
   if(!__squadUndoStack.length) return;
   const prev = __squadUndoStack.pop();
-  __squadRedoStack.push(snapshotSquad(state.squad));
-  state.squad = restoreSquadFromSnapshot(prev);
-  __lastSquadSnapshot = snapshotSquad(state.squad);
+  __squadRedoStack.push(fullSquadSnapshot());
+  state.squad = restoreSquadFromSnapshot(prev.squad);
+  state.wisselsUsed = {...prev.wissels};
+  __lastSquadSnapshot = fullSquadSnapshot();
   saveModeSquad();
+  saveWissels();
   render();
 }
 function redoSquad(){
   if(!__squadRedoStack.length) return;
   const next = __squadRedoStack.pop();
-  __squadUndoStack.push(snapshotSquad(state.squad));
-  state.squad = restoreSquadFromSnapshot(next);
-  __lastSquadSnapshot = snapshotSquad(state.squad);
+  __squadUndoStack.push(fullSquadSnapshot());
+  state.squad = restoreSquadFromSnapshot(next.squad);
+  state.wisselsUsed = {...next.wissels};
+  __lastSquadSnapshot = fullSquadSnapshot();
   saveModeSquad();
+  saveWissels();
   render();
 }
 async function saveSquad(){
-  const cur = snapshotSquad(state.squad);
-  if(__lastSquadSnapshot && !squadSnapshotsEqual(__lastSquadSnapshot, cur)){
+  const cur = fullSquadSnapshot();
+  if(__lastSquadSnapshot && !fullSquadSnapshotsEqual(__lastSquadSnapshot, cur)){
     __squadUndoStack.push(__lastSquadSnapshot);
     if(__squadUndoStack.length>20) __squadUndoStack.shift();
     __squadRedoStack = [];
@@ -5293,7 +5276,6 @@ const EXPORT_THEMES = [
   {id:'egirl', label:'E-girl', icon:'gem'},
   {id:'cvhj', label:'Coach van het Jaar', icon:'trophy'},
   {id:'darren', label:'Darren 17e...', icon:'medal'},
-  {id:'pokemon', label:'Monsterkaarten', icon:'bookmark'},
   {id:'gamer', label:'Gamer', icon:'refresh'},
   {id:'ios', label:'iPhone', icon:'houseSmall'},
 ];
@@ -5313,7 +5295,7 @@ const CLUB_THEME_COLORS = {
   'N.E.C.': {accent:'#00843D', accentDim:'#00331A', secondary:'#ED1C24', tertiary:null, abbr:'NEC', shirt:'sash', gk:'#4FA0E0', def:'#ED1C24', mid:'#00843D', fwd:'#ED1C24'},
   'PEC Zwolle': {accent:'#00AEEF', accentDim:'#004A63', secondary:'#1A1A1A', tertiary:'#FFFFFF', abbr:'PEC', shirt:'stripes-vert', gk:'#00AEEF', def:'#1A1A1A', mid:'#00AEEF', fwd:'#1A1A1A'},
   'PSV': {accent:'#ED1C24', accentDim:'#630B0F', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'PSV', shirt:'solid', gk:'#4FA0E0', def:'#ED1C24', mid:'#FFFFFF', fwd:'#ED1C24'},
-  'SC Cambuur': {accent:'#00AEEF', accentDim:'#004A63', secondary:'#FFFFFF', tertiary:null, abbr:'CAM', shirt:'stripes-vert', gk:'#00AEEF', def:'#FFFFFF', mid:'#00AEEF', fwd:'#FFFFFF'},
+  'SC Cambuur': {accent:'#FFD400', accentDim:'#6B5A00', secondary:'#003DA5', tertiary:'#FFFFFF', abbr:'CAM', shirt:'stripes-vert', gk:'#4FA0E0', def:'#003DA5', mid:'#FFD400', fwd:'#003DA5'},
   'sc Heerenveen': {accent:'#003DA5', accentDim:'#001A46', secondary:'#FFFFFF', tertiary:null, abbr:'HEE', pompeblede:true, pompebladeRed:'#C8102E', shirt:'frisian', gk:'#4FA0E0', def:'#003DA5', mid:'#FFFFFF', fwd:'#003DA5'},
   'Sparta Rotterdam': {accent:'#ED1C24', accentDim:'#630B0F', secondary:'#FFFFFF', tertiary:'#1A1A1A', abbr:'SPA', shirt:'stripes-vert', gk:'#4FA0E0', def:'#ED1C24', mid:'#FFFFFF', fwd:'#ED1C24'},
   'Telstar': {accent:'#1B4F9C', accentDim:'#0B2547', secondary:'#FFFFFF', tertiary:'#D2122E', abbr:'TEL', shirt:'sash', gk:'#4FA0E0', def:'#1B4F9C', mid:'#FFFFFF', fwd:'#1B4F9C'},
@@ -5671,22 +5653,47 @@ function openScreenshotThemePicker(context){
   render();
 }
 function setScreenshotTheme(t){ state.modal.theme = t; render(); }
+function confirmThenSetScreenshotTheme(t){
+  if(t==='club-Feyenoord'){
+    showConfirm('Feyenoord? Gun je niemand.', ()=>setScreenshotTheme(t));
+    return;
+  }
+  setScreenshotTheme(t);
+}
 function renderScreenshotThemeModal(){
   const t = state.modal.theme;
   const context = state.modal.context || 'team';
+  const activeTh = EXPORT_THEMES.find(x=>x.id===t);
+  function tile(th){
+    const active = t===th.id;
+    const swatch = th.isClub ? CLUB_THEME_COLORS[th.club] : null;
+    return `<button class="tile" style="text-align:center;cursor:pointer;padding:14px 8px;color:var(--text);${active?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="confirmThenSetScreenshotTheme('${th.id}')">
+      <div style="margin-bottom:6px;display:flex;justify-content:center;align-items:center;color:${active?'var(--accent)':'var(--text)'};">
+        ${th.isClub ? (CLUB_LOGO[th.club] ? `<img src="${CLUB_LOGO[th.club]}" style="width:30px;height:30px;object-fit:contain;" alt="${th.club}">` : icon('shirt',22)) : icon(th.icon,22)}
+      </div>
+      <div style="font-family:'Oswald';font-size:12px;font-weight:600;color:${active?'var(--accent)':'var(--text)'};">${th.label}</div>
+      ${swatch ? `<div style="margin-top:4px;height:4px;border-radius:2px;background:linear-gradient(90deg, ${swatch.accent} 0 50%, ${swatch.secondary} 50% 100%);"></div>` : ''}
+    </button>`;
+  }
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
     <div class="box">
       <div class="head"><h4>${icon('camera',18)} Kies een thema</h4><button class="close" onclick="closeModal()">✕</button></div>
       <div class="body-scroll">
-        <div class="news-note">Kies een stijl voor je downloadbare ${context==='league'?'ranglijst-afbeelding':'teamafbeelding'}.</div>
-        <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;">
-          ${EXPORT_THEMES.map(th=>`
-            <button class="tile" style="text-align:center;cursor:pointer;padding:16px 10px;color:var(--text);${t===th.id?'border-color:var(--accent);background:rgba(242,184,7,0.1);':''}" onclick="setScreenshotTheme('${th.id}')">
-              <div style="margin-bottom:6px;display:flex;justify-content:center;color:${t===th.id?'var(--accent)':'var(--text)'};">${icon(th.icon,22)}</div>
-              <div style="font-family:'Oswald';font-size:13px;font-weight:600;color:${t===th.id?'var(--accent)':'var(--text)'};">${th.label}</div>
-            </button>
-          `).join('')}
+        <div class="news-note" style="margin-bottom:12px;">Kies een stijl voor je downloadbare ${context==='league'?'ranglijst-afbeelding':'teamafbeelding'}.</div>
+        ${context!=='league' ? `
+        <div style="text-align:center;margin-bottom:14px;">
+          <div style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Voorbeeld — ${activeTh?activeTh.label:''}</div>
+          <div style="display:flex;justify-content:center;">
+            <div style="width:190px;height:230px;overflow:hidden;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#0A0A0A;">
+              <div style="transform:scale(0.4);transform-origin:top left;">${renderExportCardHtml(t)}</div>
+            </div>
+          </div>
+        </div>` : ''}
+        <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
+          ${EXPORT_THEMES.map(tile).join('')}
         </div>
+      </div>
+      <div style="padding:12px 18px;border-top:1px solid var(--line);flex-shrink:0;">
         <button class="btn primary" style="width:100%;" onclick="${context==='league'?`downloadLeagueScreenshot('${t}')`:`downloadTeamScreenshot('${t}')`}">${icon('camera',15)} Download deze versie</button>
       </div>
     </div>
@@ -5713,85 +5720,96 @@ function iosStatusBarHtml(dark){
     </div>
   </div>`;
 }
+// ---- Generieke thema-pitch: hét veld + bank, zoals in Mijn Team, maar dan aangekleed in de
+// kleuren/copy van het gekozen thema (basisthema of clubthema). Gebruikt door alle thema's die
+// geen compleet eigen formaat hebben (Darren-meme en iPhone-lijst blijven bewust apart). ----
+function renderThemedPitchExportCard(cfg, basis, reserve, total){
+  function bigJersey(club, size){
+    const colors = CLUB_COLORS[club] || ['#7A8B94','#4B565C'];
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" style="filter:drop-shadow(0 3px 4px rgba(0,0,0,0.35));"><path d="M8 3L3 6l2 3 2-1v11h10V8l2 1 2-3-5-3-2 2h-4z" fill="${colors[0]}" stroke="${colors[1]}" stroke-width="1"/></svg>`;
+  }
+  function playerSpot(d){
+    const p = state.squad[d.id];
+    if(!p) return `<div style="display:flex;flex-direction:column;align-items:center;width:88px;">
+      <div style="width:60px;height:60px;border:2px dashed rgba(255,255,255,0.4);border-radius:8px;"></div>
+      <div style="background:${cfg.plateBg};border-radius:6px;padding:4px 8px;margin-top:6px;font-family:'Inter',sans-serif;font-size:11px;color:#888;">leeg</div>
+    </div>`;
+    return `<div style="display:flex;flex-direction:column;align-items:center;width:88px;">
+      ${bigJersey(p.Team, 58)}
+      <div style="background:${cfg.plateBg};border-radius:6px;padding:4px 10px;margin-top:6px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+        <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:12px;color:${cfg.plateText};white-space:nowrap;">${p.Speler.split(' ').slice(-1)[0]}</div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;color:${cfg.plateSub};">€${p.Prijs.toFixed(2)}M</div>
+      </div>
+    </div>`;
+  }
+  const rows = [
+    basis.filter(d=>d.pos==='Forward'),
+    basis.filter(d=>d.pos==='Midfielder'),
+    basis.filter(d=>d.pos==='Defender'),
+    basis.filter(d=>d.pos==='Goalkeeper'),
+  ];
+  return `
+  <div id="export-card-inner" style="position:relative;width:460px;padding:22px 20px 24px;background:${cfg.cardBg};font-family:'Inter',sans-serif;overflow:hidden;${cfg.cardBorder||''}">
+    ${cfg.decor||''}
+    <div style="text-align:center;margin-bottom:14px;position:relative;">
+      ${cfg.badgeHtml ? `<div style="width:44px;height:44px;margin:0 auto 6px;">${cfg.badgeHtml}</div>` : ''}
+      <div style="font-family:'Oswald',sans-serif;font-size:19px;font-weight:700;color:${cfg.accent};letter-spacing:1px;">${cfg.title}</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${cfg.subText};margin-top:2px;">${cfg.subtitle} · €${total.toFixed(2)}M/32M</div>
+    </div>
+    <div style="position:relative;padding:22px 10px;background:${cfg.pitchGradient};clip-path:polygon(12% 0%,88% 0%,100% 100%,0% 100%);">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,0.05) 0 10%,rgba(255,255,255,0.09) 10% 20%);clip-path:polygon(12% 0%,88% 0%,100% 100%,0% 100%);"></div>
+      <div style="position:relative;display:flex;flex-direction:column;gap:22px;align-items:center;">
+        ${rows.map(r=>`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${r.map(d=>playerSpot(d)).join('')}</div>`).join('')}
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px;border:2px dashed ${cfg.benchBorder};border-radius:12px;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${cfg.subText};text-align:center;margin-bottom:10px;letter-spacing:1px;">${cfg.benchLabel}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">${reserve.map(d=>playerSpot(d)).join('')}</div>
+    </div>
+    <div style="margin-top:14px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;color:${cfg.footer};">${new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>`;
+}
+// Stijlconfig per basisthema — allemaal veld + bank, alleen de kleuren/copy verschillen.
+const BASIC_PITCH_STYLES = {
+  standaard: {cardBg:'linear-gradient(155deg,#0E0F11 0%,#151619 60%,#1C1E22 100%)', accent:'#F2B807', title:'DE GELEERDE BANK', subtitle:'Casting Couch · 2026/27', pitchGradient:'linear-gradient(180deg,#2E9E4F,#1F7A3C)', plateBg:'#fff', plateText:'#1A1A1A', plateSub:'#444', subText:'rgba(255,255,255,0.5)', footer:'rgba(255,255,255,0.35)', benchBorder:'rgba(255,255,255,0.25)', benchLabel:'BANK'},
+  light: {cardBg:'linear-gradient(155deg,#FFFFFF 0%,#F2F6F2 60%,#EEF3EE 100%)', accent:'#B8860B', title:'DE GELEERDE BANK', subtitle:'Casting Couch · 2026/27', pitchGradient:'linear-gradient(180deg,#4CBE7A,#2F9E5C)', plateBg:'#122A1D', plateText:'#fff', plateSub:'rgba(255,255,255,0.7)', subText:'rgba(18,42,29,0.6)', footer:'rgba(18,42,29,0.4)', benchBorder:'rgba(18,42,29,0.25)', benchLabel:'BANK'},
+  dark: {cardBg:'linear-gradient(155deg,#111214 0%,#17181B 60%,#1D1F23 100%)', accent:'#E5C158', title:'DE GELEERDE BANK', subtitle:'Casting Couch · 2026/27', pitchGradient:'linear-gradient(180deg,#245C38,#173F26)', plateBg:'#fff', plateText:'#1A1A1A', plateSub:'#444', subText:'rgba(255,255,255,0.45)', footer:'rgba(255,255,255,0.3)', benchBorder:'rgba(255,255,255,0.2)', benchLabel:'BANK'},
+  ultradark: {cardBg:'#000000', accent:'#C9A227', title:'DE GELEERDE BANK', subtitle:'Casting Couch · 2026/27', pitchGradient:'linear-gradient(180deg,#122419,#0A150E)', plateBg:'#0B0B0B', plateText:'#fff', plateSub:'rgba(255,255,255,0.55)', subText:'rgba(255,255,255,0.35)', footer:'rgba(255,255,255,0.25)', benchBorder:'rgba(255,255,255,0.15)', benchLabel:'BANK'},
+  egirl: {cardBg:'linear-gradient(160deg,#FFD1EC 0%,#E3C6FF 45%,#C6E0FF 100%)', accent:'#FF3EA5', title:'♡ MY LITTLE SQUAD ♡', subtitle:'Casting Couch bestie · 2026/27', pitchGradient:'linear-gradient(180deg,#FFB3E6,#C98CFF)', plateBg:'#fff', plateText:'#7A2E80', plateSub:'#A159AC', subText:'#8A4B96', footer:'#A159AC', benchBorder:'#FF9EDB', benchLabel:'♡ BANKIES ♡', decor:`<div style="position:absolute;top:10px;right:16px;font-size:20px;">✨🎀🧸✨</div><div style="position:absolute;bottom:10px;left:16px;font-size:16px;">💕⭐💕</div>`},
+  gamer: {cardBg:'#0A0A0A', accent:'#39FF14', title:'GG WP — MIJN SQUAD', subtitle:'Casting Couch ranked · 2026/27', pitchGradient:'linear-gradient(180deg,#123312,#0A1F0A)', plateBg:'#111', plateText:'#39FF14', plateSub:'#FF7A00', subText:'rgba(255,255,255,0.5)', footer:'rgba(255,255,255,0.35)', benchBorder:'#39FF14', benchLabel:'⚡ SUBS OP DE BENCH ⚡', cardBorder:'border:3px solid;border-image:linear-gradient(90deg,#39FF14,#FF7A00,#39FF14) 1;'},
+};
+// Clubthema: dezelfde veld+bank-opzet, maar in de kleuren en met het logo van de gekozen club —
+// sc Heerenveen en SC Cambuur krijgen er (voor de grap) wat Friese tekst bij.
+function renderClubThemedPitchCard(club, basis, reserve, total){
+  const c = CLUB_THEME_COLORS[club];
+  if(!c) return renderThemedPitchExportCard(BASIC_PITCH_STYLES.standaard, basis, reserve, total);
+  const isFries = club==='SC Cambuur' || club==='sc Heerenveen';
+  const badge = CLUB_LOGO[club] ? `<img src="${CLUB_LOGO[club]}" style="width:100%;height:100%;object-fit:contain;" alt="${club}"/>` : '';
+  const cfg = {
+    cardBg: `linear-gradient(155deg, ${c.accentDim} 0%, #0A0A0A 75%)`,
+    accent: c.accent,
+    title: isFries ? `MYN TEAM YN ${club.toUpperCase()}-STYL` : `MIJN TEAM IN ${club.toUpperCase()}-STIJL`,
+    subtitle: isFries ? 'Casting Couch · seizoen 2026/27' : 'Casting Couch · 2026/27',
+    pitchGradient: `linear-gradient(180deg, ${c.accent}66, ${c.accentDim})`,
+    plateBg:'#fff', plateText:'#1A1A1A', plateSub:'#444',
+    subText:'rgba(255,255,255,0.5)', footer:'rgba(255,255,255,0.3)', benchBorder:c.accent+'99',
+    benchLabel: isFries ? 'BANK (WIKSELSPILERS)' : 'BANK',
+    badgeHtml: badge,
+  };
+  return renderThemedPitchExportCard(cfg, basis, reserve, total);
+}
 function renderExportCardHtml(theme){
   theme = theme || 'standaard';
   const defs = slotDefs();
   const basis = defs.filter(d=>!d.reserve);
   const reserve = defs.filter(d=>d.reserve);
   const total = squadTotalPrice();
-  const dateStr = new Date().toLocaleDateString('nl-NL',{day:'2-digit',month:'long',year:'numeric'});
 
-  if(theme==='pokemon') return renderPokemonExportCard(basis, reserve, total);
   if(theme==='darren') return renderDarrenExportCard(basis, total);
-  if(theme==='gamer') return renderGamerExportCard(basis, reserve, total);
-  if(theme==='cvhj') return renderCVHJPitchExportCard(basis, reserve, total);
   if(theme==='ios') return renderIOSTeamExportCard(basis, reserve, total);
-
-  const THEME_STYLES = {
-    standaard: {
-      bg:'linear-gradient(155deg,#0E0F11 0%,#151619 60%,#1C1E22 100%)', textColor:'#fff', accent:'#F2B807',
-      subText:'rgba(255,255,255,0.55)', chipBg:'rgba(255,255,255,0.08)', chipBorder:'rgba(255,255,255,0.15)',
-      nameColor:'#fff', subColor:'rgba(255,255,255,0.6)', emptyBg:'rgba(255,255,255,0.06)', emptyBorder:'rgba(255,255,255,0.25)', emptyText:'rgba(255,255,255,0.4)',
-      lineColors:{Forward:'#E1553A',Midfielder:'#F2B807',Defender:'#2FBF8F',Goalkeeper:'#4FA0E0'},
-      title:'DE GELEERDE BANK', footer:'rgba(255,255,255,0.35)',
-    },
-    light: {
-      bg:'linear-gradient(155deg,#FFFFFF 0%,#F2F6F2 60%,#EEF3EE 100%)', textColor:'#122A1D', accent:'#B8860B',
-      subText:'rgba(18,42,29,0.6)', chipBg:'rgba(11,46,31,0.05)', chipBorder:'rgba(11,46,31,0.14)',
-      nameColor:'#122A1D', subColor:'rgba(18,42,29,0.6)', emptyBg:'rgba(11,46,31,0.03)', emptyBorder:'rgba(11,46,31,0.2)', emptyText:'rgba(18,42,29,0.35)',
-      lineColors:{Forward:'#C43F26',Midfielder:'#B8860B',Defender:'#1F7A5F',Goalkeeper:'#3573A0'},
-      title:'DE GELEERDE BANK', footer:'rgba(18,42,29,0.4)',
-    },
-    egirl: {
-      bg:'linear-gradient(160deg,#FFD1EC 0%,#E3C6FF 45%,#C6E0FF 100%)', textColor:'#5A2A5E', accent:'#FF3EA5',
-      subText:'#8A4B96', chipBg:'rgba(255,255,255,0.55)', chipBorder:'#FF9EDB',
-      nameColor:'#7A2E80', subColor:'#A159AC', emptyBg:'rgba(255,255,255,0.35)', emptyBorder:'#FFB3E6', emptyText:'#B37DBB',
-      lineColors:{Forward:'#FF6FB5',Midfielder:'#C98CFF',Defender:'#7FD6FF',Goalkeeper:'#FF9ECF'},
-      title:'♡ DE GELEERDE BANK ♡', footer:'#A159AC',
-    },
-    cvhj: {
-      bg:'linear-gradient(180deg,#0B1220 0%,#0E1830 100%)', textColor:'#F2E9C9', accent:'#D9B24C',
-      subText:'rgba(242,233,201,0.6)', chipBg:'rgba(217,178,76,0.08)', chipBorder:'rgba(217,178,76,0.3)',
-      nameColor:'#F2E9C9', subColor:'rgba(242,233,201,0.55)', emptyBg:'rgba(217,178,76,0.04)', emptyBorder:'rgba(217,178,76,0.2)', emptyText:'rgba(242,233,201,0.3)',
-      lineColors:{Forward:'#D9B24C',Midfielder:'#D9B24C',Defender:'#D9B24C',Goalkeeper:'#D9B24C'},
-      title:'COACH VAN HET JAAR', footer:'rgba(242,233,201,0.4)',
-    },
-  };
-  const s = THEME_STYLES[theme] || THEME_STYLES.standaard;
-  const rows = [
-    {label:'AANVAL', color:s.lineColors.Forward, defs: basis.filter(d=>d.pos==='Forward')},
-    {label:'MIDDENVELD', color:s.lineColors.Midfielder, defs: basis.filter(d=>d.pos==='Midfielder')},
-    {label:'VERDEDIGING', color:s.lineColors.Defender, defs: basis.filter(d=>d.pos==='Defender')},
-    {label:'KEEPER', color:s.lineColors.Goalkeeper, defs: basis.filter(d=>d.pos==='Goalkeeper')},
-  ];
-  const decor = theme==='egirl' ? `<div style="position:absolute;top:14px;right:20px;font-size:22px;">✨🎀🧸✨</div><div style="position:absolute;bottom:14px;left:20px;font-size:18px;">💕⭐💕</div>` : '';
-  const cvhjHeader = theme==='cvhj' ? `<div style="text-align:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;color:${s.accent};margin-bottom:4px;">— SEIZOEN 2026/27 —</div>` : '';
-  return `
-  <div id="export-card-inner" style="position:relative;width:800px;padding:36px;background:${s.bg};font-family:'Inter',sans-serif;color:${s.textColor};overflow:hidden;">
-    ${decor}
-    ${cvhjHeader}
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;">
-      <div>
-        <div style="font-family:'Oswald',sans-serif;font-size:${theme==='cvhj'?'34px':'30px'};font-weight:700;letter-spacing:${theme==='cvhj'?'2px':'0.5px'};color:${s.accent};">${s.title}</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:${s.subText};margin-top:2px;">Casting Couch · 2026/27 · Formatie ${state.formation}</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${s.subText};">TEAMWAARDE</div>
-        <div style="font-family:'Oswald',sans-serif;font-size:24px;font-weight:700;color:${total>32?'#E85A4F':(theme==='egirl'?'#3ECF8E':'#2FBF8F')};">€${total.toFixed(2)}M <span style="font-size:14px;color:${s.subText};">/ 32M</span></div>
-      </div>
-    </div>
-    ${rows.map(r=>`
-      <div style="margin-bottom:16px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:${r.color};margin-bottom:8px;">${theme==='egirl'?'♡ ':''}${r.label}</div>
-        <div style="display:flex;gap:10px;">${r.defs.map(d=>playerChipGeneric(d,false,s)).join('')}</div>
-      </div>
-    `).join('')}
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid ${s.chipBorder};">
-      <div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:${s.subText};margin-bottom:8px;">BANK</div>
-      <div style="display:flex;gap:10px;">${reserve.map(d=>playerChipGeneric(d,true,s)).join('')}</div>
-    </div>
-    <div style="margin-top:26px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:${s.footer};">${theme==='cvhj'?'Coach van het Jaar 2026/27 • Pagina 1':`Gegenereerd op ${dateStr} · De Geleerde Bank`}</div>
-  </div>`;
+  if(theme==='cvhj') return renderCVHJPitchExportCard(basis, reserve, total);
+  if(theme.startsWith('club-')) return renderClubThemedPitchCard(theme.slice('club-'.length), basis, reserve, total);
+  return renderThemedPitchExportCard(BASIC_PITCH_STYLES[theme] || BASIC_PITCH_STYLES.standaard, basis, reserve, total);
 }
 function renderCVHJPitchExportCard(basis, reserve, total){
   const rows = [
@@ -6072,7 +6090,7 @@ function renderTeamTab(){
     const p = state.squad[d.id];
     const color = POS_COLOR[d.pos];
     if(!p){
-      return `<div class="slot" style="border-color:${color}66" onclick="openPicker('${d.id}')">
+      return `<div class="slot" style="border-color:${color}66" onclick="goToScoutForSlot('${d.id}')">
         <div class="slot-label" style="color:${color}">${d.label}</div>
         <div class="empty-plus">+</div>
       </div>`;
@@ -6082,7 +6100,7 @@ function renderTeamTab(){
     const nextOpp = nextOpponents(p.Team, 1)[0];
     const lockInfo = smartLockInfo(p); const locked = lockInfo.locked;
     const roundPts = d.reserve ? benchRoundPointsDisplay(p, d.pos) : playerRoundPointsDisplay(p);
-    return `<div class="slot filled" style="border-left:3px solid ${color};${locked?'box-shadow:0 0 0 2px #F2B807, 0 0 10px rgba(242,184,7,0.4);':''}" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}','${d.id}')">
+    return `<div class="slot filled" style="border-left:3px solid ${color};${locked?'box-shadow:0 0 0 2px #F2B807, 0 0 10px rgba(242,184,7,0.4);':''}" onclick="openTeamPlayerActions('${d.id}')">
       <div class="slot-label" style="color:${color}">${d.label}</div>
       <div class="slot-name">${p.Speler} ${injuryBadge(inj)}</div>
       <div class="slot-sub">${teamLogo(p.Team)}${p.Team} · ${fmtEuro(p.Prijs)}${ld?' · '+ld.Totaal+' pnt (seizoen)':''}</div>
@@ -6107,7 +6125,7 @@ function renderTeamTab(){
         : (state.timeMachine.active && state.timeMachine.season==='2026/27')
           ? `<div class="budget-pill" style="color:#D9C6F0;border-color:#9B6BC4;">${icon('clock',14)} Vooruit naar ronde ${effectiveRoundNumber()} — wissels <b style="color:${wisselsRemaining()===0?'var(--danger)':'#fff'};">${wisselsRemaining()} / ${windowAllowanceForRound(effectiveRoundNumber())}</b> (wordt nu alvast geregistreerd)</div>`
           : seasonStarted()
-          ? `<div class="budget-pill" style="color:var(--text-dim);">Ronde ${currentRoundNumber()} (${PERIOD_LABELS[periodIdForRound(currentRoundNumber())]}) — wissels <b style="color:${wisselsRemaining()===0?'var(--danger)':'var(--text)'};">${wisselsRemaining()} / ${windowAllowanceForRound(currentRoundNumber())}</b> over</div>`
+          ? `<div class="budget-pill" style="color:var(--text-dim);">Ronde ${currentRoundNumber()} (${PERIOD_LABELS[periodIdForRound(currentRoundNumber())]}) — wissels <b style="color:${wisselsRemaining()===0?'var(--danger)':'var(--text)'};">${wisselsRemaining()} / ${windowAllowanceForRound(currentRoundNumber())}</b> over${wisselsRemaining()===0?` · <a href="#" onclick="event.preventDefault();resetRoundWissels();" style="color:var(--accent);text-decoration:underline;">klopt dit niet? herstel</a>`:''}</div>`
           : `<div class="news-note" style="margin:0;flex:1;">Seizoen begint 7 augustus — tot die tijd mag je nog onbeperkt wijzigen. Gebruik de ${icon('clock',14)} tijdmachine om alvast een wissel voor een specifieke ronde te registreren.</div>`
       }
     </div>
@@ -6651,12 +6669,12 @@ function renderPitchView(basis, reserve){
   function chip(d){
     const p = state.squad[d.id];
     const color = POS_COLOR[d.pos];
-    if(!p) return `<div class="pitch-chip empty" style="border-color:${color}" onclick="openPicker('${d.id}')">+</div>`;
+    if(!p) return `<div class="pitch-chip empty" style="border-color:${color}" onclick="goToScoutForSlot('${d.id}')">+</div>`;
     const inj = findInjury(p.Speler, p.Team);
     const lockInfo = smartLockInfo(p); const locked = lockInfo.locked;
     const nextOpp = nextOpponents(p.Team, 1)[0];
     const roundPts = playerRoundPointsDisplay(p);
-    return `<div class="pitch-chip ${locked?'locked':''}" style="border-color:${color}" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}','${d.id}')">
+    return `<div class="pitch-chip ${locked?'locked':''}" style="border-color:${color}" onclick="openTeamPlayerActions('${d.id}')">
       <button class="pitch-lock ${locked?'active':''}" onclick="event.stopPropagation();togglePlayerLock('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" title="${lockTooltip(lockInfo)}">${locked?icon('lock',14):icon('unlock',14)}</button>
       <div class="pitch-chip-name">${p.Speler.split(' ').slice(-1)[0]} ${inj?`<span class="injury-dot" title="${inj.Status}"></span>`:''}</div>
       <div class="pitch-chip-club">${teamLogo(p.Team)}</div>
@@ -6688,11 +6706,11 @@ function renderPitchView(basis, reserve){
     <div class="slot-grid">${reserve.map(d=>{
       const p = state.squad[d.id];
       const color = POS_COLOR[d.pos];
-      if(!p) return `<div class="slot" style="border-color:${color}66" onclick="openPicker('${d.id}')"><div class="slot-label" style="color:${color}">${d.label}</div><div class="empty-plus">+</div></div>`;
+      if(!p) return `<div class="slot" style="border-color:${color}66" onclick="goToScoutForSlot('${d.id}')"><div class="slot-label" style="color:${color}">${d.label}</div><div class="empty-plus">+</div></div>`;
       const inj = findInjury(p.Speler, p.Team);
       const lockInfo = smartLockInfo(p); const locked = lockInfo.locked;
       const roundPts = benchRoundPointsDisplay(p, d.pos);
-      return `<div class="slot filled" style="border-left:3px solid ${color};${locked?'box-shadow:0 0 0 2px #F2B807, 0 0 10px rgba(242,184,7,0.4);':''}" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}','${d.id}')">
+      return `<div class="slot filled" style="border-left:3px solid ${color};${locked?'box-shadow:0 0 0 2px #F2B807, 0 0 10px rgba(242,184,7,0.4);':''}" onclick="openTeamPlayerActions('${d.id}')">
         <div class="slot-label" style="color:${color}">${d.label}</div>
         <div class="slot-name">${p.Speler} ${injuryBadge(inj)}</div>
         <div class="slot-sub">${teamLogo(p.Team)}${p.Team} · ${fmtEuro(p.Prijs)}</div>
@@ -10848,6 +10866,8 @@ function renderModal(){
   if(state.modal.type==='appTheme') return renderAppThemeModal();
   if(state.modal.type==='coachPicker') return renderCoachPickerModal();
   if(state.modal.type==='teamCompare') return renderTeamCompareModal();
+  if(state.modal.type==='teamPlayerActions') return renderTeamPlayerActionsModal();
+  if(state.modal.type==='benchToBasisPicker') return renderBenchToBasisPickerModal();
   if(state.modal.type==='textImport') return renderTextImportModal();
   if(state.modal.type==='textExport') return renderTextExportModal();
   if(state.modal.type==='saveLoad') return renderSaveLoadModal();
@@ -11094,6 +11114,7 @@ function render(){
             <span class="glb-sub">bank</span>
           </div>
           <span class="season" style="${state.timeMachine.active?'color:#D9A6F0;':''}">Casting Couch · ${state.timeMachine.active ? (state.timeMachine.season==='2026/27' ? `2026/27 (ronde ${state.timeMachine.round})` : state.timeMachine.season) : '2026/27'}</span>
+          ${themedTaglineHtml()}
         </div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -12642,6 +12663,54 @@ function generalRankingGapInfo(){
   const myTotal = myTotalPointsSoFar();
   return {round:r, topScore:top.punten, topName:top.naam||null, myTotal, gap: top.punten-myTotal};
 }
+// ---- Extra "achterstand op nr. 1"-bronnen, naast het Algemeen Klassement (totaal): Casting
+// Couch (jullie eigen groep) en het Perfect Team (seizoen-cumulatief optimaal haalbaar), plus de
+// week-varianten daarvan (die ronde, niet het seizoentotaal) voor de "Punten vorige ronde"-kaart. ----
+function castingCouchTotalGapInfo(){
+  if(typeof CASTING_COUCH_COACHES==='undefined' || !CASTING_COUCH_COACHES.length) return null;
+  const snap = leagueSnapshotFor(null);
+  if(!snap) return null;
+  const rows = sortedCastingCouchRows(snap);
+  if(!rows.length) return null;
+  const top = rows[0];
+  const topScore = snap.standings[top.team] ? snap.standings[top.team].totaal : null;
+  if(topScore==null) return null;
+  return {topScore, topName: top.coach};
+}
+function perfectTeamTotalGapInfo(){
+  const data = computePerfectTeamHistory();
+  if(!data) return null;
+  return {topScore: data.totaal, topName: null};
+}
+function castingCouchWeekGapInfo(round){
+  if(round==null || typeof CASTING_COUCH_TEAM_SQUADS==='undefined') return null;
+  const teams = CASTING_COUCH_TEAM_SQUADS[round];
+  if(!teams) return null;
+  const officialTotals = (coachName, info) => { const s = LEAGUE_ROUND_SNAPSHOTS[round]; return s && s.standings[info.team] ? s.standings[info.team].ronde : null; };
+  const rows = computeCoachWeekScores(round, teams, officialTotals);
+  if(!rows || !rows.length) return null;
+  return {topScore: rows[0].total, topName: rows[0].coach};
+}
+function nationalWeekGapInfo(round){
+  if(round==null || !NATIONAL_ROUND_TOTALS[round]) return null;
+  const entries = Object.entries(NATIONAL_ROUND_TOTALS[round]);
+  if(!entries.length) return null;
+  entries.sort((a,b)=>b[1]-a[1]);
+  return {topScore: entries[0][1], topName: entries[0][0]};
+}
+function perfectTeamWeekGapInfo(round){
+  const data = computePerfectTeamHistory();
+  if(!data || round==null) return null;
+  const g = data.geschiedenis.find(x=>x.ronde===round);
+  if(!g) return null;
+  return {topScore: g.rondeTotaal, topName: null};
+}
+function renderGapLine(label, gapInfo, myScore){
+  if(!gapInfo || gapInfo.topScore==null) return `<div style="font-size:10.5px;color:var(--text-dim);margin-top:2px;">${label}: nog geen data.</div>`;
+  const gap = gapInfo.topScore - myScore;
+  const txt = gap>0 ? `${gap} pnt achter` : gap<0 ? `${-gap} pnt vóór!` : 'gelijk!';
+  return `<div style="font-size:10.5px;color:var(--text-dim);margin-top:2px;">${label}: ${txt}${gapInfo.topName?` (${gapInfo.topName})`:''}</div>`;
+}
 // Coach-generieke varianten van de "Mijn Team"-samenvattingskaarten (punten vorige ronde, totaal
 // punten, geschatte punten volgende ronde) — voor gebruik op de teamopstellingpagina van een
 // WILLEKEURIGE Casting Couch-coach, niet alleen de gevolgde/eigen coach.
@@ -12682,6 +12751,11 @@ function renderPointsStatsCardsFor(coach){
   const trendArrow = trend==='up' ? '↑' : trend==='down' ? '↓' : '→';
   const genGap = generalRankingGapInfoFor(coach);
   const totalPts = coachTotalPointsSoFar(coach);
+  const ccTotalGap = castingCouchTotalGapInfo();
+  const ptTotalGap = perfectTeamTotalGapInfo();
+  const genWeekGap = last!=null ? nationalWeekGapInfo(last) : null;
+  const ccWeekGap = last!=null ? castingCouchWeekGapInfo(last) : null;
+  const ptWeekGap = last!=null ? perfectTeamWeekGapInfo(last) : null;
   return `
     <div class="summary-cards">
       <div class="summary-card ${last==null?'grad-teal':(trend==='up'?'grad-teal':trend==='down'?'grad-rose':'')}">
@@ -12689,12 +12763,17 @@ function renderPointsStatsCardsFor(coach){
         <div class="label">Punten vorige ronde${last!=null?` (ronde ${last})`:''}</div>
         <div class="value" style="font-size:22px;display:flex;align-items:center;gap:8px;">${lastPts??'—'}<span style="color:${trendColor};font-size:16px;">${trendArrow}</span></div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${last==null ? 'Nog geen ronde gespeeld dit seizoen.' : prev==null ? 'Eerste ronde met data — nog niets om mee te vergelijken.' : trend==='up' ? `Meer dan ronde ${prev} (${prevPts} pnt)` : trend==='down' ? `Minder dan ronde ${prev} (${prevPts} pnt)` : `Gelijk aan ronde ${prev}`}</div>
+        ${last!=null ? renderGapLine('Nr. 1 algemeen die ronde', genWeekGap, lastPts) : ''}
+        ${last!=null ? renderGapLine('Nr. 1 Casting Couch die week', ccWeekGap, lastPts) : ''}
+        ${last!=null ? renderGapLine('Perfect Team die ronde', ptWeekGap, lastPts) : ''}
       </div>
       <div class="summary-card grad-gold">
         <div class="summary-card-icon">${icon('trophy',18)}</div>
         <div class="label">Totaal punten (2026/27)</div>
         <div class="value" style="font-size:22px;">${totalPts}</div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${genGap ? `${genGap.gap>0?`${genGap.gap} pnt achter op nr. 1 algemeen`:genGap.gap<0?`${-genGap.gap} pnt vóór op nr. 1 algemeen!`:'Gelijk met nr. 1 algemeen!'}${genGap.topName?` (${genGap.topName})`:''}` : 'Nog geen data van het algemene klassement — geef die door zodra bekend.'}</div>
+        ${renderGapLine('Nr. 1 Casting Couch', ccTotalGap, totalPts)}
+        ${renderGapLine('Perfect Team', ptTotalGap, totalPts)}
       </div>
       ${(()=>{
         const pos = coachLeaguePosition(coach);
@@ -12750,6 +12829,11 @@ function renderPointsStatsCards(){
   const trendArrow = trend==='up' ? '↑' : trend==='down' ? '↓' : '→';
   const genGap = generalRankingGapInfo();
   const myTotal = myTotalPointsSoFar();
+  const ccTotalGap = castingCouchTotalGapInfo();
+  const ptTotalGap = perfectTeamTotalGapInfo();
+  const genWeekGap = last!=null ? nationalWeekGapInfo(last) : null;
+  const ccWeekGap = last!=null ? castingCouchWeekGapInfo(last) : null;
+  const ptWeekGap = last!=null ? perfectTeamWeekGapInfo(last) : null;
   return `
     <div class="summary-cards">
       <div class="summary-card ${last==null?'grad-teal':(trend==='up'?'grad-teal':trend==='down'?'grad-rose':'')}">
@@ -12757,12 +12841,17 @@ function renderPointsStatsCards(){
         <div class="label">Punten vorige ronde${last!=null?` (ronde ${last})`:''}</div>
         <div class="value" style="font-size:22px;display:flex;align-items:center;gap:8px;">${lastPts}<span style="color:${trendColor};font-size:16px;">${trendArrow}</span></div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${last==null ? 'Nog geen ronde gespeeld dit seizoen.' : prev==null ? 'Eerste ronde met data — nog niets om mee te vergelijken.' : trend==='up' ? `Meer dan ronde ${prev} (${prevPts} pnt)` : trend==='down' ? `Minder dan ronde ${prev} (${prevPts} pnt)` : `Gelijk aan ronde ${prev}`}</div>
+        ${last!=null ? renderGapLine('Nr. 1 algemeen die ronde', genWeekGap, lastPts) : ''}
+        ${last!=null ? renderGapLine('Nr. 1 Casting Couch die week', ccWeekGap, lastPts) : ''}
+        ${last!=null ? renderGapLine('Perfect Team die ronde', ptWeekGap, lastPts) : ''}
       </div>
       <div class="summary-card grad-gold">
         <div class="summary-card-icon">${icon('trophy',18)}</div>
         <div class="label">Totaal punten (2026/27)</div>
         <div class="value" style="font-size:22px;">${myTotal}</div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">${genGap ? `${genGap.gap>0?`${genGap.gap} pnt achter op nr. 1 algemeen`:genGap.gap<0?`${-genGap.gap} pnt vóór op nr. 1 algemeen!`:'Gelijk met nr. 1 algemeen!'}${genGap.topName?` (${genGap.topName})`:''}` : 'Nog geen data van het algemene klassement — geef die door zodra bekend.'}</div>
+        ${renderGapLine('Nr. 1 Casting Couch', ccTotalGap, myTotal)}
+        ${renderGapLine('Perfect Team', ptTotalGap, myTotal)}
       </div>
     </div>
   `;
@@ -13719,11 +13808,20 @@ function renderHomeTab(){
   // ---- Algemeen blessure-overzicht (hele competitie) ----
   const totalInjuries = INJURIES.length;
   const recentInjuries = INJURIES.slice().sort((a,b)=>b.LaatsteUpdate.localeCompare(a.LaatsteUpdate)).slice(0,3);
+  // Welke van deze competitie-brede blessures/schorsingen raken ook direct Mijn Team — zodat je
+  // dat niet apart via het losse blessure-overzicht van je eigen team hoeft te checken.
+  const mySquadKeys = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team));
+  const myInjuries = INJURIES.filter(i=>mySquadKeys.has(i.Speler+'|'+i.Team));
   const widgetInjuriesGeneral = `
     <div class="section-title"><span>${icon('cross',16)} Blessures &amp; schorsingen (competitie-breed)</span><span class="line"></span></div>
     <div class="news-note" style="cursor:pointer;" onclick="state.injTeamFilter='ALL';setTab('injuries');">
       <b>${totalInjuries}</b> spelers momenteel geblesseerd/geschorst/twijfelgeval in de Eredivisie. Recent: ${recentInjuries.map(i=>`${i.Speler} (${i.Team})`).join(', ')}. Klik voor het volledige overzicht.
     </div>
+    ${myInjuries.length ? `
+    <div class="news-note" style="border-color:var(--danger);cursor:pointer;margin-top:8px;" onclick="state.injTeamFilter='MINE';setTab('injuries');">
+      ${icon('warning',13)} <b>${myInjuries.length} speler${myInjuries.length===1?'':'s'} uit Mijn Team</b> zit${myInjuries.length===1?'':'en'} hierbij: ${myInjuries.map(i=>`${i.Speler} (${i.Status})`).join(', ')}.
+    </div>` : `
+    <div class="news-note" style="border-color:var(--def);margin-top:8px;">${icon('check',13)} Geen van deze blessures/schorsingen raakt op dit moment een speler uit Mijn Team.</div>`}
   `;
 
   const h2hWidget = renderHeadToHead();
@@ -14436,6 +14534,121 @@ function swapWithBench(basisSlotId, reserveSlotId){
   saveSquad();
   closeModal();
 }
+// ---- Basis/bank-rolwissel vanuit het actiemenu op een speler: geen echte transfer, dus geen
+// wisseltegoed nodig — werkt in beide richtingen op basis van dezelfde linie. ----
+function swapBasisBankRole(slotId){
+  const gate = canEditTeamNow();
+  if(!gate.ok) return;
+  if(gate.mode==='scheduled'){
+    showInfo('Basis/bank-rolwissels kan ik niet vooruit plannen met de tijdmachine — dat kan alleen live, of vrij in Sandbox-modus.');
+    return;
+  }
+  const def = slotDefs().find(d=>d.id===slotId);
+  if(!def || !state.squad[slotId]) return;
+  if(!def.reserve){
+    const reserveDef = slotDefs().find(d=>d.reserve && d.pos===def.pos);
+    if(!reserveDef){ showInfo('Geen bankplek van deze linie gevonden om mee te wisselen.'); return; }
+    swapWithBench(slotId, reserveDef.id);
+  } else {
+    const basisOpties = slotDefs().filter(d=>!d.reserve && d.pos===def.pos).map(d=>({id:d.id, speler:state.squad[d.id]})).filter(x=>x.speler);
+    if(!basisOpties.length){ showInfo('Geen basisspeler van deze linie gevonden om mee te wisselen.'); return; }
+    if(basisOpties.length===1){
+      // Maar één basisplek van deze linie (o.a. keeper) — niets te kiezen, meteen wisselen.
+      swapWithBench(basisOpties[0].id, slotId);
+    } else {
+      // Meerdere basisspelers van deze linie mogelijk — laat de gebruiker kiezen wie naar de bank gaat.
+      state.modal = {type:'benchToBasisPicker', slotId, pos:def.pos};
+      render();
+    }
+  }
+}
+function chooseBenchToBasisTarget(reserveSlotId, basisSlotId){
+  swapWithBench(basisSlotId, reserveSlotId);
+}
+function renderBenchToBasisPickerModal(){
+  const m = state.modal;
+  const reserveP = state.squad[m.slotId];
+  if(!reserveP) return `<div class="overlay" onclick="closeModal()"><div class="box"><div class="news-note">Deze plek is inmiddels leeg.</div></div></div>`;
+  const basisOpties = slotDefs().filter(d=>!d.reserve && d.pos===m.pos).map(d=>({id:d.id, speler:state.squad[d.id]})).filter(x=>x.speler);
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:380px;">
+      <div class="head"><h4>Wie gaat naar de bank?</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Kies welke basisspeler plaatsmaakt voor <b>${reserveP.Speler}</b>.</div>
+        ${basisOpties.map(o=>`
+          <div class="picker-item" style="cursor:pointer;margin-bottom:6px;" onclick="chooseBenchToBasisTarget('${m.slotId}','${o.id}')">
+            <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${o.speler.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(o.speler.Team)}${o.speler.Team} · vorm ${computePlayerForm(o.speler)}</div></div>
+            <span style="color:var(--accent);">→ bank</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+// ---- Klik op een lege plek in Mijn Team: rechtstreeks naar Scout, met alvast de juiste positie
+// gefilterd, i.p.v. het losse kiezer-modaltje. ----
+function goToScoutForSlot(slotId){
+  const def = slotDefs().find(d=>d.id===slotId);
+  if(def){ state.posFilter = def.pos; state.scoutVisibleCount = 80; }
+  setTab('scout');
+}
+// ---- Actiemenu op een speler in Mijn Team (alleen daar — niet bij het bekijken van andermans
+// team): wissel van rol, verkoop (plek leegmaken, telt pas mee als wissel zodra je 'm weer vult),
+// of naar het volledige spelerprofiel. ----
+function openTeamPlayerActions(slotId){
+  if(!state.squad[slotId]) return;
+  state.modal = {type:'teamPlayerActions', slotId};
+  render();
+}
+function closeTeamPlayerActionsToProfile(){
+  const m = state.modal;
+  if(!m || m.type!=='teamPlayerActions') return;
+  const p = state.squad[m.slotId];
+  if(!p){ closeModal(); return; }
+  openPlayerModal(encodeURIComponent(p.Speler), encodeURIComponent(p.Team), m.slotId);
+}
+function sellFromSlot(slotId){
+  removeFromSlot(slotId);
+  if(!state.squad[slotId]) closeModal(); // alleen sluiten als het écht gelukt is
+}
+function renderTeamPlayerActionsModal(){
+  const slotId = state.modal.slotId;
+  const p = state.squad[slotId];
+  if(!p) return `<div class="overlay" onclick="closeModal()"><div class="box"><div class="news-note">Deze plek is inmiddels leeg.</div></div></div>`;
+  const def = slotDefs().find(d=>d.id===slotId);
+  const isReserve = def ? def.reserve : false;
+  const inj = findInjury(p.Speler, p.Team);
+  const lockInfo = smartLockInfo(p);
+  const sel = '2026/27';
+  const d = seasonDataForSeason(p, sel);
+  const isGK = p.Positie==='Goalkeeper';
+  return `<div class="overlay" onclick="if(event.target===this) closeModal()">
+    <div class="box" style="max-width:380px;">
+      <div class="head"><h4>${teamLogo(p.Team)} ${p.Speler}</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="body-scroll">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">${p.Team} · ${fmtEuro(p.Prijs)} · ${def?def.label:''}${inj?` · ${icon('warning',10)} ${inj.Status}`:''}${lockInfo.locked?` · ${icon('lock',10)} vergrendeld`:''}</div>
+        ${generatePlayerQuickSummary(p, sel)}
+        ${d ? `<div class="stat-grid" style="margin-bottom:14px;">
+          ${statTile(d.Totaal, 'Punten totaal', {alwaysShow:true})}
+          ${statTile(d.Gespeeld, 'Wedstrijden', {alwaysShow:true})}
+          ${statTile(computePlayerForm(p), 'Vormscore', {alwaysShow:true})}
+          ${statTile(d.Minuten, 'Minuten', {alwaysShow:true})}
+          ${!isGK ? statTile(d.Goals, 'Punten uit doelpunten', {}) : ''}
+          ${!isGK ? statTile(d.Assists, 'Punten uit assists', {}) : ''}
+          ${isGK ? statTile(d.Reddingen, 'Punten reddingen (schatting)', {}) : ''}
+          ${isGK ? statTile(d.PenGest, 'Punten pen. gestopt', {}) : ''}
+        </div>` : `<div class="news-note" style="margin-bottom:14px;">Geen data voor seizoen ${sel}.</div>`}
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${isReserve
+            ? `<button class="btn ghost" onclick="swapBasisBankRole('${slotId}')">${icon('shirt',14)} Wissel naar basis</button>`
+            : `<button class="btn ghost" onclick="swapBasisBankRole('${slotId}')">${icon('shirt',14)} Wissel naar bank</button>`}
+          <button class="btn ghost" onclick="sellFromSlot('${slotId}')">${icon('trash',14)} Verkoop</button>
+          <button class="btn primary" onclick="closeTeamPlayerActionsToProfile()">${icon('user',14)} Volledig spelersprofiel</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
 
 // ---- Wisselsuggesties (20) ----
 // Vormscore = gewogen gemiddelde van de laatste 3 gespeelde rondes (gewicht 3:2:1, meest
@@ -14867,6 +15080,7 @@ function applyBenchSuggestion(naarBasisSlotId, naarBankSlotId){
   const naarBankSpeler = state.squad[naarBankSlotId];
   state.squad[naarBasisSlotId] = naarBankSpeler;
   state.squad[naarBankSlotId] = naarBasisSpeler;
+  saveSquad(); // zodat dit ook meetelt in de wissel-/undo-geschiedenis en daadwerkelijk opgeslagen wordt
   render();
 }
 // ==================== X-WEKEN PLAN ====================
@@ -16098,7 +16312,8 @@ function renderQuickActionsStack(){
   <button class="float-drag-handle" title="Ingedrukt houden en slepen om alle knoppen te verplaatsen" onpointerdown="startFloatDrag(event)">${icon('gripDots',14)}</button>`;
 }
 function renderCalculator(){
-  const launcher = !state.calcOpen ? `<button class="calc-launcher ${state.quickActionsHidden?'hidden':''}" onclick="toggleCalc()" title="Rekenmachine">${icon('calc',20)}</button>` : '';
+  const forceShowCalc = state.tutorialActive && (TUTORIAL_STEPS[state.tutorialStep]||{}).highlightId==='calc-launcher-btn';
+  const launcher = !state.calcOpen ? `<button id="calc-launcher-btn" class="calc-launcher ${tutorialHighlightClass('calc-launcher-btn')} ${(state.quickActionsHidden && !forceShowCalc)?'hidden':''}" onclick="toggleCalc()" title="Rekenmachine">${icon('calc',20)}</button>` : '';
   if(!state.calcOpen) return launcher;
   const btn = (label, cls, action) => `<button class="calc-key ${cls||''}" onclick="${action}">${label}</button>`;
   return `<div class="calc-panel">
@@ -16770,8 +16985,13 @@ function removeFromSlot(slotId){
     }
     return;
   }
-  if(state.mode==='real' && seasonStarted()){
-    showInfo('Zodra het seizoen bezig is telt het verwijderen + opnieuw invullen van een plek als een wissel. Gebruik de kiezer (klik op de speler) om direct te vervangen — dat kost 1 wissel.');
+  // Leegmaken zelf kost geen apart wisseltegoed — dat wordt pas verbruikt zodra je de plek weer
+  // vult (via Scout of de kiezer), precies zoals bij een gewone directe vervanging: dus samen nog
+  // steeds 1 wissel voor de hele "eruit + erin"-actie, nooit 2. Wél alleen toestaan als er
+  // sowieso nog wisseltegoed is — anders zou je een plek leeg kunnen maken zonder 'm ooit weer te
+  // kunnen aanvullen deze ronde.
+  if(state.mode==='real' && seasonStarted() && wisselsRemaining()<=0){
+    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.`);
     return;
   }
   delete state.squad[slotId]; saveSquad(); render();
