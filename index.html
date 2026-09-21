@@ -2498,7 +2498,7 @@ function trySpendWissel(slotId){
   const allowance = windowAllowanceForRound(r);
   const used = state.wisselsUsed[key] || 0;
   if(used >= allowance){
-    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.`);
+    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.<br><br>Lijkt dit niet te kloppen (bijv. je hebt zelf nog niets gewisseld)? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — dat kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het écht niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent);text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return false;
   }
   state.wisselsUsed[key] = used + 1;
@@ -17063,7 +17063,7 @@ function removeFromSlot(slotId){
   // sowieso nog wisseltegoed is — anders zou je een plek leeg kunnen maken zonder 'm ooit weer te
   // kunnen aanvullen deze ronde.
   if(state.mode==='real' && seasonStarted() && wisselsRemaining()<=0){
-    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.`);
+    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.<br><br>Nog geen wissel bewust gedaan deze ronde? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — die kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het echt niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent);text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return;
   }
   delete state.squad[slotId]; saveSquad(); render();
