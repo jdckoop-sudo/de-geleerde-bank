@@ -6186,6 +6186,7 @@ function renderTeamTab(){
           <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTextImport()">${icon('clipboard',13)} Team importeren (tekst)</button>
           <button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="openTextExport()">${icon('clipboard',13)} Team exporteren (tekst)</button>
           ${toolBtn('Maak leeg', 'trash', "clearTeam()", clearLocked, clearLocked ? "Niet mogelijk zodra het seizoen bezig is (zou de wisselregels omzeilen) — gebruik Sandbox-modus om vrij te experimenteren." : '')}
+          ${state.lockedPlayers.length ? `<button class="btn ghost" style="padding:8px 14px;font-size:12px;" onclick="unlockAllPlayers()" title="Verwijdert alle handmatige vergrendelingen (spelers die alleen automatisch vergrendeld zijn omdat je wisseltegoed op is, blijven wel zo lang dat geldt).">${icon('unlock',13)} Ontgrendel alles (${state.lockedPlayers.length})</button>` : ''}
         </div>
       </div>`;
     })() : ''}
@@ -16190,9 +16191,39 @@ function lockTooltip(lockInfo){
 function togglePlayerLock(nameEnc, teamEnc){
   const key = decodeURIComponent(nameEnc)+'|'+decodeURIComponent(teamEnc);
   const idx = state.lockedPlayers.indexOf(key);
-  if(idx>=0) state.lockedPlayers.splice(idx,1); else state.lockedPlayers.push(key);
+  if(idx>=0){
+    // Al handmatig vergrendeld: direct ontgrendelen, geen bevestiging nodig.
+    state.lockedPlayers.splice(idx,1);
+    saveLockedPlayers();
+    render();
+    return;
+  }
+  // Nog niet handmatig vergrendeld. Als deze speler nu alleen automatisch vergrendeld is
+  // (wisseltegoed op), eerst bevestigen — anders wordt met 1 klik per ongeluk een permanente
+  // handmatige vergrendeling aangemaakt die blijft staan nadat het wisseltegoed weer is bijgevuld.
+  const playerName = decodeURIComponent(nameEnc), playerTeam = decodeURIComponent(teamEnc);
+  const p = (state.squad ? Object.values(state.squad) : []).find(x=>x && x.Speler===playerName && x.Team===playerTeam)
+    || (typeof PLAYERS!=='undefined' ? PLAYERS : []).find(x=>x && x.Speler===playerName && x.Team===playerTeam);
+  const info = p ? smartLockInfo(p) : {locked:false};
+  if(info.locked && info.reason==='wissels-op'){
+    showConfirm(`${playerName} is nu automatisch vergrendeld omdat je wisseltegoed voor deze ronde op is. Wil je ${playerName} ook hándmatig vergrendelen? Dat blijft dan ook staan zodra je wisseltegoed weer is bijgevuld — je kunt het later altijd weer ontgrendelen via dezelfde knop, of met "Ontgrendel alles".`, ()=>{
+      state.lockedPlayers.push(key);
+      saveLockedPlayers();
+      render();
+    });
+    return;
+  }
+  state.lockedPlayers.push(key);
   saveLockedPlayers();
   render();
+}
+function unlockAllPlayers(){
+  if(!state.lockedPlayers.length){ showInfo('Er zijn momenteel geen handmatig vergrendelde spelers.'); return; }
+  showConfirm(`Alle ${state.lockedPlayers.length} handmatige vergrendelingen verwijderen? Spelers die nog automatisch vergrendeld zijn (bijv. omdat je wisseltegoed deze ronde op is) blijven daarna nog wel vergrendeld zolang dat geldt.`, ()=>{
+    state.lockedPlayers = [];
+    saveLockedPlayers();
+    render();
+  });
 }
 async function saveLockedPlayers(){
   try{ await storageSet('cvhj-locked-players', JSON.stringify(state.lockedPlayers), false); }catch(e){}
