@@ -1924,6 +1924,19 @@ const CLUB_COLORS = {
   'PSV':['#D2122E','#FFFFFF'], 'SC Cambuur':['#FFD400','#1A1A1A'], 'sc Heerenveen':['#1B4F9C','#FFFFFF'],
   'Sparta Rotterdam':['#D2122E','#FFFFFF'], 'Telstar':['#1B4F9C','#D2122E'], 'Willem II':['#8E1B3A','#FFFFFF'],
 };
+// Korte clubcodes voor op de schermafbeeldingen — meerdere clubs delen bijna hetzelfde rood-wit
+// shirt (Ajax/AZ/Twente/Utrecht/Feyenoord/PSV/Sparta), dus alleen de shirtkleur maakt niet duidelijk
+// bij welke club een speler zit. Een klein badge-label met de clubcode lost dat op.
+const CLUB_SHORT = {
+  'Ajax':'AJA', 'AZ':'AZ', 'ADO Den Haag':'ADO', 'Excelsior':'EXC', 'FC Groningen':'GRO',
+  'FC Twente':'TWE', 'FC Utrecht':'UTR', 'Feyenoord':'FEY', 'Fortuna Sittard':'FOR',
+  'Go Ahead Eagles':'GAE', 'N.E.C.':'NEC', 'PEC Zwolle':'PEC', 'PSV':'PSV', 'SC Cambuur':'CAM',
+  'sc Heerenveen':'HEE', 'Sparta Rotterdam':'SPA', 'Telstar':'TEL', 'Willem II':'WIL',
+};
+function clubShortLabel(club){
+  if(!club) return '';
+  return CLUB_SHORT[club] || club.replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+}
 function jerseySvg(club, size){
   size = size || 16;
   const colors = CLUB_COLORS[club] || ['#7A8B94','#4B565C'];
@@ -3175,11 +3188,15 @@ function confirmThenSetAppTheme(t){
   }
   setAppTheme(t);
 }
-// Kiezen van een kleurenthema dat een "eigen" taal heeft (Gamer, E-girl(s), of een Fries clubthema
-// — Cambuur/Heerenveen) zet automatisch ook de bijpassende taal/toon, zodat je in één klik een
-// passende combinatie krijgt. Taal blijft daarna nog los aanpasbaar/overschrijfbaar via de vier
-// taal-tegels; bij een neutraal kleurenthema (Dark, Light, een andere club, enz.) verandert de
-// taal niet — die blijft dan gewoon staan op wat al gekozen was.
+// Kiezen van een kleurenthema dat een "eigen" taal heeft (Gamer, E-girl(s), Hond, of een Fries
+// clubthema — Cambuur/Heerenveen) zet automatisch ook de bijpassende taal/toon, zodat je in één
+// klik een passende combinatie krijgt. Taal blijft daarna nog los aanpasbaar/overschrijfbaar via de
+// taal-tegels; bij een neutraal kleurenthema (Dark, Light, een andere club, enz.) verandert de taal
+// niet — die blijft dan gewoon staan op wat al gekozen was. UITZONDERING: ga je van zo'n thema met
+// eigen taal (bv. Hond) naar een thema ZONDER eigen taal, terwijl de taal nog op de automatisch
+// gezette waarde staat (bv. nog steeds Honds), dan springt de taal automatisch terug naar Normaal —
+// anders zou je per ongeluk met bv. Honds blijven zitten op een thema dat daar niks mee te maken
+// heeft. Heb je de taal zelf naar iets anders gezet, dan blijft die eigen keuze gewoon staan.
 function autoLanguageForVisualTheme(t){
   if(t==='gamer') return 'gamer';
   if(t==='egirl' || t==='egirl-dark') return 'girly';
@@ -3188,11 +3205,18 @@ function autoLanguageForVisualTheme(t){
   return null;
 }
 function setAppTheme(t){
+  const prevAutoLang = autoLanguageForVisualTheme(state.theme);
   state.theme = t;
   applyAppTheme();
   storageSet('cvhj-theme', t, false).catch(()=>{});
   const autoLang = autoLanguageForVisualTheme(t);
-  if(autoLang){ state.themeLanguage = autoLang; storageSet('cvhj-theme-language', autoLang, false).catch(()=>{}); }
+  if(autoLang){
+    state.themeLanguage = autoLang;
+    storageSet('cvhj-theme-language', autoLang, false).catch(()=>{});
+  } else if(prevAutoLang && state.themeLanguage === prevAutoLang){
+    state.themeLanguage = 'normaal';
+    storageSet('cvhj-theme-language', 'normaal', false).catch(()=>{});
+  }
   closeModal();
   render();
 }
@@ -4910,6 +4934,28 @@ function requestStepRound(delta){
   }
   requestJumpRound(r);
 }
+// De schermafbeelding-voorbeeldkaarten hebben allemaal een ander formaat (de standaardkaart is
+// bv. 460px breed, de Darren-meme-kaart 800px breed en veel hoger) — een vaste schaal van 0.4 paste
+// daardoor niet voor elk thema en sneed bij bredere/hogere kaarten (zoals Darren) een stuk af. Deze
+// functie meet na elke render de échte, ongeschaalde afmetingen van de kaart en berekent zelf de
+// schaal die de HELE kaart binnen het voorbeeldvakje laat passen (en centreert 'm daarin).
+function fitExportScreenshotPreview(){
+  const box = document.getElementById('export-preview-box');
+  const inner = document.getElementById('export-preview-inner');
+  if(!box || !inner) return;
+  inner.style.transform = 'none';
+  const naturalW = inner.scrollWidth;
+  const naturalH = inner.scrollHeight;
+  if(!naturalW || !naturalH) return;
+  const boxW = box.clientWidth || 190;
+  const boxH = box.clientHeight || 230;
+  const scale = Math.min(boxW/naturalW, boxH/naturalH);
+  inner.style.transform = `scale(${scale})`;
+  inner.style.transformOrigin = 'top left';
+  const scaledW = naturalW*scale, scaledH = naturalH*scale;
+  inner.style.left = Math.max(0,(boxW-scaledW)/2)+'px';
+  inner.style.top = Math.max(0,(boxH-scaledH)/2)+'px';
+}
 let _lastParticleDirection; // ongedefinieerd bij eerste render, zodat de eerste echte check altijd aanslaat
 function updateTimeParticles(){
   const direction = !state.timeMachine.active ? null : (SEASON_2627_SNAPSHOTS[state.timeMachine.round] ? 'past' : 'future');
@@ -5897,9 +5943,11 @@ function openScreenshotThemePicker(context){
   render();
 }
 function setScreenshotTheme(t){
+  // Let op: een schermafbeelding-thema kiezen verandert NOOIT de taal/toon van het hele dashboard
+  // (dat gebeurt alleen bij het kiezen van een dashboard-kleurenthema via setAppTheme). De
+  // schermafbeelding zelf krijgt zijn eigen sfeer (bv. Hond → woef-tekst) via renderExportCardHtml,
+  // los van state.themeLanguage — de huidige taal van de rest van de app blijft gewoon staan.
   state.modal.theme = t;
-  const autoLang = autoLanguageForVisualTheme(t);
-  if(autoLang){ state.themeLanguage = autoLang; storageSet('cvhj-theme-language', autoLang, false).catch(()=>{}); }
   render();
 }
 function toggleScreenshotRoundPoints(){ state.screenshotShowRoundPoints = !state.screenshotShowRoundPoints; render(); }
@@ -5944,8 +5992,8 @@ function renderScreenshotThemeModal(){
         <div style="text-align:center;margin-bottom:14px;">
           <div style="font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.05em;">Voorbeeld — ${activeTh?activeTh.label:''}</div>
           <div style="display:flex;justify-content:center;">
-            <div style="width:190px;height:230px;overflow:hidden;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#0A0A0A;">
-              <div style="transform:scale(0.4);transform-origin:top left;">${renderExportCardHtml(t)}</div>
+            <div id="export-preview-box" style="width:190px;height:230px;overflow:hidden;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.4);background:#0A0A0A;position:relative;">
+              <div id="export-preview-inner" style="transform:scale(0.4);transform-origin:top left;position:absolute;top:0;left:0;">${renderExportCardHtml(t)}</div>
             </div>
           </div>
         </div>` : ''}
@@ -6011,9 +6059,11 @@ function renderThemedPitchExportCard(cfg, basis, reserve, total){
       <div style="background:${cfg.plateBg};border-radius:6px;padding:4px 8px;margin-top:6px;font-family:'Inter',sans-serif;font-size:11px;color:#888;">leeg</div>
     </div>`;
     const pts = screenshotPointsLines(p, !!d.reserve, d.pos);
+    const clubColors = CLUB_COLORS[p.Team] || ['#7A8B94','#4B565C'];
     return `<div style="display:flex;flex-direction:column;align-items:center;width:88px;">
       ${bigJersey(p.Team, 58)}
-      <div style="background:${cfg.plateBg};border-radius:6px;padding:4px 10px;margin-top:6px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+      <div style="background:#fff;border:1.5px solid ${clubColors[0]};border-radius:8px;padding:1px 7px;margin-top:-7px;position:relative;z-index:1;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:0.4px;color:${clubColors[0]};">${clubShortLabel(p.Team)}</div>
+      <div style="background:${cfg.plateBg};border-radius:6px;padding:4px 10px;margin-top:4px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:12px;color:${cfg.plateText};white-space:nowrap;">${p.Speler.split(' ').slice(-1)[0]}</div>
         <div style="font-family:'Inter',sans-serif;font-size:11px;color:${cfg.plateSub};">€${p.Prijs.toFixed(2)}M</div>
         ${pts.map(l=>`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${cfg.plateSub};margin-top:1px;">${l}</div>`).join('')}
@@ -6086,11 +6136,18 @@ function renderExportCardHtml(theme){
   const reserve = defs.filter(d=>d.reserve);
   const total = squadTotalPrice();
 
-  if(theme==='darren') return renderDarrenExportCard(basis, reserve, total);
-  if(theme==='ios') return renderIOSTeamExportCard(basis, reserve, total);
-  if(theme==='cvhj') return renderCVHJPitchExportCard(basis, reserve, total);
-  if(theme.startsWith('club-')) return renderClubThemedPitchCard(theme.slice('club-'.length), basis, reserve, total);
-  return renderThemedPitchExportCard(BASIC_PITCH_STYLES[theme] || BASIC_PITCH_STYLES.standaard, basis, reserve, total);
+  let cardHtml;
+  if(theme==='darren') cardHtml = renderDarrenExportCard(basis, reserve, total);
+  else if(theme==='ios') cardHtml = renderIOSTeamExportCard(basis, reserve, total);
+  else if(theme==='cvhj') cardHtml = renderCVHJPitchExportCard(basis, reserve, total);
+  else if(theme.startsWith('club-')) cardHtml = renderClubThemedPitchCard(theme.slice('club-'.length), basis, reserve, total);
+  else cardHtml = renderThemedPitchExportCard(BASIC_PITCH_STYLES[theme] || BASIC_PITCH_STYLES.standaard, basis, reserve, total);
+
+  // Het Hond-schermafbeelding-thema heeft altijd zijn eigen woef-sfeer — cijfers/nummers (punten,
+  // prijzen, rondes) blijven gewoon staan. Dit staat los van de taal/toon van de rest van het
+  // dashboard (state.themeLanguage): kiezen van dit schermafbeelding-thema verandert die taal niet.
+  if(theme==='hond') cardHtml = honderdifyText(cardHtml);
+  return cardHtml;
 }
 function renderCVHJPitchExportCard(basis, reserve, total){
   const rows = [
@@ -6110,9 +6167,11 @@ function renderCVHJPitchExportCard(basis, reserve, total){
       <div style="background:#fff;border-radius:6px;padding:4px 8px;margin-top:6px;font-family:'Inter',sans-serif;font-size:11px;color:#888;">leeg</div>
     </div>`;
     const pts = screenshotPointsLines(p, !!d.reserve, d.pos);
+    const clubColors = CLUB_COLORS[p.Team] || ['#7A8B94','#4B565C'];
     return `<div style="display:flex;flex-direction:column;align-items:center;width:88px;">
       ${bigJersey(p.Team, 58)}
-      <div style="background:#fff;border-radius:6px;padding:4px 10px;margin-top:6px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+      <div style="background:#fff;border:1.5px solid ${clubColors[0]};border-radius:8px;padding:1px 7px;margin-top:-7px;position:relative;z-index:1;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:0.4px;color:${clubColors[0]};">${clubShortLabel(p.Team)}</div>
+      <div style="background:#fff;border-radius:6px;padding:4px 10px;margin-top:4px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,0.25);">
         <div style="font-family:'Inter',sans-serif;font-weight:700;font-size:12px;color:#1A1A1A;white-space:nowrap;">${p.Speler.split(' ').slice(-1)[0]}</div>
         <div style="font-family:'Inter',sans-serif;font-size:11px;color:#444;">€${p.Prijs.toFixed(2)}M</div>
         ${pts.map(l=>`<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#666;margin-top:1px;">${l}</div>`).join('')}
@@ -6261,9 +6320,11 @@ function renderDarrenExportCard(basis, reserve, total){
       <div style="background:rgba(255,255,255,0.12);border-radius:6px;padding:4px 8px;margin-top:6px;font-family:'Inter',sans-serif;font-size:10px;color:rgba(255,255,255,0.5);">leeg</div>
     </div>`;
     const pts = screenshotPointsLines(p, !!d.reserve, d.pos);
+    const clubColors = CLUB_COLORS[p.Team] || ['#7A8B94','#4B565C'];
     return `<div style="display:flex;flex-direction:column;align-items:center;width:82px;">
       ${bigJersey(p.Team, 52)}
-      <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:6px;padding:4px 8px;margin-top:6px;text-align:center;">
+      <div style="background:#fff;border:1.5px solid ${clubColors[0]};border-radius:8px;padding:1px 6px;margin-top:-6px;position:relative;z-index:1;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:8px;letter-spacing:0.4px;color:${clubColors[0]};">${clubShortLabel(p.Team)}</div>
+      <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:6px;padding:4px 8px;margin-top:4px;text-align:center;">
         <div style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.Speler.split(' ').slice(-1)[0]}</div>
         ${pts.map(l=>`<div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.65);margin-top:1px;">${l}</div>`).join('')}
       </div>
@@ -11494,6 +11555,7 @@ function render(){
   `;
   app.innerHTML = applyThemedSubheadings(app.innerHTML);
   updateTimeParticles();
+  fitExportScreenshotPreview();
   if(activeId){
     const el = document.getElementById(activeId);
     if(el){
