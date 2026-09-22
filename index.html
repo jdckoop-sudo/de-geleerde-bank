@@ -784,6 +784,11 @@
   }
   .pitch-chip:hover{background:rgba(0,0,0,0.78);}
   .pitch-chip.locked{box-shadow:0 0 0 2px #F2B807, 0 0 10px rgba(242,184,7,0.5);}
+  .pitch-chip.in-myteam{box-shadow:0 0 0 2px var(--myteam), 0 0 10px rgba(0,0,0,0.4);}
+  .pitch-chip.in-myteam.locked{box-shadow:0 0 0 2px var(--myteam), 0 0 0 4px #F2B807, 0 0 10px rgba(242,184,7,0.5);}
+  .pitch-chip-myteam-label{background:var(--myteam);color:#0B0B0C;font-family:'JetBrains Mono',monospace;font-size:7.5px;font-weight:800;letter-spacing:0.2px;border-radius:3px;padding:1.5px 3px;margin-top:2px;display:flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;overflow:hidden;}
+  .slot.in-myteam{box-shadow:0 0 0 2px var(--myteam);}
+  .slot-myteam-badge{display:inline-flex;align-items:center;gap:2px;background:var(--myteam);color:#0B0B0C;border-radius:4px;font-size:8.5px;font-weight:800;padding:1px 5px;margin-left:6px;}
   .pitch-chip.empty{background:rgba(255,255,255,0.12); font-size:18px; line-height:1; padding:12px 4px; width:19%;}
   .pitch-chip-name{font-family:'Oswald';font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:center;gap:4px;}
   .injury-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 4px var(--danger);flex-shrink:0;}
@@ -1869,7 +1874,7 @@ function normSearch(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]
 const NAV_GROUPS = [
   {id:'home', label:'Home', iconName:'home', tabs:['home'], color:'#F2B807'},
   {id:'team', label:'Mijn Team', iconName:'shirt', tabs:['team','stats'], color:'#2FBF8F'},
-  {id:'week', label:'Stats v/d Week', iconName:'medal', tabs:['week_team','week_players','week_koopje','week_flop','week_couch','week_coach','week_algemeen','week_scheidsrechters','week_perfectteam'], color:'#F2B807'},
+  {id:'week', label:'Stats v/d Week', iconName:'medal', tabs:['week_team','week_players','week_koopje','week_flop','week_couch','week_coach','week_algemeen','week_scheidsrechters','week_perfectteam','week_potentieel'], color:'#F2B807'},
   {id:'scout', label:'Scout', iconName:'search', tabs:['scout','clubs','parels','rankings','positiewisselingen','penaltys'], color:'#4FA0E0'},
   {id:'league', label:'Casting Couch', iconName:'trophy', tabs:['league','leagueStats','spelersZoeker','wissels','hof'], color:'#F2B807'},
   {id:'personal', label:'Persoonlijk', iconName:'user', tabs:['personal'], color:'#B07AE0'},
@@ -1883,7 +1888,7 @@ const TAB_LABELS = {
   scout:'Scout', clubs:'Clubs', rankings:'Topstatistieken', parels:'Parels', positiewisselingen:'Positiewisselingen', penaltys:'Overig',
   matches:'Wedstrijden', calendar:'Kalender', wisselschema:'Wisselschema', standings:'Eredivisie & Europa', injuries:'Blessures', injuryHistory:'Geschiedenis', suspensions:'Schorsingen', news:'Nieuws', transfers:'Transfers', downloads:'Downloads',
   week_team:'Team v/d week', week_players:'Spelers v/d week', week_koopje:'Koopje v/d week',
-  week_coach:'Coach v/d week', week_couch:'Couch v/d week', week_flop:'Flop v/d week', week_algemeen:'Algemeen Klassement', week_scheidsrechters:'Scheidsrechters', week_perfectteam:'Perfect Team', hof:'Hall of Fame',
+  week_coach:'Coach v/d week', week_couch:'Couch v/d week', week_flop:'Flop v/d week', week_algemeen:'Algemeen Klassement', week_scheidsrechters:'Scheidsrechters', week_perfectteam:'Perfect Team', week_potentieel:'Potentieel Team', hof:'Hall of Fame',
 };
 const TAB_TO_GROUP = {};
 NAV_GROUPS.forEach(g=>g.tabs.forEach(t=>TAB_TO_GROUP[t]=g.id));
@@ -1970,6 +1975,10 @@ const FORMATIONS = {
   '5-3-2': {Defender:5, Midfielder:3, Forward:2},
 };
 const BUDGET_CAP = 32;
+// Ophogen wanneer de schattingslogica in estimatePlayerPointsForRound wijzigt, zodat nog niet
+// gespeelde (dus nog niet 'gescoorde') rondes automatisch worden herberekend met de nieuwste versie
+// i.p.v. voor altijd vast te blijven zitten aan een verouderd model.
+const POTENTIAL_MODEL_VERSION = 9;
 
 // ---- Opslaglaag: gebruikt window.storage binnen Claude.ai/de Claude-app; valt terug op
 // localStorage zodra dit bestand los (buiten Claude) in een gewone browser wordt geopend,
@@ -2361,7 +2370,7 @@ let state = {
   matchTypeFilter:'ALL', matchTeamFilter:'ALL', matchStatusFilter:'ALL',
   calYear:new Date().getFullYear(), calMonth:new Date().getMonth()+1, calSelectedDay:null, showInterlands:true,
   injStatusFilter:'ALL', injTeamFilter:'ALL', standingsView:null,
-  timeMachine:{active:false, season:'now'}, warping:false, followedClub:'', followedCoach:'', fanSeason:'2025/26', navMoreOpen:false, leaguePreviousRanks:null, estimateCalibration:1.0, estimateLog:[], leagueSelectedRound:null, lockedPlayers:[], missingClubsOpen:false, navHistory:[], quickActionsHidden:false, calClubFilter:[], calClubFilterOpen:false, h2hComp:'ERE', weekRound:null, refDetail:null, refView:'ronde', algemeenDetail:null,
+  timeMachine:{active:false, season:'now'}, warping:false, followedClub:'', followedCoach:'', fanSeason:'2025/26', navMoreOpen:false, leaguePreviousRanks:null, estimateCalibration:1.0, estimateLog:[], potentialTeamLog:[], potentialCalibration:1.0, potentialTeamHistoryRound:null, potentialTeamFormationView:null, leagueSelectedRound:null, lockedPlayers:[], missingClubsOpen:false, navHistory:[], quickActionsHidden:false, calClubFilter:[], calClubFilterOpen:false, h2hComp:'ERE', weekRound:null, refDetail:null, refView:'ronde', algemeenDetail:null,
   homeWidgetOrder:['team','teamlineup','club','clubstats','standingscc','weekteam','injuries','h2h'],
   homeWidgetEnabled:{team:true, teamlineup:false, club:true, clubstats:false, standingscc:false, weekteam:true, injuries:true, h2h:true}, // nieuw toegevoegde widgets (teamlineup/clubstats/standingscc) staan qua ontwerp uit totdat de gebruiker ze zelf aanzet; voor bestaande opgeslagen voorkeuren geldt: ontbrekende sleutel = aan (zie renderHomeTab)
   homeSettingsOpen:false,
@@ -2862,6 +2871,7 @@ async function loadSquad(){
   await loadPersonalPrefs();
   await loadScheduledSwaps();
   await loadEstimateState();
+  await loadPotentialTeamLog();
   await loadLockedPlayers();
   await loadHomeWidgetPrefs();
   await checkOnboardingSeen();
@@ -2877,6 +2887,9 @@ async function loadSquad(){
   syncMyTeamIfNewerRoundAvailable();
   checkAndCalibrateEstimates();
   registerCurrentEstimateIfNeeded();
+  migratePotentialTeamLog();
+  checkAndScorePotentialTeamLog();
+  registerPotentialTeamIfNeeded();
   try{
     const t = await storageGet('cvhj-theme', false);
     if(t && t.value){ state.theme = t.value; }
@@ -6611,10 +6624,12 @@ function renderFantasySquadPitch(perPlayer, round, pitchVariant, label){
   function chip(d){
     const color = POS_COLOR[d.pos] || '#888';
     const naam = d.speler || d.naam;
-    return `<div class="pitch-chip" style="border-color:${color};" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')">
+    const mine = isInMyTeam({Speler:naam, Team:d.club});
+    return `<div class="pitch-chip${mine?' in-myteam':''}" style="border-color:${color};" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')">
       <div class="pitch-chip-name">${naam.split(' ').slice(-1)[0]}</div>
       <div class="pitch-chip-club">${teamLogo(d.club)}</div>
       <div class="pitch-chip-pts" style="color:${d.points>0?'#4FD98A':d.points<0?'#FF6F63':'#ccc'};">${d.points} pnt${round!=null?` (R${round})`:''}</div>
+      ${mine ? `<div class="pitch-chip-myteam-label" title="Zit ook in Mijn Team">${icon('star',8)} MIJN TEAM</div>` : ''}
       ${oppLine(d)}
     </div>`;
   }
@@ -6641,8 +6656,9 @@ function renderFantasySquadPitch(perPlayer, round, pitchVariant, label){
     <div class="slot-grid">${reserve.map(d=>{
       const color = POS_COLOR[d.pos] || '#888';
       const naam = d.speler || d.naam;
-      return `<div class="slot filled" style="border-left:3px solid ${color};" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')">
-        <div class="slot-label" style="color:${color}">Reserve ${posLabel[d.pos]||d.pos}</div>
+      const mine = isInMyTeam({Speler:naam, Team:d.club});
+      return `<div class="slot filled${mine?' in-myteam':''}" style="border-left:3px solid ${color};" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')">
+        <div class="slot-label" style="color:${color}">Reserve ${posLabel[d.pos]||d.pos}${mine ? `<span class="slot-myteam-badge">${icon('star',9)} MIJN TEAM</span>` : ''}</div>
         <div class="slot-name">${naam}</div>
         <div class="slot-sub">${teamLogo(d.club)}${d.club}</div>
         <div class="slot-roundpts" style="color:${d.points>0?'var(--def)':d.points<0?'var(--danger)':'var(--text-dim)'};">${icon('chart',11)} ${round!=null?`Ronde ${round}: `:''}<b>${d.points} pnt</b></div>
@@ -10528,6 +10544,451 @@ function lastOpponent(club){
   const thuis = m.home===club;
   return {opponent: thuis ? m.away : m.home, thuis, date:m.date, ronde:m.competitie.split('Ronde ')[1], eigenScore: thuis?m.homeScore:m.awayScore, tegenScore: thuis?m.awayScore:m.homeScore};
 }
+// ---- "Potentieel beste team" — een gegokte/verwachte beste opstelling VOORAF aan de aankomende
+// ronde (dus zonder de uitslag van die ronde te kennen), gebaseerd op recente vorm, wie tegen wie
+// speelt en hoe zwaar die tegenstander is. Wordt éénmaal per ronde vastgezet in state.potentialTeamLog
+// zodat je later kunt terugkijken hoe goed de schatting was t.o.v. wat er echt gebeurde. ----
+function matchForClubInRound(club, round){
+  if(typeof MATCHES==='undefined' || round==null) return null;
+  return MATCHES.find(m=>m.type==='Eredivisie' && (m.home===club||m.away===club) && matchRoundNumber(m.id)===round) || null;
+}
+// Geschatte puntenscore van 1 speler voor 1 specifieke (nog te spelen) ronde: een mix van zijn
+// recente vormscore (laatste 3 gespeelde rondes, zelfde weging als elders in de app) en zijn
+// seizoensgemiddelde, bijgesteld voor de zwaarte van de eerstvolgende tegenstander (clubsterkte,
+// per positie een andere gevoeligheid) en een klein thuisvoordeel — en fors verlaagd/uitgesloten
+// bij een blessure, schorsing of twijfelgeval. potentialCalibration leert bij zodra rondes écht
+// gespeeld zijn (zie checkAndScorePotentialTeamLog), net als bij de "Geschatte punten"-kaart.
+// Onderlinge ontmoeting dit seizoen: de Eredivisie speelt in de eerste seizoenshelft elke
+// tegenstander maar 1x, dus dit is altijd hoogstens 1 datapunt (geen jarenlange h2h-reeks) — maar
+// als club A club B eerder dit seizoen bv. met 4-0 versloeg, is dat een reëel signaal dat een
+// generieke clubsterkte-score niet ziet. We laten dit bewust maar licht meewegen (max ±9%) omdat
+// n=1 nooit doorslaggevend zou moeten zijn.
+function headToHeadFactor(club, opponent, round){
+  if(typeof MATCHES==='undefined' || !opponent) return 1;
+  const prior = MATCHES.find(m=>m.type==='Eredivisie' && m.homeScore!=null && m.awayScore!=null &&
+    ((m.home===club && m.away===opponent) || (m.home===opponent && m.away===club)) &&
+    matchRoundNumber(m.id) < round
+  );
+  if(!prior) return 1;
+  const clubWasHome = prior.home===club;
+  const diff = clubWasHome ? (prior.homeScore - prior.awayScore) : (prior.awayScore - prior.homeScore);
+  const clamped = Math.max(-3, Math.min(3, diff));
+  return 1 + clamped*0.03;
+}
+// Coëfficiënt van variatie (stdev/gemiddelde) van 1 speler over zijn gespeelde rondes — hoe lager,
+// hoe constanter. null als er te weinig gespeelde rondes zijn om iets zinnigs te zeggen.
+function computePlayerCv(p){
+  const rounds = availableSnapshotRounds();
+  const key = p.Speler+'|'+p.Team;
+  const pts = [];
+  rounds.forEach(r=>{
+    const snap = SEASON_2627_SNAPSHOTS[r];
+    if(snap && snap.playerRoundMinutes && snap.playerRoundMinutes[key]>0 && snap.playerRoundPoints && (key in snap.playerRoundPoints)){
+      pts.push(snap.playerRoundPoints[key]);
+    }
+  });
+  if(pts.length<3) return null;
+  const mean = pts.reduce((a,b)=>a+b,0)/pts.length;
+  if(mean<=0) return null;
+  const variance = pts.reduce((s,v)=>s+Math.pow(v-mean,2),0)/pts.length;
+  return Math.sqrt(variance)/mean;
+}
+// Fantasy-punten schommelen sowieso fors per ronde (clean sheets, kaarten, goals zijn allemaal
+// alles-of-niets), dus een vast '0,35 is normaal'-ijkpunt bleek vrijwel iedereen de strafkant op te
+// sturen. In plaats daarvan wordt de mediaan-spreiding over de hele competitie zelf bepaald, zodat
+// de factor écht relatief is: alleen wie duidelijk constanter/grilliger is dan de rest van de
+// spelerspool krijgt een bonus/malus.
+let _cvMedianCache = null;
+function leagueMedianCv(){
+  if(_cvMedianCache !== null) return _cvMedianCache;
+  const cvs = [];
+  PLAYERS.forEach(p=>{ if(p.former) return; const cv = computePlayerCv(p); if(cv!=null) cvs.push(cv); });
+  if(!cvs.length){ _cvMedianCache = 0.35; return _cvMedianCache; }
+  cvs.sort((a,b)=>a-b);
+  const mid = Math.floor(cvs.length/2);
+  _cvMedianCache = cvs.length%2 ? cvs[mid] : (cvs[mid-1]+cvs[mid])/2;
+  return _cvMedianCache;
+}
+// Spelers die ronde na ronde ongeveer hetzelfde (behoorlijke) puntenaantal neerzetten zijn een
+// betrouwbaardere gok dan iemand met hetzelfde gemiddelde maar met pieken en dalen (1x hattrick,
+// daarna een paar keer bijna niets) — die laatste categorie is net zo goed voor een nul als voor
+// een uitschieter. Licht gewicht (max ±8%), relatief aan de rest van de competitie.
+function computePlayerConsistency(p){
+  const cv = computePlayerCv(p);
+  if(cv==null) return 1;
+  const median = leagueMedianCv();
+  const factor = 1 + (median - cv)*0.2;
+  return Math.max(0.92, Math.min(1.08, factor));
+}
+// Een club se _stars-kernsterkte is een (deels subjectieve) inschatting van de spelerskwaliteit,
+// maar zegt niet direct hoe vaak die ploeg dit seizoen ook daadwerkelijk scoort — een team kan een
+// prima kern hebben en toch slordig afronden, of andersom een matig gewaardeerde kern hebben die
+// gewoon elke wedstrijd wel raak schiet. Voor keepers/verdedigers (bij wie clean sheets een groot
+// deel van de punten bepalen) wordt daarom het daadwerkelijke doelpuntengemiddelde van de
+// tegenstander dit seizoen gebruikt, i.p.v. alleen de kernsterkte.
+function clubAvgGoalsScored(club){
+  const played = MATCHES.filter(m=>m.type==='Eredivisie' && m.homeScore!=null && m.awayScore!=null && (m.home===club||m.away===club));
+  if(!played.length) return null;
+  const scored = played.reduce((s,m)=>s+(m.home===club?m.homeScore:m.awayScore),0);
+  return scored/played.length;
+}
+let _leagueAvgGoalsCache = null;
+function leagueAverageGoalsScored(){
+  if(_leagueAvgGoalsCache !== null) return _leagueAvgGoalsCache;
+  const clubs = (typeof DUTCH_TEAMS!=='undefined' ? DUTCH_TEAMS : []).filter(t=>t!=='Nederland');
+  const vals = clubs.map(clubAvgGoalsScored).filter(v=>v!=null);
+  _leagueAvgGoalsCache = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 1.5;
+  return _leagueAvgGoalsCache;
+}
+// Spiegelbeeld van clubAvgGoalsScored: hoeveel een club dit seizoen daadwerkelijk incasseert. Een
+// club met een keurige _stars-kern kan alsnog een lek verdedigend blok hebben — dat is precies wat
+// hier wordt opgepikt voor aanvallers/middenvelders, i.p.v. alleen de algemene kernsterkte.
+function clubAvgGoalsConceded(club){
+  const played = MATCHES.filter(m=>m.type==='Eredivisie' && m.homeScore!=null && m.awayScore!=null && (m.home===club||m.away===club));
+  if(!played.length) return null;
+  const conceded = played.reduce((s,m)=>s+(m.home===club?m.awayScore:m.homeScore),0);
+  return conceded/played.length;
+}
+let _leagueAvgConcededCache = null;
+function leagueAverageGoalsConceded(){
+  if(_leagueAvgConcededCache !== null) return _leagueAvgConcededCache;
+  const clubs = (typeof DUTCH_TEAMS!=='undefined' ? DUTCH_TEAMS : []).filter(t=>t!=='Nederland');
+  const vals = clubs.map(clubAvgGoalsConceded).filter(v=>v!=null);
+  _leagueAvgConcededCache = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 1.5;
+  return _leagueAvgConcededCache;
+}
+// Hoe vaak de speler zelf dit seizoen daadwerkelijk scoort (ruwe doelpunten, niet punten) per
+// gespeelde wedstrijd — een speler die zelf regelmatig scoort profiteert veel directer van een
+// lekke defensie dan iemand wiens punten vooral uit assists/bonussen komen.
+function playerGoalsPerMatch(p){
+  const rounds = availableSnapshotRounds();
+  const key = p.Speler+'|'+p.Team;
+  let goals = 0, matches = 0;
+  rounds.forEach(r=>{
+    const snap = SEASON_2627_SNAPSHOTS[r];
+    if(snap && snap.playerRoundMinutes && snap.playerRoundMinutes[key]>0){
+      matches++;
+      if(snap.playerRoundGoals && snap.playerRoundGoals[key]) goals += snap.playerRoundGoals[key];
+    }
+  });
+  if(matches<2) return null;
+  return goals/matches;
+}
+function estimatePlayerPointsForRound(p, round){
+  const formScore = computePlayerForm(p);
+  const ld = latestSeasonData(p);
+  const seasonAvg = (ld.data && ld.data.Gespeeld>0) ? ld.data.Totaal/ld.data.Gespeeld : 4;
+  const basis = formScore>0 ? (formScore*0.65 + seasonAvg*0.35) : seasonAvg;
+  const m = matchForClubInRound(p.Team, round);
+  const leagueAvg = leagueAverageClubStrength();
+  let oppStrength = leagueAvg, thuis = null, opponent = null;
+  if(m){
+    thuis = m.home===p.Team;
+    opponent = thuis ? m.away : m.home;
+    const squadStrength = clubStrengthScore(opponent) ?? leagueAvg;
+    if(p.Positie==='Goalkeeper' || p.Positie==='Defender'){
+      const avgGoals = clubAvgGoalsScored(opponent);
+      const leagueAvgGoals = leagueAverageGoalsScored();
+      if(avgGoals!=null && leagueAvgGoals>0 && leagueAvg>0){
+        // Herschaal het doelpuntengemiddelde naar dezelfde eenheid als de kernsterkte-score, en
+        // laat het (als directe observatie) zwaarder wegen dan de subjectieve kernsterkte: 65/35.
+        const attackAsStrength = (avgGoals/leagueAvgGoals) * leagueAvg;
+        oppStrength = squadStrength*0.35 + attackAsStrength*0.65;
+      } else {
+        oppStrength = squadStrength;
+      }
+    } else if(p.Positie==='Forward' || p.Positie==='Midfielder'){
+      // Spiegelbeeld: hoe méér een tegenstander incasseert, hoe zwakker die telt als 'verdedigend
+      // blok' voor een aanvaller/middenvelder — los van hoe goed hun kern er op papier uitziet.
+      const avgConceded = clubAvgGoalsConceded(opponent);
+      const leagueAvgConceded = leagueAverageGoalsConceded();
+      if(avgConceded!=null && leagueAvgConceded>0 && leagueAvg>0){
+        const leakiness = avgConceded/leagueAvgConceded; // >1 = incasseert bovengemiddeld veel
+        const defenseAsStrength = (leagueAvgConceded>0 ? (1/leakiness) : 1) * leagueAvg;
+        oppStrength = squadStrength*0.35 + defenseAsStrength*0.65;
+      } else {
+        oppStrength = squadStrength;
+      }
+    } else {
+      oppStrength = squadStrength;
+    }
+  }
+  const diffRatio = leagueAvg>0 ? oppStrength/leagueAvg : 1;
+  // Keepers zijn extra gevoelig voor een aanvalsgevaarlijke tegenstander: een clean sheet (5 pnt)
+  // is op zichzelf al groter dan een gemiddelde keeperswedstrijd, dus een tegenstander die vrijwel
+  // altijd scoort moet dat zwaarder terugzien dan bij een verdediger (die ook via kaarten/assists
+  // punten kan pakken) of een aanvaller/middenvelder.
+  let sensitivity = (p.Positie==='Forward') ? 0.5 : (p.Positie==='Midfielder') ? 0.35 : (p.Positie==='Goalkeeper') ? 0.4 : 0.25;
+  // Een aanvaller/middenvelder die zelf regelmatig scoort profiteert directer van een lekke
+  // defensie dan iemand wiens punten vooral uit assists/kaarten/bonussen komen — dus die laten we
+  // sterker meebewegen met de defensieve zwakte van de tegenstander; iemand die zelf amper scoort
+  // juist minder (diens punten hangen minder af van dit specifieke signaal).
+  if(p.Positie==='Forward' || p.Positie==='Midfielder'){
+    const gpm = playerGoalsPerMatch(p);
+    if(gpm!=null){
+      if(gpm >= 0.5) sensitivity *= 1.3;
+      else if(gpm >= 0.25) sensitivity *= 1.1;
+      else if(gpm < 0.1) sensitivity *= 0.8;
+    }
+  }
+  let matchupFactor = 1 - sensitivity*(diffRatio-1);
+  if(thuis===true) matchupFactor *= 1.08;
+  else if(thuis===false) matchupFactor *= 0.95;
+  if(m && opponent) matchupFactor *= headToHeadFactor(p.Team, opponent, round);
+  let score = basis * matchupFactor;
+  score *= computePlayerConsistency(p);
+  const inj = findInjury(p.Speler, p.Team);
+  if(inj){
+    if(inj.Status==='Geblesseerd' || inj.Status==='Geschorst') score = 0;
+    else if(inj.Status==='Twijfelgeval') score *= 0.35;
+  }
+  // Speeltijd-betrouwbaarheid: een speler die recent amper minuten maakt is vermoedelijk geen
+  // basisspeler (bankzitter/reserve bij zijn club), ook al oogt zijn seizoensgemiddelde prima
+  // op basis van een paar incidentele optredens. Straft dat scenario zwaar af.
+  const recentMin = computeRecentMinutes(p);
+  if(recentMin !== null){
+    let playTimeFactor = 1;
+    if(recentMin < 20) playTimeFactor = 0.05;
+    else if(recentMin < 45) playTimeFactor = 0.25;
+    else if(recentMin < 70) playTimeFactor = 0.55;
+    else if(recentMin < 80) playTimeFactor = 0.85;
+    score *= playTimeFactor;
+  }
+  if(!m) score *= 0.4; // geen bekende wedstrijd die ronde (interlandweek e.d.) -> sterk afwaarderen
+  score *= (state.potentialCalibration || 1);
+  return {score: Math.max(0, Math.round(score*100)/100), opponent, thuis, hasMatch: !!m};
+}
+// Bouwt de best mogelijke 15-koppige selectie (elke formatie geprobeerd, budget €32M, max 1 speler
+// per club) op basis van de geschatte scores hierboven — zelfde greedy+verbeterlus-aanpak als
+// computeTeamOfWeek, maar dan met VOORSPELDE i.p.v. daadwerkelijke punten als waardefunctie.
+function computePotentialBestTeamPrediction(round, onlyFormation){
+  const pool = PLAYERS.filter(p=>!p.former && p.Prijs>0);
+  const scored = pool.map(p=>({p, est: estimatePlayerPointsForRound(p, round)}));
+  const byPos = {Goalkeeper:[], Defender:[], Midfielder:[], Forward:[]};
+  scored.forEach(x=>{ if(byPos[x.p.Positie]) byPos[x.p.Positie].push(x); });
+  Object.values(byPos).forEach(arr=>arr.sort((a,b)=>b.est.score-a.est.score || a.p.Prijs-b.p.Prijs));
+  function greedyFillImprove(counts, excludeClubs, excludePlayers, budgetCap){
+    let selected = [], usedClubs = new Set(excludeClubs), budgetLeft = budgetCap, feasible = true;
+    Object.entries(counts).forEach(([pos,n])=>{
+      const cands = (byPos[pos]||[]).filter(c=>!selected.includes(c) && !excludePlayers.includes(c));
+      let taken = 0;
+      for(const cand of cands){
+        if(taken>=n) break;
+        if(usedClubs.has(cand.p.Team)) continue;
+        if(cand.p.Prijs<=budgetLeft){ selected.push(cand); usedClubs.add(cand.p.Team); budgetLeft -= cand.p.Prijs; taken++; }
+      }
+      if(taken<n) feasible=false;
+    });
+    if(!feasible) return null;
+    let improved = true, iterations = 0;
+    while(improved && iterations < 6){
+      improved = false; iterations++;
+      for(let i=0;i<selected.length;i++){
+        const cur = selected[i];
+        const pos = cur.p.Positie;
+        const clubsWithoutCur = new Set(selected.filter((_,j)=>j!==i).map(x=>x.p.Team).concat([...excludeClubs]));
+        const budgetWithoutCur = budgetLeft + cur.p.Prijs;
+        const candidates = (byPos[pos]||[]).filter(c=>
+          !selected.includes(c) && !excludePlayers.includes(c) &&
+          !clubsWithoutCur.has(c.p.Team) &&
+          c.p.Prijs<=budgetWithoutCur &&
+          c.est.score>cur.est.score
+        );
+        if(candidates.length>0){
+          const swapIn = candidates[0];
+          budgetLeft = budgetWithoutCur - swapIn.p.Prijs;
+          selected[i] = swapIn;
+          improved = true;
+        }
+      }
+    }
+    // Een gewone (gelijke-positie) wissel per keer mist een reëel scenario: een club levert nu een
+    // matige speler op positie A, terwijl diezelfde club een veel sterkere speler op positie B heeft
+    // staan — die blijft onbenut zolang het 1-per-club-slot al 'bezet' is door de zwakkere. Deze extra
+    // ronde probeert zo'n dubbele wissel: de zwakke speler (positie A) eruit, de sterke clubgenoot
+    // (positie B) erin, én tegelijk de op A vrijgekomen plek weer opvullen met de beste beschikbare
+    // speler van een nog ongebruikte club — alleen doorvoeren als het totaal (samen) omhoog gaat.
+    let clubImproved = true, clubIter = 0;
+    while(clubImproved && clubIter < 4){
+      clubImproved = false; clubIter++;
+      for(let i=0;i<selected.length;i++){
+        const cur = selected[i];
+        const club = cur.p.Team;
+        const posOfCur = cur.p.Positie;
+        const clubMate = scored.filter(x=>x.p.Team===club && !selected.includes(x) && !excludePlayers.includes(x) && x.est.score>cur.est.score)
+          .sort((a,b)=>b.est.score-a.est.score)[0];
+        if(!clubMate || clubMate.p.Positie===posOfCur) continue; // gelijke positie wordt al hierboven afgehandeld
+        const newPos = clubMate.p.Positie;
+        const weakestAtNewPosIdx = selected.map((x,j)=>({x,j})).filter(o=>o.x.p.Positie===newPos && o.x!==cur)
+          .sort((a,b)=>a.x.est.score-b.x.est.score)[0];
+        if(!weakestAtNewPosIdx) continue; // die positie zit niet in deze selectie (kan niet in deze formatie)
+        const weakestAtNewPos = weakestAtNewPosIdx.x;
+        const freeBudgetBeforeRefill = budgetLeft + cur.p.Prijs + weakestAtNewPos.p.Prijs - clubMate.p.Prijs;
+        if(freeBudgetBeforeRefill < 0) continue;
+        // 'club' zelf hoort er ook bij: dat slot wordt straks weer ingenomen door clubMate.
+        const clubsAfterRemoval = new Set(selected.filter((x,j)=>j!==i && j!==weakestAtNewPosIdx.j).map(x=>x.p.Team).concat([...excludeClubs, club]));
+        const replacement = (byPos[posOfCur]||[]).filter(c=>
+          !selected.includes(c) && c!==clubMate && !excludePlayers.includes(c) &&
+          !clubsAfterRemoval.has(c.p.Team) &&
+          c.p.Prijs<=freeBudgetBeforeRefill
+        )[0]; // al gesorteerd op est.score
+        if(!replacement) continue;
+        const oldPairTotal = cur.est.score + weakestAtNewPos.est.score;
+        const newPairTotal = clubMate.est.score + replacement.est.score;
+        if(newPairTotal > oldPairTotal){
+          selected[i] = replacement;
+          selected[weakestAtNewPosIdx.j] = clubMate;
+          budgetLeft = freeBudgetBeforeRefill - replacement.p.Prijs;
+          usedClubs = new Set(selected.map(x=>x.p.Team).concat([...excludeClubs]));
+          clubImproved = true;
+        }
+      }
+    }
+    return {selected, budgetLeft, usedClubs};
+  }
+  let best = null;
+  const formationEntries = onlyFormation ? [[onlyFormation, FORMATIONS[onlyFormation]]] : Object.entries(FORMATIONS);
+  formationEntries.forEach(([fname, need])=>{
+    if(!need) return;
+    const basisCounts = {Goalkeeper:1, Defender:need.Defender, Midfielder:need.Midfielder, Forward:need.Forward};
+    const basisResult = greedyFillImprove(basisCounts, [], [], BUDGET_CAP);
+    if(!basisResult) return;
+    const bankCounts = {Goalkeeper:1, Defender:1, Midfielder:1, Forward:1};
+    const bankResult = greedyFillImprove(bankCounts, basisResult.usedClubs, basisResult.selected, basisResult.budgetLeft);
+    if(!bankResult) return;
+    const basisTotal = basisResult.selected.reduce((s,x)=>s+x.est.score,0);
+    const allPlayers = basisResult.selected.concat(bankResult.selected.map(x=>({...x, reserve:true})));
+    const totalCost = BUDGET_CAP - bankResult.budgetLeft;
+    if(!best || basisTotal>best.total) best = {formation:fname, players:allPlayers, total:Math.round(basisTotal*10)/10, cost: totalCost};
+  });
+  return best;
+}
+// Zelfde opbouw als hierboven, maar dan voor ELKE formatie apart (i.p.v. alleen de sterkste) —
+// zodat je per opstelling kunt zien wat het model daarin zou zetten, niet alleen de ene 'beste' gok.
+function computeAllFormationPredictions(round){
+  const result = {};
+  Object.keys(FORMATIONS).forEach(fname=>{
+    const pred = computePotentialBestTeamPrediction(round, fname);
+    if(pred) result[fname] = pred;
+  });
+  return result;
+}
+function potentialPlayersToStorable(players){
+  return players.map(x=>({naam:x.p.Speler, club:x.p.Team, pos:x.p.Positie, prijs:x.p.Prijs, reserve:!!x.reserve, est:x.est.score, opponent:x.est.opponent, thuis:x.est.thuis}));
+}
+async function loadPotentialTeamLog(){
+  state.potentialTeamLog = [];
+  state.potentialCalibration = 1.0;
+  try{ const r = await storageGet('cvhj-potential-team-log', false); if(r&&r.value) state.potentialTeamLog = JSON.parse(r.value); }catch(e){}
+  try{ const r2 = await storageGet('cvhj-potential-calibration', false); if(r2&&r2.value) state.potentialCalibration = parseFloat(r2.value); }catch(e){}
+}
+async function savePotentialTeamLog(){
+  try{ await storageSet('cvhj-potential-team-log', JSON.stringify(state.potentialTeamLog), false); }catch(e){}
+  try{ await storageSet('cvhj-potential-calibration', String(state.potentialCalibration), false); }catch(e){}
+}
+// Zet, als dat nog niet eerder gebeurde, de schatting voor 'round' definitief vast — daarna blijft
+// hij ongewijzigd staan (ook als vorm/blessures nadien veranderen), zodat de latere vergelijking met
+// het echte resultaat eerlijk is: je vergelijkt wat er destijds werd gegokt, niet een achteraf
+// bijgewerkte versie.
+function generatePotentialTeamForRound(round){
+  if(!round || state.potentialTeamLog.find(e=>e.round===round)) return;
+  const pred = computePotentialBestTeamPrediction(round);
+  if(!pred) return;
+  const allForm = computeAllFormationPredictions(round);
+  const byFormation = {};
+  Object.entries(allForm).forEach(([fname, fpred])=>{
+    byFormation[fname] = { estTotal: fpred.total, cost: fpred.cost, players: potentialPlayersToStorable(fpred.players), actualTotal: null, actualPlayers: null };
+  });
+  const entry = {
+    round, generatedOn: todayStr(), formation: pred.formation, estTotal: pred.total, cost: pred.cost,
+    players: potentialPlayersToStorable(pred.players),
+    actualTotal: null, actualPlayers: null,
+    byFormation,
+    modelVersion: POTENTIAL_MODEL_VERSION,
+  };
+  state.potentialTeamLog.push(entry);
+  state.potentialTeamLog.sort((a,b)=>a.round-b.round);
+  savePotentialTeamLog();
+}
+// Eenmalige migratie: rondes die met een oudere versie van het model zijn vastgezet en nog niet
+// gespeeld zijn (dus nog geen eerlijke-vergelijking-plicht hebben) krijgen de nieuwste schatting +
+// de per-formatie varianten alsnog toegevoegd. Zodra een ronde wél gespeeld/gescoord is, blijft hij
+// voor altijd ongewijzigd staan.
+function migratePotentialTeamLog(){
+  let changed = false;
+  (state.potentialTeamLog||[]).forEach(entry=>{
+    if(entry.actualTotal!=null) return;
+    if(entry.byFormation && entry.modelVersion===POTENTIAL_MODEL_VERSION) return;
+    const pred = computePotentialBestTeamPrediction(entry.round);
+    if(pred){
+      entry.formation = pred.formation; entry.estTotal = pred.total; entry.cost = pred.cost;
+      entry.players = potentialPlayersToStorable(pred.players);
+    }
+    const allForm = computeAllFormationPredictions(entry.round);
+    const byFormation = {};
+    Object.entries(allForm).forEach(([fname, fpred])=>{
+      byFormation[fname] = { estTotal: fpred.total, cost: fpred.cost, players: potentialPlayersToStorable(fpred.players), actualTotal: null, actualPlayers: null };
+    });
+    entry.byFormation = byFormation;
+    entry.modelVersion = POTENTIAL_MODEL_VERSION;
+    changed = true;
+  });
+  if(changed) savePotentialTeamLog();
+}
+// Wordt bij elke app-start aangeroepen (zelfde patroon als registerCurrentEstimateIfNeeded): zorgt
+// dat er, zodra bekend is welke ronde de eerstvolgende is, automatisch een schatting voor klaarstaat
+// — net zoals je normaal zelf ook vóór het weekend je team zou zetten.
+function registerPotentialTeamIfNeeded(){
+  const info = nextRoundInfo();
+  if(!info) return;
+  generatePotentialTeamForRound(info.round);
+}
+// Zodra een ronde écht gespeeld is (SEASON_2627_SNAPSHOTS bevat 'm), wordt het daadwerkelijke
+// puntentotaal van de destijds vastgezette basis-11 opgehaald en vergeleken met de schatting —
+// en wordt, bij een substantiële fout, de kalibratiefactor bijgesteld (net als bij de "Geschatte
+// punten"-kaart voor je eigen team), zodat toekomstige schattingen zichzelf bijschaven.
+function scorePotentialBasisAgainstSnapshot(basisPlayers, snap){
+  let actual = 0;
+  const actualPlayers = basisPlayers.map(x=>{
+    const key = x.naam+'|'+x.club;
+    const pts = (snap.playerRoundPoints && snap.playerRoundPoints[key]) || 0;
+    actual += pts;
+    return {naam:x.naam, club:x.club, pts};
+  });
+  return {actualTotal: Math.round(actual*10)/10, actualPlayers};
+}
+function checkAndScorePotentialTeamLog(){
+  let changed = false;
+  (state.potentialTeamLog||[]).forEach(entry=>{
+    const snap = SEASON_2627_SNAPSHOTS[entry.round];
+    if(!snap) return;
+    if(entry.actualTotal==null){
+      const basis = entry.players.filter(x=>!x.reserve);
+      const res = scorePotentialBasisAgainstSnapshot(basis, snap);
+      entry.actualTotal = res.actualTotal;
+      entry.actualPlayers = res.actualPlayers;
+      const error = entry.actualTotal - entry.estTotal;
+      const relativeError = entry.estTotal>0 ? error/entry.estTotal : 0;
+      if(Math.abs(relativeError) > 0.1){
+        state.potentialCalibration = Math.max(0.5, Math.min(1.5, (state.potentialCalibration||1) * (1 + relativeError*0.3)));
+      }
+      changed = true;
+    }
+    if(entry.byFormation){
+      Object.values(entry.byFormation).forEach(fEntry=>{
+        if(fEntry.actualTotal!=null) return;
+        const basis = fEntry.players.filter(x=>!x.reserve);
+        const res = scorePotentialBasisAgainstSnapshot(basis, snap);
+        fEntry.actualTotal = res.actualTotal;
+        fEntry.actualPlayers = res.actualPlayers;
+        changed = true;
+      });
+    }
+  });
+  if(changed) savePotentialTeamLog();
+}
+function setPotentialTeamHistoryRound(r){ state.potentialTeamHistoryRound = r; render(); }
+function setPotentialTeamFormationView(f){ state.potentialTeamFormationView = f; render(); }
 function renderOpponentsHtml(p){
   const upcomingTotal = countUpcomingOpponents(p.Team);
   const upOffset = state.modal.upcomingOffset || 0;
@@ -13806,13 +14267,197 @@ function renderWeekRoundSelector(){
     </div>
   `;
 }
+// Klein hulpje: dezelfde pijltje+verschil-weergave als de teamvergelijking, maar dan voor de
+// schatting-vs-werkelijkheid van het "Potentieel beste team" (kolommen: Voorspeld / Werkelijk).
+function renderPotentialCompareRow(label, mv, ov){
+  const diff = Math.round((ov-mv)*10)/10;
+  const kleur = diff>0?'var(--def)':diff<0?'var(--danger)':'var(--text-dim)';
+  const pijl = diff>0 ? '▶' : diff<0 ? '◀' : '·';
+  return `<tr style="border-bottom:1px solid var(--line);">
+    <td style="padding:6px 6px;font-size:12px;color:var(--text-dim);">${label}</td>
+    <td style="padding:6px 6px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;">${mv}</td>
+    <td style="padding:6px 2px;text-align:center;width:50px;">
+      ${diff===0 ? `<div style="font-size:12px;color:var(--text-dim);">=</div>` : `
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:${kleur};">${diff>0?'+':''}${diff}</div>
+      <div style="font-size:12px;color:${kleur};line-height:1;">${pijl}</div>`}
+    </td>
+    <td style="padding:6px 6px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;">${ov}</td>
+  </tr>`;
+}
+function renderPotentialTeamEntryPitch(entry, label){
+  const perPlayer = entry.players.map(x=>{
+    const actual = entry.actualPlayers ? entry.actualPlayers.find(a=>a.naam===x.naam && a.club===x.club) : null;
+    return {naam:x.naam, club:x.club, pos:x.pos, reserve:x.reserve, points: actual ? actual.pts : x.est};
+  });
+  return renderFantasySquadPitch(perPlayer, null, 'blauw', label);
+}
+// Simpele verwachte-uitslag-schatting op basis van de daadwerkelijke aanvals-/defensiecijfers van
+// dit seizoen (dezelfde clubAvgGoalsScored/clubAvgGoalsConceded als in het puntenmodel) — geen
+// volwaardig xG-model, maar wel gebaseerd op echte cijfers i.p.v. een losse gok.
+function expectedMatchScore(homeClub, awayClub){
+  const homeAvgScored = clubAvgGoalsScored(homeClub);
+  const homeAvgConceded = clubAvgGoalsConceded(homeClub);
+  const awayAvgScored = clubAvgGoalsScored(awayClub);
+  const awayAvgConceded = clubAvgGoalsConceded(awayClub);
+  if([homeAvgScored,homeAvgConceded,awayAvgScored,awayAvgConceded].some(v=>v==null)) return null;
+  const expHome = ((homeAvgScored + awayAvgConceded)/2) * 1.1;
+  const expAway = ((awayAvgScored + homeAvgConceded)/2) * 0.92;
+  return { expHome: Math.round(expHome*10)/10, expAway: Math.round(expAway*10)/10 };
+}
+// Groepeert alle geselecteerde spelers (basis én wissels) per daadwerkelijke wedstrijd — dus niet
+// per speler los, maar per duel — en zet daar de verwachte uitslag bij, zodat je in één oogopslag
+// ziet welke van je spelers tegen elkaar (of tegen dezelfde tegenstander) uitkomen.
+function renderPotentialTeamFixtureList(entry){
+  const groups = {};
+  (entry.players||[]).forEach(x=>{
+    if(!x.opponent) return; // geen bekende wedstrijd deze ronde
+    const home = x.thuis ? x.club : x.opponent;
+    const away = x.thuis ? x.opponent : x.club;
+    const key = home+'|||'+away;
+    if(!groups[key]) groups[key] = {home, away, homePlayers:[], awayPlayers:[]};
+    if(x.thuis) groups[key].homePlayers.push(x); else groups[key].awayPlayers.push(x);
+  });
+  const groupList = Object.values(groups).sort((a,b)=>{
+    const aHasBasis = a.homePlayers.concat(a.awayPlayers).some(x=>!x.reserve);
+    const bHasBasis = b.homePlayers.concat(b.awayPlayers).some(x=>!x.reserve);
+    return (bHasBasis?1:0) - (aHasBasis?1:0);
+  });
+  if(!groupList.length) return '';
+  return `
+    <div class="section-title" style="margin-top:14px;"><span>Head-to-heads — wie speelt tegen wie deze ronde</span><span class="line"></span></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${groupList.map(g=>{
+        const score = expectedMatchScore(g.home, g.away);
+        const scoreLabel = score ? `~${Math.round(score.expHome)}-${Math.round(score.expAway)}` : '?-?';
+        const playerLine = x => `<div style="font-size:11px;${x.reserve?'color:var(--text-dim);':''}">${x.naam}${x.reserve?' <span style="opacity:0.7;">(wissel)</span>':''} · <b style="color:${x.reserve?'var(--text-dim)':'var(--text)'};">${x.est}</b> pnt</div>`;
+        return `<div style="padding:10px 12px;background:var(--surface);border-radius:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+            <span style="font-size:13px;font-weight:700;">${teamLogo(g.home)}${g.home} <span style="color:var(--text-dim);font-weight:500;">vs</span> ${g.away}${teamLogo(g.away)}</span>
+            <span style="text-align:right;">
+              <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.4px;line-height:1.4;">Gok</div>
+              <div style="font-size:13px;color:var(--accent);font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.1;">${scoreLabel}</div>
+            </span>
+          </div>
+          ${score ? `<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;font-style:italic;">Geen voorspelling van de uitslag zelf — louter een indicatie o.b.v. seizoenscijfers: gemiddeld ${score.expHome} - ${score.expAway} doelpunten. Kan flink afwijken.</div>` : `<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;">Nog te weinig seizoensdata voor een indicatie</div>`}
+          <div style="display:flex;justify-content:space-between;gap:10px;">
+            <div style="flex:1;">${g.homePlayers.map(playerLine).join('') || '<div style="font-size:11px;color:var(--text-dim);">—</div>'}</div>
+            <div style="flex:1;text-align:right;">${g.awayPlayers.map(playerLine).join('') || '<div style="font-size:11px;color:var(--text-dim);">—</div>'}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+// Geeft de te tonen selectie terug: de automatisch gekozen 'beste' formatie (null/'beste'), of
+// een specifiek opgevraagde formatie uit entry.byFormation — in hetzelfde shape zodat de bestaande
+// pitch/fixture-renderers hergebruikt kunnen worden.
+function getPotentialDisplayEntry(entry, formationView){
+  if(!entry) return null;
+  if(!formationView || formationView==='beste' || !entry.byFormation || !entry.byFormation[formationView]){
+    return entry;
+  }
+  const f = entry.byFormation[formationView];
+  return { round: entry.round, generatedOn: entry.generatedOn, formation: formationView, estTotal: f.estTotal, cost: f.cost, players: f.players, actualTotal: f.actualTotal, actualPlayers: f.actualPlayers };
+}
+function renderPotentialFormationPicker(){
+  const opts = [{key:'beste', label:'Beste (auto)'}].concat(Object.keys(FORMATIONS).map(f=>({key:f, label:f})));
+  const active = state.potentialTeamFormationView || 'beste';
+  return `<div class="view-toggle" style="margin-bottom:12px;flex-wrap:wrap;">
+    ${opts.map(o=>`<button class="${active===o.key?'active':''}" onclick="setPotentialTeamFormationView('${o.key==='beste'?'':o.key}')">${o.label}</button>`).join('')}
+  </div>`;
+}
+function renderPotentialBestTeamTab(){
+  const info = nextRoundInfo();
+  const targetRound = info ? info.round : null;
+  if(targetRound) generatePotentialTeamForRound(targetRound);
+  const currentRaw = targetRound ? state.potentialTeamLog.find(e=>e.round===targetRound) : null;
+  const formationView = state.potentialTeamFormationView;
+  const current = getPotentialDisplayEntry(currentRaw, formationView);
+
+  const history = (state.potentialTeamLog||[]).slice().sort((a,b)=>b.round-a.round);
+  const scored = history.filter(e=>e.actualTotal!=null);
+  if(!state.potentialTeamHistoryRound || !history.find(e=>e.round===state.potentialTeamHistoryRound)){
+    state.potentialTeamHistoryRound = scored.length ? scored[0].round : (history[0] ? history[0].round : null);
+  }
+  const histEntryRaw = state.potentialTeamHistoryRound ? history.find(e=>e.round===state.potentialTeamHistoryRound) : null;
+  const histEntry = getPotentialDisplayEntry(histEntryRaw, formationView);
+
+  // Nauwkeurigheid tot nu toe — hoe dichter de gemiddelde afwijking bij 0, hoe beter de schattingen.
+  // (Altijd op basis van de automatisch gekozen 'beste' formatie, ongeacht welke formatie je bekijkt.)
+  let accuracyHtml = '';
+  if(scored.length){
+    const avgError = scored.reduce((s,e)=>s+(e.actualTotal-e.estTotal),0)/scored.length;
+    const avgAbsError = scored.reduce((s,e)=>s+Math.abs(e.actualTotal-e.estTotal),0)/scored.length;
+    accuracyHtml = `
+      <div class="summary-cards" style="margin-bottom:16px;">
+        <div class="summary-card grad-teal"><div class="summary-card-icon">${icon('chart',18)}</div><div class="label">Gem. afwijking (${scored.length} ronde${scored.length===1?'':'s'})</div><div class="value">${avgError>0?'+':''}${avgError.toFixed(1)} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Gem. absolute fout: ${avgAbsError.toFixed(1)} pnt</div></div>
+        <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('refresh',18)}</div><div class="label">Kalibratiefactor</div><div class="value">${(state.potentialCalibration||1).toFixed(2)}×</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Past zichzelf aan zodra een ronde echt gespeeld is.</div></div>
+      </div>`;
+  }
+
+  return `
+    <div class="news-note">Vóór elke speelronde zet ik hier automatisch het elftal neer dat ik verwacht dat de meeste punten gaat scoren — op basis van recente vorm, wie tegen wie speelt (en hoe sterk die tegenstander is), blessures/schorsingen en prijs. "Beste (auto)" is de formatie die zelf het hoogst scoort; je kunt ook een vaste formatie kiezen om te zien wat het model dáárin zou zetten. Eenmaal vastgezet voor een ronde verandert de schatting niet meer, zodat je 'm later eerlijk kunt terugvergelijken met wat er echt gebeurde.</div>
+    ${accuracyHtml}
+    ${renderPotentialFormationPicker()}
+    ${current ? `
+      <div class="section-title" style="margin-top:16px;"><span>Schatting voor de aankomende ronde ${targetRound}</span><span class="line"></span></div>
+      <div class="summary-cards">
+        <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('eye',18)}</div><div class="label">Verwacht sterkste team</div><div class="value">${current.estTotal} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Formatie ${current.formation} · €${current.cost.toFixed(2)}M · gegenereerd op ${current.generatedOn}</div></div>
+      </div>
+      ${renderPotentialTeamEntryPitch(current, `Potentieel beste team — ronde ${targetRound} (${current.formation})`)}
+      ${renderPotentialTeamFixtureList(current)}
+    ` : `<div class="news-note">Nog geen eerstvolgende ronde bekend — zodra de kalender een nieuwe ronde aangeeft, verschijnt hier automatisch een schatting.</div>`}
+
+    ${history.length ? `
+      <div class="section-title" style="margin-top:20px;"><span>Geschiedenis — terugkijken</span><span class="line"></span></div>
+      <select onchange="setPotentialTeamHistoryRound(Number(this.value))" style="width:100%;font-weight:600;padding:8px 10px;margin-bottom:14px;">
+        ${history.map(e=>`<option value="${e.round}" ${state.potentialTeamHistoryRound===e.round?'selected':''}>Ronde ${e.round}${e.actualTotal!=null ? ` — voorspeld ${e.estTotal}, werkelijk ${e.actualTotal} pnt` : ' — nog niet gespeeld'}</option>`).join('')}
+      </select>
+      ${histEntry ? `
+        ${histEntry.actualTotal!=null ? `
+          <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+            <thead><tr>
+              <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Ronde ${histEntry.round} (${histEntry.formation})</th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Voorspeld</th>
+              <th></th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Werkelijk</th>
+            </tr></thead>
+            <tbody>${renderPotentialCompareRow('Totaal punten (basis-11)', histEntry.estTotal, histEntry.actualTotal)}</tbody>
+          </table>
+        ` : `<div class="news-note">Deze ronde/formatie is nog niet (volledig) gespeeld — de werkelijke score verschijnt hier zodra de uitslagen bekend zijn.</div>`}
+        ${renderPotentialTeamEntryPitch(histEntry, `Potentieel beste team — ronde ${histEntry.round} (${histEntry.formation})`)}
+        ${histEntry.actualPlayers ? `
+          <div class="section-title"><span>Per speler — voorspeld vs. werkelijk</span><span class="line"></span></div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr>
+              <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Speler</th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Voorspeld</th>
+              <th></th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Werkelijk</th>
+            </tr></thead>
+            <tbody>
+              ${histEntry.players.filter(x=>!x.reserve).map(x=>{
+                const actual = histEntry.actualPlayers.find(a=>a.naam===x.naam && a.club===x.club);
+                return renderPotentialCompareRow(`${teamLogo(x.club)}${x.naam}`, x.est, actual?actual.pts:0);
+              }).join('')}
+            </tbody>
+          </table>
+        ` : ''}
+      ` : ''}
+    ` : ''}
+  `;
+}
 function renderWeekTab(){
   const avail = availableSnapshotRounds();
   if(avail.length && !state.weekRound) state.weekRound = avail[avail.length-1];
   const round = state.weekRound;
   const noData = avail.length===0;
   let body;
-  if(noData){
+  if(state.tab==='week_potentieel'){
+    // Onafhankelijk van noData: een schatting voor de aankomende ronde kan ook al vóór de eerste
+    // gespeelde ronde van het seizoen gemaakt worden (op basis van vorige seizoenen/prijs).
+    body = renderPotentialBestTeamTab();
+  } else if(noData){
     body = `<div class="news-note">Nog geen ronde-data beschikbaar — dit hele tabblad activeert zichzelf zodra jij me na een speelronde de puntentotalen per speler geeft (zelfde momentopname-systeem als de tijdmachine en de puntengrafiek op spelerprofielen).</div>`;
   } else if(state.tab==='week_team'){
     const tow = computeTeamOfWeek(round);
@@ -13977,7 +14622,7 @@ function renderWeekTab(){
     body = renderPerfectTeamTab();
   }
   return `
-    ${!noData ? renderWeekRoundSelector() : ''}
+    ${!noData && state.tab!=='week_potentieel' ? renderWeekRoundSelector() : ''}
     ${body}
   `;
 }
@@ -15432,6 +16077,192 @@ function renderCompareCoachRanking(playersWithStats){
     `).join('')}
   `;
 }
+// ---- Uitgebreide teamvergelijking: puntenverdeling per categorie + extra stats ----
+// Zet je huidige selectie (state.squad) om naar dezelfde {naam,club,pos,reserve}-vorm als de
+// tegenstander-entries (opp.perPlayer), zodat beide door dezelfde categorie-berekening kunnen.
+function mySquadEntriesForCompare(){
+  const defs = slotDefs();
+  return defs.filter(d=>state.squad[d.id]).map(d=>{
+    const p = state.squad[d.id];
+    return {naam:p.Speler, club:p.Team, pos:p.Positie, reserve:!!d.reserve};
+  });
+}
+// Puntenbijdrage per categorie (doelpunten/assists/clean sheets/kaarten/penalty's/reddingen) van een
+// hele selectie in ÉÉN specifieke ronde — dezelfde formules als de rest van het CVHJ-puntensysteem,
+// maar opgeteld voor het hele team i.p.v. per speler. Dit is de ruwe (niet voor de bankregel
+// gehalveerde) puntenbijdrage van alle 15 spelers samen — bedoeld om in één oogopslag te zien
+// WAAR de punten van een team vandaan komen, niet om het exacte officiële weektotaal te reproduceren.
+function computeTeamRoundCategoryTotals(entries, round){
+  const snap = SEASON_2627_SNAPSHOTS[round];
+  const t = {Totaal:0, Doelpunten:0, Assists:0, CleanSheet:0, Kaarten:0, PenaltyGescoord:0, PenaltyGemist:0, Reddingen:0,
+    Gewonnen:0, Gelijk:0, BasisPunten:0, BankPunten:0,
+    DoelpuntenAantal:0, AssistsAantal:0, CleanSheetAantal:0, GeleKaarten:0, RodeKaarten:0, MinutenTotaal:0, SpelersMetSpeeltijd:0};
+  (entries||[]).forEach(s=>{
+    const pRef = PLAYERS.find(pl=>pl.Speler===s.naam && pl.Team===s.club);
+    const pos = s.pos || (pRef?pRef.Positie:null);
+    const key = s.naam+'|'+s.club;
+    const pts = snap && snap.playerRoundPoints ? (snap.playerRoundPoints[key]||0) : 0;
+    const min = snap && snap.playerRoundMinutes ? (snap.playerRoundMinutes[key]||0) : 0;
+    const goalsN = snap && snap.playerRoundGoals ? (snap.playerRoundGoals[key]||0) : 0;
+    const assistsN = snap && snap.playerRoundAssists ? (snap.playerRoundAssists[key]||0) : 0;
+    const csHit = snap && snap.playerRoundCleanSheet && snap.playerRoundCleanSheet[key] ? 1 : 0;
+    const geel = snap && snap.playerRoundYellow ? (snap.playerRoundYellow[key]||0) : 0;
+    const rood = snap && snap.playerRoundRed ? (snap.playerRoundRed[key]||0) : 0;
+    const penMisHit = snap && snap.playerRoundPenaltyMissed && snap.playerRoundPenaltyMissed[key] ? 1 : 0;
+    const savesN = snap && snap.playerRoundSaves ? (snap.playerRoundSaves[key]||0) : 0;
+    const m = (typeof MATCHES!=='undefined' && pRef) ? MATCHES.find(mm=>matchRoundNumber(mm.id)===round && (mm.home===pRef.Team||mm.away===pRef.Team) && mm.homeScore!=null) : null;
+    const penGoalsThisRound = m ? (m.goals||[]).filter(g=>g.player===s.naam && g.penalty).length : 0;
+    t.Totaal += pts;
+    t.MinutenTotaal += min;
+    if(min>0) t.SpelersMetSpeeltijd++;
+    t.Doelpunten += Math.floor(Math.max(0,goalsN-penGoalsThisRound) * (GOAL_PTS_PER[pos]||0));
+    t.Assists += Math.floor(assistsN * (ASSIST_PTS_PER[pos]||0));
+    t.CleanSheet += Math.floor(csHit * (CLEANSHEET_PTS_PER[pos]||0));
+    t.Kaarten += Math.floor(geel*-3 + rood*-8);
+    t.PenaltyGescoord += Math.floor(penGoalsThisRound * PENALTY_GOAL_PTS);
+    t.PenaltyGemist += Math.floor(penMisHit * PENALTY_MISS_PTS);
+    if(pos==='Goalkeeper') t.Reddingen += Math.floor(Math.floor(savesN/SAVES_PER_POINT));
+    if(m && min>0){
+      const isHome = m.home===pRef.Team;
+      const eigen = isHome ? m.homeScore : m.awayScore, tegen = isHome ? m.awayScore : m.homeScore;
+      if(eigen>tegen) t.Gewonnen += 3;
+      else if(eigen===tegen) t.Gelijk += 1;
+    }
+    if(s.reserve) t.BankPunten += pts; else t.BasisPunten += pts;
+    t.DoelpuntenAantal += goalsN;
+    t.AssistsAantal += assistsN;
+    t.CleanSheetAantal += csHit;
+    t.GeleKaarten += geel;
+    t.RodeKaarten += rood;
+  });
+  return t;
+}
+// Som van de categorietotalen over alle gespeelde rondes t/m 'uptoRound' — de "Totaal (seizoen)"-
+// weergave in de teamvergelijking, i.p.v. één losse ronde.
+function computeTeamCumulativeCategoryTotals(entries, uptoRound){
+  const rounds = availableSnapshotRounds().filter(r=>r<=uptoRound);
+  const totals = {Totaal:0, Doelpunten:0, Assists:0, CleanSheet:0, Kaarten:0, PenaltyGescoord:0, PenaltyGemist:0, Reddingen:0,
+    Gewonnen:0, Gelijk:0, BasisPunten:0, BankPunten:0,
+    DoelpuntenAantal:0, AssistsAantal:0, CleanSheetAantal:0, GeleKaarten:0, RodeKaarten:0, MinutenTotaal:0, SpelersMetSpeeltijd:0};
+  rounds.forEach(r=>{
+    const rt = computeTeamRoundCategoryTotals(entries, r);
+    Object.keys(totals).forEach(k=>{ totals[k] += (rt[k]||0); });
+  });
+  return totals;
+}
+// Extra teamstats die niets met de puntenverdeling van deze ronde te maken hebben: teamwaarde,
+// rendement per euro, gemiddelde vormscore en blessurerisico — leuke extra vergelijkingspunten.
+function computeTeamExtraStats(entries, roundTotalPoints){
+  let waarde = 0, vormSom = 0, vormN = 0, blessures = 0;
+  const clubCount = {};
+  (entries||[]).forEach(s=>{
+    const pRef = PLAYERS.find(pl=>pl.Speler===s.naam && pl.Team===s.club);
+    if(pRef){ waarde += pRef.Prijs||0; vormSom += computePlayerForm(pRef); vormN++; }
+    clubCount[s.club] = (clubCount[s.club]||0)+1;
+    if(findInjury(s.naam, s.club)) blessures++;
+  });
+  let signatuurClub = null, signatuurAantal = 0;
+  Object.entries(clubCount).forEach(([c,n])=>{ if(n>signatuurAantal){ signatuurClub=c; signatuurAantal=n; } });
+  return {
+    Teamwaarde: waarde,
+    RendementPerMiljoen: waarde>0 ? (roundTotalPoints/waarde) : 0,
+    GemVorm: vormN ? (vormSom/vormN) : 0,
+    Blessures: blessures,
+    SignatuurClub: signatuurClub, SignatuurAantal: signatuurAantal,
+  };
+}
+// Eén rij van de vergelijkingstabel: jouw waarde — verschil+pijltje (pijltje wijst naar wie er meer
+// heeft, het verschil staat erboven) — hun waarde. pointsMode=true kleurt groen/rood (want bij een
+// puntencategorie is "meer" ondubbelzinnig beter voor jou); bij ruwe aantallen/extra stats (waar
+// "meer" niet per se beter is, bv. blessures of kaarten) blijft het neutraal geel/accentkleurig.
+function renderTeamCompareRow(label, mv, ov, pointsMode, opts){
+  opts = opts || {};
+  const dec = opts.decimals != null ? opts.decimals : 0;
+  const suffix = opts.suffix || '';
+  const mult = Math.pow(10, dec);
+  const diff = Math.round((mv-ov)*mult)/mult;
+  const kleur = !pointsMode ? 'var(--accent)' : (diff>0?'var(--def)':diff<0?'var(--danger)':'var(--text-dim)');
+  const pijl = diff>0 ? '◀' : diff<0 ? '▶' : '·';
+  const fmt = v => dec>0 ? Number(v).toFixed(dec) : Math.round(v);
+  return `<tr style="border-bottom:1px solid var(--line);">
+    <td style="padding:6px 6px;font-size:12px;color:var(--text-dim);">${label}</td>
+    <td style="padding:6px 6px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;">${fmt(mv)}${suffix}</td>
+    <td style="padding:6px 2px;text-align:center;width:50px;">
+      ${diff===0 ? `<div style="font-size:12px;color:var(--text-dim);">=</div>` : `
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:${kleur};">${diff>0?'+':''}${fmt(diff)}</div>
+      <div style="font-size:12px;color:${kleur};line-height:1;">${pijl}</div>`}
+    </td>
+    <td style="padding:6px 6px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;">${fmt(ov)}${suffix}</td>
+  </tr>`;
+}
+function setTeamCompareStatsScope(v){ state.teamCompareStatsScope = v; render(); }
+function renderTeamCompareStatsSection(mineEntries, oppEntries, round, oppLabel){
+  const scope = state.teamCompareStatsScope || 'ronde';
+  const mine = scope==='totaal' ? computeTeamCumulativeCategoryTotals(mineEntries, round) : computeTeamRoundCategoryTotals(mineEntries, round);
+  const oppT = scope==='totaal' ? computeTeamCumulativeCategoryTotals(oppEntries, round) : computeTeamRoundCategoryTotals(oppEntries, round);
+  const mineExtra = computeTeamExtraStats(mineEntries, mine.Totaal);
+  const oppExtra = computeTeamExtraStats(oppEntries, oppT.Totaal);
+  const kortLabel = (oppLabel||'Tegenstander').split(' — ')[0].split(' (')[0];
+  const periodeLabel = scope==='totaal' ? `totaal t/m ronde ${round}` : `ronde ${round}`;
+  const head = `<tr>
+      <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;">Categorie</th>
+      <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Jij</th>
+      <th></th>
+      <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${kortLabel}</th>
+    </tr>`;
+  return `
+    <div class="section-title" style="margin-top:16px;"><span>Puntenverdeling per categorie — ${periodeLabel}</span><span class="line"></span></div>
+    <div class="view-toggle" style="margin-bottom:8px;">
+      <button class="${scope==='ronde'?'active':''}" onclick="setTeamCompareStatsScope('ronde')">Ronde ${round}</button>
+      <button class="${scope==='totaal'?'active':''}" onclick="setTeamCompareStatsScope('totaal')">Totaal t/m ronde ${round}</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Alle manieren om punten te verdienen bij CVHJ, opgeteld voor de hele selectie (basis + bank). Het pijltje wijst naar wie er meer heeft, met het verschil erboven.</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+      <thead>${head}</thead>
+      <tbody>
+        ${renderTeamCompareRow('Totaal punten', mine.Totaal, oppT.Totaal, true)}
+        ${renderTeamCompareRow('Basis — punten', mine.BasisPunten, oppT.BasisPunten, true)}
+        ${renderTeamCompareRow('Bank — punten', mine.BankPunten, oppT.BankPunten, true)}
+        ${renderTeamCompareRow('Doelpunten — punten', mine.Doelpunten, oppT.Doelpunten, true)}
+        ${renderTeamCompareRow('Assists — punten', mine.Assists, oppT.Assists, true)}
+        ${renderTeamCompareRow('Clean sheet — punten', mine.CleanSheet, oppT.CleanSheet, true)}
+        ${renderTeamCompareRow('Kaarten — punten', mine.Kaarten, oppT.Kaarten, true)}
+        ${renderTeamCompareRow("Penalty's gescoord — punten", mine.PenaltyGescoord, oppT.PenaltyGescoord, true)}
+        ${renderTeamCompareRow("Penalty's gemist — punten", mine.PenaltyGemist, oppT.PenaltyGemist, true)}
+        ${renderTeamCompareRow('Reddingen — punten (keeper)', mine.Reddingen, oppT.Reddingen, true)}
+        ${renderTeamCompareRow('Gewonnen — punten (bonus)', mine.Gewonnen, oppT.Gewonnen, true)}
+        ${renderTeamCompareRow('Gelijkspel — punten (bonus)', mine.Gelijk, oppT.Gelijk, true)}
+      </tbody>
+    </table>
+
+    <div class="section-title"><span>Ruwe aantallen — ${periodeLabel}</span><span class="line"></span></div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;">
+      <thead>${head}</thead>
+      <tbody>
+        ${renderTeamCompareRow('Doelpunten (aantal)', mine.DoelpuntenAantal, oppT.DoelpuntenAantal, false)}
+        ${renderTeamCompareRow('Assists (aantal)', mine.AssistsAantal, oppT.AssistsAantal, false)}
+        ${renderTeamCompareRow('Clean sheets (aantal)', mine.CleanSheetAantal, oppT.CleanSheetAantal, false)}
+        ${renderTeamCompareRow('Gele kaarten (aantal)', mine.GeleKaarten, oppT.GeleKaarten, false)}
+        ${renderTeamCompareRow('Rode kaarten (aantal)', mine.RodeKaarten, oppT.RodeKaarten, false)}
+        ${renderTeamCompareRow('Minuten gespeeld (totaal)', mine.MinutenTotaal, oppT.MinutenTotaal, false)}
+        ${renderTeamCompareRow(scope==='totaal' ? 'Speler-rondes met speeltijd' : 'Spelers met speeltijd', mine.SpelersMetSpeeltijd, oppT.SpelersMetSpeeltijd, false)}
+      </tbody>
+    </table>
+
+    <div class="section-title"><span>Extra teamstats</span><span class="line"></span></div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Los van deze ene ronde: hoe de selecties er in het algemeen voor staan.</div>
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>${head}</thead>
+      <tbody>
+        ${renderTeamCompareRow('Teamwaarde', mineExtra.Teamwaarde, oppExtra.Teamwaarde, false, {decimals:2, suffix:'M'})}
+        ${renderTeamCompareRow('Rendement (punten per €1M, deze ronde)', mineExtra.RendementPerMiljoen, oppExtra.RendementPerMiljoen, false, {decimals:2})}
+        ${renderTeamCompareRow('Gem. vormscore (laatste 3 gespeelde rondes)', mineExtra.GemVorm, oppExtra.GemVorm, false, {decimals:2})}
+        ${renderTeamCompareRow('Blessures/twijfelgevallen in selectie', mineExtra.Blessures, oppExtra.Blessures, false)}
+      </tbody>
+    </table>
+    <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Signatuurclub (meeste spelers uit dezelfde club): jij → ${mineExtra.SignatuurClub||'—'} (${mineExtra.SignatuurAantal}) · ${kortLabel} → ${oppExtra.SignatuurClub||'—'} (${oppExtra.SignatuurAantal})</div>
+  `;
+}
 function renderTeamCompareModal(){
   const opp = computeTeamCompareOpponent();
   const availCC = Object.keys(CASTING_COUCH_TEAM_SQUADS||{}).map(Number).sort((a,b)=>a-b);
@@ -15472,6 +16303,7 @@ function renderTeamCompareModal(){
         ${!opp ? `<div class="news-note">Nog geen data beschikbaar voor deze keuze.</div>` : `
           <div class="section-title" style="margin-top:0;"><span>${opp.label}</span><span class="line"></span></div>
           ${renderFantasySquadPitch(opp.perPlayer, opp.round, 'blauw', opp.label)}
+          ${renderTeamCompareStatsSection(mySquadEntriesForCompare(), opp.perPlayer, opp.round, opp.label)}
           ${renderTeamOverlapSection(opp.perPlayer)}
           ${opp.playersWithStats ? renderCompareCoachRanking(opp.playersWithStats) : ''}
         `}
