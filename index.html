@@ -341,6 +341,11 @@
   .tile .myteam-ribbon{position:absolute;top:14px;right:-34px;width:130px;transform:rotate(45deg);text-align:center;background:var(--myteam);color:#0B0B0C;font-family:'JetBrains Mono';font-size:10px;font-weight:800;letter-spacing:0.5px;padding:3px 0;box-shadow:0 2px 6px rgba(0,0,0,0.35);z-index:2;pointer-events:none;}
   .tile .stripe{position:absolute;left:0;top:0;bottom:0;width:5px;}
   .tile .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .tile-photo{position:relative;flex-shrink:0;width:58px;height:62px;border-radius:10px;overflow:hidden;
+    background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pos-color) 35%, transparent), var(--surface-2) 75%);
+    border:1.5px solid var(--pos-color);}
+  .tile-photo img{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:100%;width:auto;display:block;}
+  .tile-photo .pos-badge{position:absolute;left:3px;bottom:3px;font-size:8.5px !important;padding:1px 5px !important;box-shadow:0 1px 3px rgba(0,0,0,0.45);}
   .tile .pos-badge{font-family:'JetBrains Mono';font-size:10px;text-transform:uppercase;letter-spacing:0.5px;padding:3px 7px;border-radius:6px;color:#0B2E1F;font-weight:600;}
   .tile h3{font-family:'Oswald';font-size:17px;margin:0 0 2px;font-weight:600;line-height:1.2;}
   .tile .club{font-size:12px;color:var(--text-dim);margin-bottom:10px;}
@@ -5379,7 +5384,9 @@ function renderTile(p){
   return `<div class="tile${inTeam?' in-my-team':''}" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">
     <div class="tile-clip">${inTeam ? `<div class="myteam-ribbon">JOUW TEAM</div>` : ''}<div class="stripe" style="background:${color}"></div></div>
     <div class="top-row">
-      <span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span>
+      ${(()=>{ const ph = playerPhoto(p.Speler); return ph
+        ? `<div class="tile-photo" style="--pos-color:${color};"><img src="${ph}" alt="" loading="lazy"><span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span></div>`
+        : `<span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span>`; })()}
       ${gaugeSvg(strength, color)}
     </div>
     <button class="compare-toggle ${isComparing(p)?'active':''}" style="right:38px;" onclick="event.stopPropagation();toggleCompare('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" title="Vergelijken">${icon('scale',14)}</button>
