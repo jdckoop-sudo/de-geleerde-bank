@@ -1808,7 +1808,7 @@ const BUDGET_CAP = 32;
 // Ophogen wanneer de schattingslogica in estimatePlayerPointsForRound wijzigt, zodat nog niet
 // gespeelde (dus nog niet 'gescoorde') rondes automatisch worden herberekend met de nieuwste versie
 // i.p.v. voor altijd vast te blijven zitten aan een verouderd model.
-const POTENTIAL_MODEL_VERSION = 9;
+const POTENTIAL_MODEL_VERSION = 10;
 
 // ---- Opslaglaag: gebruikt window.storage binnen Claude.ai/de Claude-app; valt terug op
 // localStorage zodra dit bestand los (buiten Claude) in een gewone browser wordt geopend,
@@ -9580,87 +9580,57 @@ function playerGoalsPerMatch(p){
   if(matches<2) return null;
   return goals/matches;
 }
+// Model v10 (11-10-2026), gekozen na een terugtest op ronde 4–8 met alleen de data van vóór elke
+// ronde (zie databank: referentie/potentieel_model_evaluatie_2026-10-11.md). Het oude model (vorm
+// van alleen gespeelde rondes, speeltijdfactor, consistentie, h2h) haalde een correlatie van 0,27
+// tussen voorspeld en werkelijk en zijn topkeuzes scoorden ongeveer de helft van de schatting.
+// Dit model haalde 0,34:
+//  - basis = 50% punten per ronde (alle rondes dat de speler in de lijst stond, niet-spelen = 0)
+//    + 50% laatste 3 rondes (3:2:1, ook met nullen) → beschikbaarheid/basisplaats zit er vanzelf in;
+//  - bij weinig rondes trekken we naar het vorige seizoen (punten/34) alsof dat 2 extra rondes zijn;
+//  - tegenstander via echte resultaten dit seizoen (punten per wedstrijd van beide clubs), thuis +6%,
+//    uit −4%;
+//  - blessures/schorsingen en speelkans uit de index blijven gelden;
+//  - alleen rondes vóór de te voorspellen ronde tellen mee (geen kennis van achteraf).
+function clubPointsPerMatchBefore(club, round){
+  let n=0, pts=0;
+  MATCHES.forEach(m=>{
+    if(m.type!=='Eredivisie' || m.homeScore==null || m.awayScore==null) return;
+    if(!(m.home===club || m.away===club)) return;
+    if(matchRoundNumber(m.id)>=round) return;
+    const gf = m.home===club ? m.homeScore : m.awayScore, ga = m.home===club ? m.awayScore : m.homeScore;
+    n++; pts += gf>ga ? 3 : gf===ga ? 1 : 0;
+  });
+  return n ? pts/n : 1.4;
+}
 function estimatePlayerPointsForRound(p, round){
-  const formScore = computePlayerForm(p);
-  const ld = latestSeasonData(p);
-  const seasonAvg = (ld.data && ld.data.Gespeeld>0) ? ld.data.Totaal/ld.data.Gespeeld : 4;
-  const basis = formScore>0 ? (formScore*0.65 + seasonAvg*0.35) : seasonAvg;
+  const key = p.Speler+'|'+p.Team;
+  const rounds = availableSnapshotRounds().filter(r=>r<round);
+  const vals = rounds.filter(r=>{ const pr = SEASON_2627_SNAPSHOTS[r].playerRoundPoints; return pr && (key in pr); })
+                     .map(r=>SEASON_2627_SNAPSHOTS[r].playerRoundPoints[key]);
+  const n = vals.length;
+  const ppr = n ? vals.reduce((a,b)=>a+b,0)/n : null;
+  const last = rounds.slice(-3).map(r=>((SEASON_2627_SNAPSHOTS[r].playerRoundPoints||{})[key])||0);
+  const l3 = last.length===3 ? (3*last[2]+2*last[1]+last[0])/6 : (last.length ? last.reduce((a,b)=>a+b,0)/last.length : 0);
+  const vorig = p.seasons && p.seasons['2025/26'];
+  const ppg25 = (vorig && vorig.Totaal!=null) ? vorig.Totaal/34 : null;
+  let basis = ppr==null ? (ppg25!=null ? ppg25 : 1) : 0.5*ppr + 0.5*l3;
+  if(ppg25!=null) basis = (basis*n + ppg25*2)/(n+2);
   const m = matchForClubInRound(p.Team, round);
-  const leagueAvg = leagueAverageClubStrength();
-  let oppStrength = leagueAvg, thuis = null, opponent = null;
+  let thuis = null, opponent = null, matchupFactor = 1;
   if(m){
     thuis = m.home===p.Team;
     opponent = thuis ? m.away : m.home;
-    const squadStrength = clubStrengthScore(opponent) ?? leagueAvg;
-    if(p.Positie==='Goalkeeper' || p.Positie==='Defender'){
-      const avgGoals = clubAvgGoalsScored(opponent);
-      const leagueAvgGoals = leagueAverageGoalsScored();
-      if(avgGoals!=null && leagueAvgGoals>0 && leagueAvg>0){
-        // Herschaal het doelpuntengemiddelde naar dezelfde eenheid als de kernsterkte-score, en
-        // laat het (als directe observatie) zwaarder wegen dan de subjectieve kernsterkte: 65/35.
-        const attackAsStrength = (avgGoals/leagueAvgGoals) * leagueAvg;
-        oppStrength = squadStrength*0.35 + attackAsStrength*0.65;
-      } else {
-        oppStrength = squadStrength;
-      }
-    } else if(p.Positie==='Forward' || p.Positie==='Midfielder'){
-      // Spiegelbeeld: hoe méér een tegenstander incasseert, hoe zwakker die telt als 'verdedigend
-      // blok' voor een aanvaller/middenvelder — los van hoe goed hun kern er op papier uitziet.
-      const avgConceded = clubAvgGoalsConceded(opponent);
-      const leagueAvgConceded = leagueAverageGoalsConceded();
-      if(avgConceded!=null && leagueAvgConceded>0 && leagueAvg>0){
-        const leakiness = avgConceded/leagueAvgConceded; // >1 = incasseert bovengemiddeld veel
-        const defenseAsStrength = (leagueAvgConceded>0 ? (1/leakiness) : 1) * leagueAvg;
-        oppStrength = squadStrength*0.35 + defenseAsStrength*0.65;
-      } else {
-        oppStrength = squadStrength;
-      }
-    } else {
-      oppStrength = squadStrength;
-    }
+    const diff = clubPointsPerMatchBefore(p.Team, round) - clubPointsPerMatchBefore(opponent, round);
+    matchupFactor = Math.max(0.5, 1 + 0.12*diff + (thuis ? 0.06 : -0.04));
   }
-  const diffRatio = leagueAvg>0 ? oppStrength/leagueAvg : 1;
-  // Keepers zijn extra gevoelig voor een aanvalsgevaarlijke tegenstander: een clean sheet (5 pnt)
-  // is op zichzelf al groter dan een gemiddelde keeperswedstrijd, dus een tegenstander die vrijwel
-  // altijd scoort moet dat zwaarder terugzien dan bij een verdediger (die ook via kaarten/assists
-  // punten kan pakken) of een aanvaller/middenvelder.
-  let sensitivity = (p.Positie==='Forward') ? 0.5 : (p.Positie==='Midfielder') ? 0.35 : (p.Positie==='Goalkeeper') ? 0.4 : 0.25;
-  // Een aanvaller/middenvelder die zelf regelmatig scoort profiteert directer van een lekke
-  // defensie dan iemand wiens punten vooral uit assists/kaarten/bonussen komen — dus die laten we
-  // sterker meebewegen met de defensieve zwakte van de tegenstander; iemand die zelf amper scoort
-  // juist minder (diens punten hangen minder af van dit specifieke signaal).
-  if(p.Positie==='Forward' || p.Positie==='Midfielder'){
-    const gpm = playerGoalsPerMatch(p);
-    if(gpm!=null){
-      if(gpm >= 0.5) sensitivity *= 1.3;
-      else if(gpm >= 0.25) sensitivity *= 1.1;
-      else if(gpm < 0.1) sensitivity *= 0.8;
-    }
-  }
-  let matchupFactor = 1 - sensitivity*(diffRatio-1);
-  if(thuis===true) matchupFactor *= 1.08;
-  else if(thuis===false) matchupFactor *= 0.95;
-  if(m && opponent) matchupFactor *= headToHeadFactor(p.Team, opponent, round);
   let score = basis * matchupFactor;
-  score *= computePlayerConsistency(p);
   const inj = findInjury(p.Speler, p.Team);
   if(inj){
     if(inj.Status==='Geblesseerd' || inj.Status==='Geschorst') score = 0;
-    else if(inj.Status==='Twijfelgeval') score *= (inj.Kans!=null ? Math.max(0.2, inj.Kans) : 0.35); // index geeft de kans om te spelen
+    else if(inj.Status==='Twijfelgeval') score *= (inj.Kans!=null ? Math.max(0.2, inj.Kans) : 0.35);
   }
-  // Speeltijd-betrouwbaarheid: een speler die recent amper minuten maakt is vermoedelijk geen
-  // basisspeler (bankzitter/reserve bij zijn club), ook al oogt zijn seizoensgemiddelde prima
-  // op basis van een paar incidentele optredens. Straft dat scenario zwaar af.
-  const recentMin = computeRecentMinutes(p);
-  if(recentMin !== null){
-    let playTimeFactor = 1;
-    if(recentMin < 20) playTimeFactor = 0.05;
-    else if(recentMin < 45) playTimeFactor = 0.25;
-    else if(recentMin < 70) playTimeFactor = 0.55;
-    else if(recentMin < 80) playTimeFactor = 0.85;
-    score *= playTimeFactor;
-  }
-  if(!m) score *= 0.4; // geen bekende wedstrijd die ronde (interlandweek e.d.) -> sterk afwaarderen
+  if(!m) score *= 0.4; // geen bekende wedstrijd die ronde
   score *= (state.potentialCalibration || 1);
   return {score: Math.max(0, Math.round(score*100)/100), opponent, thuis, hasMatch: !!m};
 }
@@ -9766,7 +9736,7 @@ function computePotentialBestTeamPrediction(round, onlyFormation){
     POS_ORDERS.forEach(order=>{
       const r = greedyFillImprove(basisCounts, [], [], BUDGET_CAP, order);
       if(!r) return;
-      const tot = r.selected.reduce((s,x)=>s+x.points,0), bestTot = basisResult ? basisResult.selected.reduce((s,x)=>s+x.points,0) : -1e9;
+      const tot = r.selected.reduce((s,x)=>s+x.est.score,0), bestTot = basisResult ? basisResult.selected.reduce((s,x)=>s+x.est.score,0) : -1e9;
       if(tot>bestTot || (tot===bestTot && r.budgetLeft>basisResult.budgetLeft)) basisResult = r;
     });
     if(!basisResult) return;
@@ -9790,19 +9760,21 @@ function computeAllFormationPredictions(round){
   });
   return result;
 }
+const POTENTIAL_TEAM_ARCHIVE = {"8":{"round":8,"generatedOn":"2026-10-03","formation":"3-4-3","estTotal":74.3,"cost":30,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":4.19,"opponent":"Feyenoord","thuis":false},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Daouda Weidmann","club":"FC Twente","pos":"Midfielder","prijs":1.75,"reserve":false,"est":7.94,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":false,"est":5.18,"opponent":"PEC Zwolle","thuis":false},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":false,"est":6.92,"opponent":"FC Groningen","thuis":true},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Perr Schuurs","club":"N.E.C.","pos":"Defender","prijs":2,"reserve":true,"est":1.72,"opponent":"Ajax","thuis":false},{"naam":"David van der Werff","club":"FC Groningen","pos":"Midfielder","prijs":1.75,"reserve":true,"est":4.84,"opponent":"Excelsior","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":3.97,"opponent":"Go Ahead Eagles","thuis":false}],"byFormation":{"3-4-3":{"estTotal":74.3,"cost":30,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":4.19,"opponent":"Feyenoord","thuis":false},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Daouda Weidmann","club":"FC Twente","pos":"Midfielder","prijs":1.75,"reserve":false,"est":7.94,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":false,"est":5.18,"opponent":"PEC Zwolle","thuis":false},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":false,"est":6.92,"opponent":"FC Groningen","thuis":true},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Perr Schuurs","club":"N.E.C.","pos":"Defender","prijs":2,"reserve":true,"est":1.72,"opponent":"Ajax","thuis":false},{"naam":"David van der Werff","club":"FC Groningen","pos":"Midfielder","prijs":1.75,"reserve":true,"est":4.84,"opponent":"Excelsior","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":3.97,"opponent":"Go Ahead Eagles","thuis":false}]},"4-3-3":{"estTotal":70.2,"cost":30.5,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":6.84,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Thijmen Blokzijl","club":"FC Groningen","pos":"Defender","prijs":2,"reserve":false,"est":3.49,"opponent":"Excelsior","thuis":false},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":false,"est":5.18,"opponent":"PEC Zwolle","thuis":false},{"naam":"Mexx Meerdink","club":"AZ","pos":"Forward","prijs":2.5,"reserve":false,"est":4.53,"opponent":"Feyenoord","thuis":false},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Marvin Young","club":"Sparta Rotterdam","pos":"Defender","prijs":1.75,"reserve":true,"est":2.66,"opponent":"Go Ahead Eagles","thuis":false},{"naam":"Uriël van Aalst","club":"Willem II","pos":"Midfielder","prijs":1.5,"reserve":true,"est":2.37,"opponent":"FC Utrecht","thuis":false},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":true,"est":6.92,"opponent":"FC Groningen","thuis":true}]},"4-4-2":{"estTotal":70.9,"cost":29.75,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":4.19,"opponent":"Feyenoord","thuis":false},{"naam":"Thijmen Blokzijl","club":"FC Groningen","pos":"Defender","prijs":2,"reserve":false,"est":3.49,"opponent":"Excelsior","thuis":false},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Daouda Weidmann","club":"FC Twente","pos":"Midfielder","prijs":1.75,"reserve":false,"est":7.94,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":false,"est":5.18,"opponent":"PEC Zwolle","thuis":false},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Marvin Young","club":"Sparta Rotterdam","pos":"Defender","prijs":1.75,"reserve":true,"est":2.66,"opponent":"Go Ahead Eagles","thuis":false},{"naam":"Uriël van Aalst","club":"Willem II","pos":"Midfielder","prijs":1.5,"reserve":true,"est":2.37,"opponent":"FC Utrecht","thuis":false},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":true,"est":6.92,"opponent":"FC Groningen","thuis":true}]},"3-5-2":{"estTotal":74,"cost":29.5,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":4.19,"opponent":"Feyenoord","thuis":false},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"David van der Werff","club":"FC Groningen","pos":"Midfielder","prijs":1.75,"reserve":false,"est":4.84,"opponent":"Excelsior","thuis":false},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Daouda Weidmann","club":"FC Twente","pos":"Midfielder","prijs":1.75,"reserve":false,"est":7.94,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":false,"est":6.92,"opponent":"FC Groningen","thuis":true},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Marvin Young","club":"Sparta Rotterdam","pos":"Defender","prijs":1.75,"reserve":true,"est":2.66,"opponent":"Go Ahead Eagles","thuis":false},{"naam":"Uriël van Aalst","club":"Willem II","pos":"Midfielder","prijs":1.5,"reserve":true,"est":2.37,"opponent":"FC Utrecht","thuis":false},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":true,"est":5.18,"opponent":"PEC Zwolle","thuis":false}]},"5-3-2":{"estTotal":69.8,"cost":30,"players":[{"naam":"Ronald Koeman","club":"Telstar","pos":"Goalkeeper","prijs":1.75,"reserve":false,"est":5.28,"opponent":"ADO Den Haag","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":4.19,"opponent":"Feyenoord","thuis":false},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":6.84,"opponent":"Fortuna Sittard","thuis":false},{"naam":"Thijmen Blokzijl","club":"FC Groningen","pos":"Defender","prijs":2,"reserve":false,"est":3.49,"opponent":"Excelsior","thuis":false},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":false,"est":4.4,"opponent":"Willem II","thuis":true},{"naam":"Givairo Read","club":"Feyenoord","pos":"Defender","prijs":2.75,"reserve":false,"est":9.85,"opponent":"AZ","thuis":true},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":11.41,"opponent":"N.E.C.","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":8.3,"opponent":"sc Heerenveen","thuis":true},{"naam":"Nolhan Courtens","club":"sc Heerenveen","pos":"Midfielder","prijs":1.25,"reserve":false,"est":5.22,"opponent":"PSV","thuis":false},{"naam":"Stefán Ingi Sigurdarson","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":5.66,"opponent":"Sparta Rotterdam","thuis":true},{"naam":"Ilyes Hamache","club":"SC Cambuur","pos":"Forward","prijs":1.5,"reserve":false,"est":5.18,"opponent":"PEC Zwolle","thuis":false},{"naam":"Mattijs Branderhorst","club":"Fortuna Sittard","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":4.59,"opponent":"FC Twente","thuis":true},{"naam":"Marvin Young","club":"Sparta Rotterdam","pos":"Defender","prijs":1.75,"reserve":true,"est":2.66,"opponent":"Go Ahead Eagles","thuis":false},{"naam":"Uriël van Aalst","club":"Willem II","pos":"Midfielder","prijs":1.5,"reserve":true,"est":2.37,"opponent":"FC Utrecht","thuis":false},{"naam":"Aymen Sliti","club":"Excelsior","pos":"Forward","prijs":1.5,"reserve":true,"est":6.92,"opponent":"FC Groningen","thuis":true}]}},"modelVersion":9,"bron":"vastgezet in de browser op 2026-10-03 (model v9), op 11-10-2026 overgezet naar de databank","lessen":"Voorspeld 74,3 punten (oud model v9), werkelijk 27: 21% van het beste team achteraf (128). Alleen Til (11) haalde zijn verwachting; Brandt (verwacht 11,4) haalde 1, Weidmann (7,9) 1, Sliti (6,9) en Courtens (5,2) 0. Een terugtest op ronde 4–8 liet zien dat het oude model zijn topkeuzes structureel overschatte (ze haalden ongeveer de helft) en rondes zonder speeltijd negeerde, waardoor wisselvallige spelers te hoog stonden. Sinds model v10 tellen niet-gespeelde rondes als 0, telt de tegenstander via echte resultaten en wordt elke schatting met 0,63 gekalibreerd (correlatie 0,27 → 0,34)."},"9":{"round":9,"generatedOn":"2026-10-11","formation":"3-4-3","estTotal":42.7,"cost":31.75,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Tjaronn Chery","club":"N.E.C.","pos":"Midfielder","prijs":2.75,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":2.83,"opponent":"PEC Zwolle","thuis":false},{"naam":"Anthony Descotte","club":"Fortuna Sittard","pos":"Forward","prijs":1.75,"reserve":false,"est":3.1,"opponent":"N.E.C.","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Bernt Klaverboer","club":"sc Heerenveen","pos":"Goalkeeper","prijs":2,"reserve":true,"est":2.09,"opponent":"Excelsior","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":true,"est":1.32,"opponent":"FC Twente","thuis":false},{"naam":"Irakli Yegoian","club":"Excelsior","pos":"Midfielder","prijs":1.75,"reserve":true,"est":2.21,"opponent":"sc Heerenveen","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":2.74,"opponent":"Willem II","thuis":true}],"byFormation":{"3-4-3":{"estTotal":42.7,"cost":31.75,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Tjaronn Chery","club":"N.E.C.","pos":"Midfielder","prijs":2.75,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":2.83,"opponent":"PEC Zwolle","thuis":false},{"naam":"Anthony Descotte","club":"Fortuna Sittard","pos":"Forward","prijs":1.75,"reserve":false,"est":3.1,"opponent":"N.E.C.","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Bernt Klaverboer","club":"sc Heerenveen","pos":"Goalkeeper","prijs":2,"reserve":true,"est":2.09,"opponent":"Excelsior","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":true,"est":1.32,"opponent":"FC Twente","thuis":false},{"naam":"Irakli Yegoian","club":"Excelsior","pos":"Midfielder","prijs":1.75,"reserve":true,"est":2.21,"opponent":"sc Heerenveen","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":2.74,"opponent":"Willem II","thuis":true}]},"4-3-3":{"estTotal":42.7,"cost":31,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Perr Schuurs","club":"N.E.C.","pos":"Defender","prijs":2,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":2.83,"opponent":"PEC Zwolle","thuis":false},{"naam":"Anthony Descotte","club":"Fortuna Sittard","pos":"Forward","prijs":1.75,"reserve":false,"est":3.1,"opponent":"N.E.C.","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Bernt Klaverboer","club":"sc Heerenveen","pos":"Goalkeeper","prijs":2,"reserve":true,"est":2.09,"opponent":"Excelsior","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":true,"est":1.32,"opponent":"FC Twente","thuis":false},{"naam":"Irakli Yegoian","club":"Excelsior","pos":"Midfielder","prijs":1.75,"reserve":true,"est":2.21,"opponent":"sc Heerenveen","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":2.74,"opponent":"Willem II","thuis":true}]},"4-4-2":{"estTotal":42.2,"cost":31.25,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Perr Schuurs","club":"N.E.C.","pos":"Defender","prijs":2,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Mohamed Ihattaren","club":"Fortuna Sittard","pos":"Midfielder","prijs":2,"reserve":false,"est":2.64,"opponent":"N.E.C.","thuis":false},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":2.83,"opponent":"PEC Zwolle","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Bernt Klaverboer","club":"sc Heerenveen","pos":"Goalkeeper","prijs":2,"reserve":true,"est":2.09,"opponent":"Excelsior","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":true,"est":1.32,"opponent":"FC Twente","thuis":false},{"naam":"Irakli Yegoian","club":"Excelsior","pos":"Midfielder","prijs":1.75,"reserve":true,"est":2.21,"opponent":"sc Heerenveen","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":2.74,"opponent":"Willem II","thuis":true}]},"3-5-2":{"estTotal":42.2,"cost":32,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Mohamed Ihattaren","club":"Fortuna Sittard","pos":"Midfielder","prijs":2,"reserve":false,"est":2.64,"opponent":"N.E.C.","thuis":false},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Tjaronn Chery","club":"N.E.C.","pos":"Midfielder","prijs":2.75,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":false,"est":2.83,"opponent":"PEC Zwolle","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Bernt Klaverboer","club":"sc Heerenveen","pos":"Goalkeeper","prijs":2,"reserve":true,"est":2.09,"opponent":"Excelsior","thuis":true},{"naam":"Matisse Didden","club":"FC Utrecht","pos":"Defender","prijs":1.75,"reserve":true,"est":1.32,"opponent":"FC Twente","thuis":false},{"naam":"Irakli Yegoian","club":"Excelsior","pos":"Midfielder","prijs":1.75,"reserve":true,"est":2.21,"opponent":"sc Heerenveen","thuis":false},{"naam":"Milan Zonneveld","club":"Sparta Rotterdam","pos":"Forward","prijs":1.75,"reserve":true,"est":2.74,"opponent":"Willem II","thuis":true}]},"5-3-2":{"estTotal":41.5,"cost":30.5,"players":[{"naam":"Thijs Jansen","club":"SC Cambuur","pos":"Goalkeeper","prijs":1.5,"reserve":false,"est":2.61,"opponent":"AZ","thuis":true},{"naam":"Guus Til","club":"PSV","pos":"Midfielder","prijs":4,"reserve":false,"est":6.51,"opponent":"ADO Den Haag","thuis":false},{"naam":"Julian Brandt","club":"Ajax","pos":"Midfielder","prijs":2.75,"reserve":false,"est":4.01,"opponent":"FC Groningen","thuis":false},{"naam":"Tyrone Owusu","club":"Telstar","pos":"Midfielder","prijs":1.25,"reserve":false,"est":2.57,"opponent":"Feyenoord","thuis":true},{"naam":"Marco Rente","club":"FC Groningen","pos":"Defender","prijs":2.25,"reserve":false,"est":5.15,"opponent":"Ajax","thuis":true},{"naam":"Mateo Chávez","club":"AZ","pos":"Defender","prijs":2,"reserve":false,"est":2.47,"opponent":"SC Cambuur","thuis":false},{"naam":"Perr Schuurs","club":"N.E.C.","pos":"Defender","prijs":2,"reserve":false,"est":2.46,"opponent":"Fortuna Sittard","thuis":true},{"naam":"Oliver Braude","club":"sc Heerenveen","pos":"Defender","prijs":1.75,"reserve":false,"est":1.63,"opponent":"Excelsior","thuis":true},{"naam":"Robin Pröpper","club":"FC Twente","pos":"Defender","prijs":2,"reserve":false,"est":4.58,"opponent":"FC Utrecht","thuis":true},{"naam":"Anthony Descotte","club":"Fortuna Sittard","pos":"Forward","prijs":1.75,"reserve":false,"est":3.1,"opponent":"N.E.C.","thuis":false},{"naam":"Nacho Ferri","club":"Feyenoord","pos":"Forward","prijs":2.5,"reserve":false,"est":6.4,"opponent":"Telstar","thuis":false},{"naam":"Stijn van Gassel","club":"Excelsior","pos":"Goalkeeper","prijs":1.75,"reserve":true,"est":1.5,"opponent":"sc Heerenveen","thuis":false},{"naam":"Lushendry Martes","club":"Sparta Rotterdam","pos":"Defender","prijs":1,"reserve":true,"est":1.59,"opponent":"Willem II","thuis":true},{"naam":"Dani de Wit","club":"FC Utrecht","pos":"Midfielder","prijs":2.25,"reserve":true,"est":1.83,"opponent":"FC Twente","thuis":false},{"naam":"Søren Tengstedt","club":"Go Ahead Eagles","pos":"Forward","prijs":1.75,"reserve":true,"est":2.83,"opponent":"PEC Zwolle","thuis":false}]}},"modelVersion":10,"bron":"vastgezet door Claude bij de update van 11-10-2026 (na ronde 8), model v10"}};
 function potentialPlayersToStorable(players){
   return players.map(x=>({naam:x.p.Speler, club:x.p.Team, pos:x.p.Positie, prijs:x.p.Prijs, reserve:!!x.reserve, est:x.est.score, opponent:x.est.opponent, thuis:x.est.thuis}));
 }
+// Sinds 11-10-2026 staan de vastgezette potentiële teams NIET meer in de browseropslag, maar in de
+// databank (seizoenen/<jaar>/ronde-NN/potentieel/) en hier in het bestand (POTENTIAL_TEAM_ARCHIVE).
+// Zo ziet elk apparaat hetzelfde en gaat er niets verloren. Een ronde zonder archiefversie wordt
+// live berekend en als "nog niet vastgezet" getoond; Claude zet hem bij de volgende update vast.
+const POTENTIAL_BASE_CALIBRATION = 0.63; // terugtest ronde 4–8: topkeuzes scoorden gem. 63% van de schatting
 async function loadPotentialTeamLog(){
-  state.potentialTeamLog = [];
-  state.potentialCalibration = 1.0;
-  try{ const r = await storageGet('cvhj-potential-team-log', false); if(r&&r.value) state.potentialTeamLog = JSON.parse(r.value); }catch(e){}
-  try{ const r2 = await storageGet('cvhj-potential-calibration', false); if(r2&&r2.value) state.potentialCalibration = parseFloat(r2.value); }catch(e){}
+  state.potentialTeamLog = Object.values(POTENTIAL_TEAM_ARCHIVE).map(e=>JSON.parse(JSON.stringify(e)));
+  state.potentialTeamLog.forEach(e=>{ e.archived = true; });
+  state.potentialCalibration = POTENTIAL_BASE_CALIBRATION;
 }
-async function savePotentialTeamLog(){
-  try{ await storageSet('cvhj-potential-team-log', JSON.stringify(state.potentialTeamLog), false); }catch(e){}
-  try{ await storageSet('cvhj-potential-calibration', String(state.potentialCalibration), false); }catch(e){}
-}
+async function savePotentialTeamLog(){ /* bewust leeg: opslag loopt via de databank */ }
 // Zet, als dat nog niet eerder gebeurde, de schatting voor 'round' definitief vast — daarna blijft
 // hij ongewijzigd staan (ook als vorm/blessures nadien veranderen), zodat de latere vergelijking met
 // het echte resultaat eerlijk is: je vergelijkt wat er destijds werd gegokt, niet een achteraf
@@ -9822,6 +9794,7 @@ function generatePotentialTeamForRound(round){
     actualTotal: null, actualPlayers: null,
     byFormation,
     modelVersion: POTENTIAL_MODEL_VERSION,
+    live: true,
   };
   state.potentialTeamLog.push(entry);
   state.potentialTeamLog.sort((a,b)=>a.round-b.round);
@@ -9832,6 +9805,7 @@ function generatePotentialTeamForRound(round){
 // de per-formatie varianten alsnog toegevoegd. Zodra een ronde wél gespeeld/gescoord is, blijft hij
 // voor altijd ongewijzigd staan.
 function migratePotentialTeamLog(){
+  return; // archief is vast; live rondes worden altijd vers berekend
   let changed = false;
   (state.potentialTeamLog||[]).forEach(entry=>{
     if(entry.actualTotal!=null) return;
@@ -9874,35 +9848,26 @@ function scorePotentialBasisAgainstSnapshot(basisPlayers, snap){
   });
   return {actualTotal: Math.round(actual*10)/10, actualPlayers};
 }
+function potentialRoundComplete(round){
+  if(!SEASON_2627_SNAPSHOTS[round]) return false;
+  const ms = MATCHES.filter(m=>m.type==='Eredivisie' && matchRoundNumber(m.id)===round);
+  return ms.length>0 && ms.every(m=>m.homeScore!=null && m.awayScore!=null);
+}
+// Werkelijke punten worden altijd live uit SEASON_2627_SNAPSHOTS gehaald (niet opgeslagen), en pas als
+// de ronde helemaal gespeeld is — zo kan een tussentijdse snapshot nooit een vergelijking bevriezen
+// (fout gevonden 11-10-2026: ronde 8 stond in de browser op 27 punten na 1 van 9 wedstrijden).
 function checkAndScorePotentialTeamLog(){
-  let changed = false;
   (state.potentialTeamLog||[]).forEach(entry=>{
+    entry.actualTotal = null; entry.actualPlayers = null;
+    if(!potentialRoundComplete(entry.round)) return;
     const snap = SEASON_2627_SNAPSHOTS[entry.round];
-    if(!snap) return;
-    if(entry.actualTotal==null){
-      const basis = entry.players.filter(x=>!x.reserve);
-      const res = scorePotentialBasisAgainstSnapshot(basis, snap);
-      entry.actualTotal = res.actualTotal;
-      entry.actualPlayers = res.actualPlayers;
-      const error = entry.actualTotal - entry.estTotal;
-      const relativeError = entry.estTotal>0 ? error/entry.estTotal : 0;
-      if(Math.abs(relativeError) > 0.1){
-        state.potentialCalibration = Math.max(0.5, Math.min(1.5, (state.potentialCalibration||1) * (1 + relativeError*0.3)));
-      }
-      changed = true;
-    }
-    if(entry.byFormation){
-      Object.values(entry.byFormation).forEach(fEntry=>{
-        if(fEntry.actualTotal!=null) return;
-        const basis = fEntry.players.filter(x=>!x.reserve);
-        const res = scorePotentialBasisAgainstSnapshot(basis, snap);
-        fEntry.actualTotal = res.actualTotal;
-        fEntry.actualPlayers = res.actualPlayers;
-        changed = true;
-      });
-    }
+    const res = scorePotentialBasisAgainstSnapshot(entry.players.filter(x=>!x.reserve), snap);
+    entry.actualTotal = res.actualTotal; entry.actualPlayers = res.actualPlayers;
+    if(entry.byFormation) Object.values(entry.byFormation).forEach(f=>{
+      const r = scorePotentialBasisAgainstSnapshot(f.players.filter(x=>!x.reserve), snap);
+      f.actualTotal = r.actualTotal; f.actualPlayers = r.actualPlayers;
+    });
   });
-  if(changed) savePotentialTeamLog();
 }
 function setPotentialTeamHistoryRound(r){ state.potentialTeamHistoryRound = r; render(); }
 function setPotentialTeamFormationView(f){ state.potentialTeamFormationView = f; render(); }
@@ -13236,11 +13201,12 @@ function renderPotentialBestTeamTab(){
   }
 
   return `
-    <div class="news-note">Vóór elke speelronde zet ik hier automatisch het elftal neer dat ik verwacht dat de meeste punten gaat scoren — op basis van recente vorm, wie tegen wie speelt (en hoe sterk die tegenstander is), blessures/schorsingen en prijs. "Beste (auto)" is de formatie die zelf het hoogst scoort; je kunt ook een vaste formatie kiezen om te zien wat het model dáárin zou zetten. Eenmaal vastgezet voor een ronde verandert de schatting niet meer, zodat je 'm later eerlijk kunt terugvergelijken met wat er echt gebeurde.</div>
+    <div class="news-note">Vóór elke speelronde zet ik hier automatisch het elftal neer dat ik verwacht dat de meeste punten gaat scoren — op basis van recente vorm, wie tegen wie speelt (en hoe sterk die tegenstander is), blessures/schorsingen en prijs. "Beste (auto)" is de formatie die zelf het hoogst scoort; je kunt ook een vaste formatie kiezen om te zien wat het model dáárin zou zetten. Eenmaal vastgezet voor een ronde (in de databank, bij de update) verandert de schatting niet meer, zodat je 'm later eerlijk kunt terugvergelijken met wat er echt gebeurde. Schattingen zijn gekalibreerd: de topkeuzes scoorden in de terugtest gemiddeld 63% van de ruwe schatting.</div>
     ${accuracyHtml}
     ${renderPotentialFormationPicker()}
     ${current ? `
       <div class="section-title" style="margin-top:16px;"><span>Schatting voor de aankomende ronde ${targetRound}</span><span class="line"></span></div>
+      ${currentRaw && currentRaw.live ? `<div class="news-note" style="margin-bottom:10px;">Nog niet vastgezet in de databank — dit is een live berekening die nog kan veranderen. Bij de volgende update zet Claude hem vast.</div>` : ''}
       <div class="summary-cards">
         <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('eye',18)}</div><div class="label">Verwacht sterkste team</div><div class="value">${current.estTotal} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Formatie ${current.formation} · €${current.cost.toFixed(2)}M · gegenereerd op ${current.generatedOn}</div></div>
       </div>
@@ -13264,6 +13230,17 @@ function renderPotentialBestTeamTab(){
             </tr></thead>
             <tbody>${renderPotentialCompareRow('Totaal punten (basis-11)', histEntry.estTotal, histEntry.actualTotal)}</tbody>
           </table>
+          ${(()=>{ const tow = (typeof computeTeamOfWeek==='function') ? computeTeamOfWeek(histEntry.round) : null;
+            if(!tow) return '';
+            const afstand = Math.round((tow.total - histEntry.actualTotal)*10)/10;
+            const pct = tow.total>0 ? Math.round(100*histEntry.actualTotal/tow.total) : 0;
+            const snapR = SEASON_2627_SNAPSHOTS[histEntry.round] || {};
+            const bankAct = histEntry.players.filter(x=>x.reserve).reduce((t,x)=>t+(((snapR.playerRoundPoints||{})[x.naam+'|'+x.club])||0),0);
+            return `<div class="summary-cards" style="margin-bottom:14px;">
+              <div class="summary-card grad-teal"><div class="label">Beste team achteraf (team v/d week)</div><div class="value">${tow.total} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Formatie ${tow.formation}, basis-11</div></div>
+              <div class="summary-card grad-gold"><div class="label">Afstand tot het beste team</div><div class="value">−${afstand} pnt</div><div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Het potentiële team haalde ${pct}% van het maximum. Bank (4 spelers) samen ${bankAct} pnt.</div></div>
+            </div>`; })()}
+          ${histEntry.lessen ? `<div class="news-note" style="margin-bottom:14px;"><b>Wat we hiervan leren:</b> ${histEntry.lessen}</div>` : ''}
         ` : `<div class="news-note">Deze ronde/formatie is nog niet (volledig) gespeeld — de werkelijke score verschijnt hier zodra de uitslagen bekend zijn.</div>`}
         ${renderPotentialTeamEntryPitch(histEntry, `Potentieel beste team — ronde ${histEntry.round} (${histEntry.formation})`)}
         ${histEntry.actualPlayers ? `
@@ -13276,9 +13253,13 @@ function renderPotentialBestTeamTab(){
               <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Werkelijk</th>
             </tr></thead>
             <tbody>
-              ${histEntry.players.filter(x=>!x.reserve).map(x=>{
-                const actual = histEntry.actualPlayers.find(a=>a.naam===x.naam && a.club===x.club);
-                return renderPotentialCompareRow(`${teamLogo(x.club)}${x.naam}`, x.est, actual?actual.pts:0);
+              ${histEntry.players.map(x=>{
+                const snapR = SEASON_2627_SNAPSHOTS[histEntry.round] || {};
+                const key = x.naam+'|'+x.club;
+                const pts = ((snapR.playerRoundPoints||{})[key]) || 0;
+                const min = (snapR.playerRoundMinutes||{})[key];
+                const extra = `<span style="font-size:10px;color:var(--text-dim);"> · ${x.reserve?'bank · ':''}${min?min+"'":'niet gespeeld'}${x.opponent?` · ${x.thuis?'thuis':'uit'} tegen ${x.opponent}`:''}</span>`;
+                return renderPotentialCompareRow(`${teamLogo(x.club)}${x.naam}${extra}`, x.est, pts);
               }).join('')}
             </tbody>
           </table>
