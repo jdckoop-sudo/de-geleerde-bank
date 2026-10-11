@@ -10801,9 +10801,9 @@ function renderSwapSuggestionsModal(){
   const bankSuggesties = weergave==='bank' ? generateBenchSuggestions() : [];
   function wisselRow(d){
     return `<div style="display:flex;align-items:center;gap:10px;">
-      <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${d.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.uit.Team)}${d.uit.Team} · vorm ${d.uitVorm}</div></div>
+      <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${d.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.uit.Team)}${d.uit.Team} · vorm ${d.uitVorm}${d.uitVerw!=null?` · verwacht ${d.uitVerw}`:''}${d.bank?' · bank (50%)':''}</div></div>
       <span style="color:var(--accent);">→</span>
-      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.in.Team)}${d.in.Team} · vorm ${d.inVorm} · ${fmtEuro(d.in.Prijs)}</div></div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.in.Team)}${d.in.Team} · vorm ${d.inVorm}${d.inVerw!=null?` · verwacht ${d.inVerw}`:''} · ${fmtEuro(d.in.Prijs)}</div></div>
       <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="event.stopPropagation();applySwapSuggestion('${d.slotId}','${encodeURIComponent(d.in.Speler)}','${encodeURIComponent(d.in.Team)}')">Toepassen</button>
     </div>`;
   }
@@ -10826,7 +10826,7 @@ function renderSwapSuggestionsModal(){
           <input type="range" id="input-wissellimiet" min="1" max="5" step="1" value="${wisselLimiet}" oninput="setWisselLimiet(this.value)" style="width:100%;accent-color:var(--accent);">
           <div style="font-size:10.5px;color:var(--text-dim);margin-top:4px;">Zet dit op wat de spelregels je deze ronde toestaan (meestal 1) — combinatie-suggesties met meerdere wissels tegelijk verschijnen pas als je dit hoger zet.</div>
         </div>
-        <div class="news-note">Vormscore = gewogen gemiddelde van je laatste 3 gespeelde rondes (recent zwaarder meegewogen) — de verwachte puntenwinst hieronder is dus een schatting per ronde, niet gegarandeerd. Van beste naar minst impactvol. Klik op een suggestie voor een toelichting.</div>
+        <div class="news-note">Puntenwinst = verwachte punten voor de komende ronde (zelfde model als het Potentieel Beste Team: vorm, seizoensgemiddelde, tegenstander, thuis/uit, blessures). Bankspelers tellen voor 50%. Geblesseerde of geschorste spelers worden niet voorgesteld. Combinaties houden zich aan max. 1 speler per club en het budget. Een schatting, geen garantie. Klik op een suggestie voor een toelichting.</div>
         ${suggestions.length===0 ? `<div class="news-note">Geen duidelijke verbeteringen gevonden — je team ziet er al sterk uit, of het budget/de clublimiet laat geen betere optie toe.</div>` : ''}
         ${suggestions.map((s,i)=>{
           const id = 'wissel-'+i;
@@ -15473,78 +15473,89 @@ function generateSwapSuggestions(){
   const huidigeClubs = new Set(huidigeSpelers.map(x=>x.speler.Team));
 
   // Enkele-wissel-kandidaten: per bezette slot de beste alternatieven op dezelfde positie.
-  const enkele = [];
+  // Bankspelers tellen maar 50% mee (CVHJ-bankregel), dus hun puntwinst ook maar voor de helft
+  // (fout gevonden 11-10-2026: een keeper op de bank vervangen leek even veel op te leveren als een basiskeeper).
+  const PER_SLOT = 6;
+  const kandPerSlot = [];
+  // Blessures/schorsingen meewegen: een geblesseerde of geschorste speler levert komende ronde
+  // niets op (vorm 0), en zo iemand kopen we ook niet.
+  const isUit = pl=>{ const inj = findInjury(pl.Speler, pl.Team); return !!(inj && (inj.Status==='Geblesseerd' || inj.Status==='Geschorst')); };
+  // Verwachting voor de komende ronde: hetzelfde model als het Potentieel Beste Team
+  // (vorm 65% + seizoensgemiddelde 35%, tegenstander, thuis/uit, blessurekans), niet alleen vorm.
+  const doelRonde = Math.min(34, currentRoundNumber()+1);
+  const verwacht = pl=> isUit(pl) ? 0 : estimatePlayerPointsForRound(pl, doelRonde).score;
   huidigeSpelers.forEach(({id, pos, label, reserve, speler})=>{
-    const huidigeVorm = computePlayerForm(speler);
+    const huidigeVorm = isUit(speler) ? 0 : computePlayerForm(speler);
+    const huidigeVerw = verwacht(speler);
     const maxPrijs = speler.Prijs + beschikbaar;
     const overigeClubs = new Set([...huidigeClubs].filter(c=>c!==speler.Team));
-    const kandidaten = PLAYERS.filter(pl=>
+    const factor = reserve ? 0.5 : 1;
+    const opties = PLAYERS.filter(pl=>
       pl.Positie===pos && !pl.former
       && (pl.Speler+'|'+pl.Team)!==(speler.Speler+'|'+speler.Team)
       && !huidigeKeys.has(pl.Speler+'|'+pl.Team)
       && pl.Prijs<=maxPrijs
       && !overigeClubs.has(pl.Team)
-    );
-    let beste = null, besteVorm = -Infinity;
-    kandidaten.forEach(pl=>{
-      const v = computePlayerForm(pl);
-      if(v>besteVorm){ besteVorm=v; beste=pl; }
-    });
-    if(!beste) return;
-    const winst = Math.round((besteVorm-huidigeVorm)*100)/100;
-    if(winst<=0.3) return;
-    enkele.push({
-      type:'1 wissel', slotId:id, label,
-      uit:speler, uitVorm:huidigeVorm, in:beste, inVorm:besteVorm,
-      winst, kostendelta: Math.round((beste.Prijs-speler.Prijs)*100)/100, bank:reserve,
-    });
+      && !isUit(pl)
+    ).map(pl=>{
+      const v = computePlayerForm(pl), ve = verwacht(pl);
+      return {
+        type:'1 wissel', slotId:id, label,
+        uit:speler, uitVorm:huidigeVorm, in:pl, inVorm:v, uitVerw:huidigeVerw, inVerw:ve,
+        winst: Math.round((ve-huidigeVerw)*factor*100)/100,
+        kostendelta: Math.round((pl.Prijs-speler.Prijs)*100)/100, bank:reserve,
+      };
+    }).filter(o=>o.winst>0.3)
+      .sort((x,y)=>y.winst-x.winst || x.kostendelta-y.kostendelta)
+      .slice(0, PER_SLOT);
+    if(opties.length) kandPerSlot.push(opties);
   });
-  enkele.sort((a,b)=>b.winst-a.winst);
-  // Eén beste suggestie per uitgaande speler (dedupliceren).
-  const gezien = new Set();
-  const enkeleUniek = enkele.filter(e=>{
-    const k = e.uit.Speler+'|'+e.uit.Team;
-    if(gezien.has(k)) return false;
-    gezien.add(k); return true;
-  });
-
+  // Eén beste enkele wissel per uitgaande speler.
+  const enkeleUniek = kandPerSlot.map(o=>o[0]).sort((x,y)=>y.winst-x.winst);
   const suggesties = enkeleUniek.map(e=>({...e, details:[e]}));
 
-  // Combinaties van 2 niet-overlappende enkele wissels, binnen budget — alleen als er dit
-  // moment ook echt 2 (of meer) wissels toegestaan zijn.
-  if(maxWissels>=2) for(let i=0;i<enkeleUniek.length;i++){
-    for(let j=i+1;j<enkeleUniek.length;j++){
-      const a = enkeleUniek[i], b = enkeleUniek[j];
-      if(a.slotId===b.slotId) continue;
-      if(a.in.Team===b.in.Team && a.in.Team!==a.uit.Team) continue; // geen dubbele club, tenzij vervanging binnen dezelfde club
-      const kosten = a.kostendelta+b.kostendelta;
-      if(kosten>beschikbaar+0.01) continue;
-      suggesties.push({
-        type:'2 wissels tegelijk', winst: Math.round((a.winst+b.winst)*100)/100,
-        kostendelta: Math.round(kosten*100)/100, details:[a,b],
-      });
-    }
+  // Combinaties van 2 of 3 wissels: echt doorzoeken i.p.v. de beste enkele wissels optellen.
+  // Geldig = verschillende posities in het team, geen speler twee keer kopen, max 1 speler per club
+  // over het hele team na de wissels, en binnen budget (fout gevonden 11-10-2026: Thijs Jansen werd
+  // twee keer gekocht en er kwamen twee Cambuur-spelers tegelijk binnen).
+  function comboGeldig(combo){
+    const uitKeys = new Set(combo.map(c=>c.uit.Speler+'|'+c.uit.Team));
+    const inKeys = new Set(combo.map(c=>c.in.Speler+'|'+c.in.Team));
+    if(inKeys.size!==combo.length) return false;
+    const clubs = huidigeSpelers.filter(x=>!uitKeys.has(x.speler.Speler+'|'+x.speler.Team)).map(x=>x.speler.Team);
+    const alle = clubs.concat(combo.map(c=>c.in.Team));
+    if(new Set(alle).size!==alle.length) return false;
+    return combo.reduce((t,c)=>t+c.kostendelta,0) <= beschikbaar+0.01;
   }
-  // Beste 3-combinatie (onderling niet-overlappend, chronologisch de 3 beste enkele wissels) —
-  // alleen als er 3 of meer wissels toegestaan zijn.
-  if(maxWissels>=3){
-    const gebruikteSlots = new Set();
-    const drieslag = [];
-    for(const e of enkeleUniek){
-      if(gebruikteSlots.has(e.slotId)) continue;
-      if(drieslag.length>=3) break;
-      drieslag.push(e); gebruikteSlots.add(e.slotId);
-    }
-    if(drieslag.length===3){
-      const kosten = drieslag.reduce((s,d)=>s+d.kostendelta,0);
-      if(kosten<=beschikbaar+0.01){
-        suggesties.push({
-          type:'3 wissels tegelijk', winst: Math.round(drieslag.reduce((s,d)=>s+d.winst,0)*100)/100,
-          kostendelta: Math.round(kosten*100)/100, details:drieslag,
-        });
+  function besteCombos(k, aantal){
+    const res = [];
+    const n = kandPerSlot.length;
+    const rec = (start, gekozen)=>{
+      if(gekozen.length===k){
+        if(comboGeldig(gekozen)) res.push(gekozen.slice());
+        return;
       }
+      for(let s=start; s<n; s++){
+        for(const o of kandPerSlot[s]){ gekozen.push(o); rec(s+1, gekozen); gekozen.pop(); }
+      }
+    };
+    rec(0, []);
+    res.sort((x,y)=>y.reduce((t,c)=>t+c.winst,0)-x.reduce((t,c)=>t+c.winst,0));
+    // geen bijna-dubbele combinaties: elke combinatie moet minstens één andere uitgaande speler hebben
+    const gezienSets = new Set(), out = [];
+    for(const c of res){
+      const sig = c.map(d=>d.uit.Speler).sort().join('+');
+      if(gezienSets.has(sig)) continue;
+      gezienSets.add(sig); out.push(c);
+      if(out.length>=aantal) break;
     }
+    return out.map(c=>({
+      type: k+' wissels tegelijk', winst: Math.round(c.reduce((t,d)=>t+d.winst,0)*100)/100,
+      kostendelta: Math.round(c.reduce((t,d)=>t+d.kostendelta,0)*100)/100, details:c,
+    }));
   }
+  if(maxWissels>=2) besteCombos(2, 3).forEach(c=>suggesties.push(c));
+  if(maxWissels>=3) besteCombos(3, 2).forEach(c=>suggesties.push(c));
 
   // Formatiewissel: vervang de zwakste basis-aanvaller door een extra middenvelder (3-4-3 -> 3-5-2),
   // als voorbeeld van een structurele ombouw — telt als 1 wissel qua transfer, dus altijd tonen
