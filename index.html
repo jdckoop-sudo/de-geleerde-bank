@@ -1071,9 +1071,6 @@
   .int-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Inter';font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim);vertical-align:middle;white-space:nowrap;}
   .int-badge.act{border-color:var(--accent);color:var(--accent);}
   .int-badge.jeugd{font-weight:600;}
-  .pc-int{position:absolute;top:-4px;left:-6px;font-size:13px;line-height:1;background:rgba(20,18,16,.55);border-radius:6px;padding:1px 2px;opacity:.75;}
-  .pc-int.act{opacity:1;background:rgba(20,18,16,.75);}
-  .wa-export .pc-int{background:none;}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -4202,9 +4199,8 @@ function renderTeamTab(){
 // ===== Spelerskaartje op het veld (herziening 13-10-2026): portret, clublogo, naam, punten =====
 function pitchAvatarHtml(naam, club, color){
   const ph = playerPhoto(naam);
-  const ii = INTERNATIONALS[naam+'|'+club]; const vlag = ii && ii.A ? `<span class="pc-int ${ii.A.actueel?'act':''}" title="${intTooltip(ii)}">${landVlag(ii.A.land)||'INT'}</span>` : '';
   const init = String(naam||'?').split(' ').filter(Boolean).map(w=>w[0]).slice(-2).join('').toUpperCase();
-  return `<div class="pc-av" style="--pc:${color}">${ph?`<img src="${ph}" alt="">`:`<span class="pc-init">${init}</span>`}<span class="pc-club">${teamLogo(club)}</span>${vlag}</div>`;
+  return `<div class="pc-av" style="--pc:${color}">${ph?`<img src="${ph}" alt="">`:`<span class="pc-init">${init}</span>`}<span class="pc-club">${teamLogo(club)}</span></div>`;
 }
 function pitchPtsHtml(points){
   if(points==null) return '';
