@@ -8746,7 +8746,7 @@ function renderRefRankContent(){
     </div>`;
   }
   return `
-    <div class="news-note">Gegeven gele/rode kaarten, penalty's en overtredingen per scheidsrechter, cumulatief over alle rondes met brondata (ronde 3-4 — ronde 1-2 bevatten geen scheidsrechternamen in de aangeleverde bestanden). Klik op een titel voor de volledige lijst, of op een naam voor het volledige profiel van die scheidsrechter.</div>
+    <div class="news-note">Gegeven gele/rode kaarten, penalty's en overtredingen per scheidsrechter, cumulatief over alle rondes tot nu toe. Klik op een titel voor de volledige lijst, of op een naam voor het volledige profiel van die scheidsrechter.</div>
     <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start;">
       ${card('Meeste gele kaarten', 'geel')}
       ${card('Meeste rode kaarten', 'rood')}
@@ -12684,6 +12684,414 @@ function computeRefereeCumulative(){
   });
   return out;
 }
+// ==================== SCHEIDSRECHTERS: profielen en ranglijsten (13-10-2026) ====================
+// Alles wordt live berekend uit REFEREE_STATS (overtredingen, kaarten, penalty's per wedstrijd)
+// en MATCHES (welk team de kaart kreeg, minuut, uitslag). Overtredingen per team zijn niet
+// beschikbaar, alleen per wedstrijd. Waar de kaarten in MATCHES niet overeenkomen met
+// REFEREE_STATS (o.a. vier wedstrijden uit ronde 1) telt die wedstrijd niet mee voor thuis/uit,
+// timing en spelers, en dat staat dan in het profiel.
+const REF_MIN_WEDSTRIJDEN = 2; // ranglijsten "per wedstrijd": pas vanaf 2 gefloten wedstrijden
+function refMinuut(min){
+  const m = /^(\d+)(?:\+(\d+))?/.exec(String(min||''));
+  return m ? {basis:+m[1], extra:m[2]?+m[2]:0} : null;
+}
+function refMatchDetail(pw){
+  const m = MATCHES.find(x=>x.id===pw.wedstrijdId);
+  if(!m) return {wedstrijd:null, kaartenCompleet:false};
+  const cards = m.cards||[];
+  const geel = cards.filter(c=>c.type==='yellow').length, rood = cards.length-geel;
+  return {wedstrijd:m, kaartenCompleet: geel===pw.geel && rood===pw.rood, cards};
+}
+let __refProfilesCache = null;
+function computeRefereeProfiles(){
+  if(__refProfilesCache) return __refProfilesCache;
+  const cum = computeRefereeCumulative();
+  const refs = {};
+  const comp = {wedstrijden:0, geel:0, rood:0, penaltys:0, punten:0, overtr:0, overtrW:0, kaartenBijOvertr:0, thuisKaarten:0, uitKaarten:0, kaartW:0, thuisWinst:0, gelijk:0, uitWinst:0, uitslagW:0, goals:0};
+  Object.entries(cum).forEach(([naam,s])=>{
+    const p = {naam, wedstrijden:s.wedstrijden, geel:s.geel, rood:s.rood, kaarten:s.geel+s.rood, penaltys:s.penaltys, punten:s.punten,
+      overtr:0, overtrW:0, kaartenBijOvertr:0, thuisKaarten:0, uitKaarten:0, kaartW:0, eersteHelft:0, tweedeHelft:0, eersteKaartMin:[],
+      thuisWinst:0, gelijk:0, uitWinst:0, uitslagW:0, goals:0, clubs:{}, spelers:{}, wedstrijdenLijst:[], rondes:new Set()};
+    s.perWedstrijd.forEach(pw=>{
+      const d = refMatchDetail(pw);
+      const m = d.wedstrijd;
+      const ronde = matchRoundNumber(pw.wedstrijdId);
+      p.rondes.add(ronde);
+      if(pw.overtredingen!=null){ p.overtr += pw.overtredingen; p.overtrW++; p.kaartenBijOvertr += pw.geel+pw.rood; }
+      if(m){
+        [m.home,m.away].forEach(c=>{ if(!p.clubs[c]) p.clubs[c]={wedstrijden:0,kaarten:0,kaartenBekend:false}; p.clubs[c].wedstrijden++; });
+        if(m.homeScore!=null){
+          p.uitslagW++; p.goals += m.homeScore+m.awayScore;
+          if(m.homeScore>m.awayScore) p.thuisWinst++; else if(m.homeScore<m.awayScore) p.uitWinst++; else p.gelijk++;
+        }
+        if(d.kaartenCompleet){
+          p.kaartW++;
+          let eerste = null;
+          d.cards.forEach(c=>{
+            if(c.team===m.home) p.thuisKaarten++; else if(c.team===m.away) p.uitKaarten++;
+            if(p.clubs[c.team]){ p.clubs[c.team].kaarten++; }
+            const mi = refMinuut(c.minute);
+            if(mi){ if(mi.basis<=45) p.eersteHelft++; else p.tweedeHelft++; if(eerste==null || mi.basis+mi.extra/100<eerste) eerste = mi.basis+mi.extra/100; }
+            const sk = c.player+'|'+c.team;
+            p.spelers[sk] = (p.spelers[sk]||0)+1;
+          });
+          [m.home,m.away].forEach(c=>{ p.clubs[c].kaartenBekend = true; });
+          if(eerste!=null) p.eersteKaartMin.push(Math.floor(eerste));
+        }
+      }
+      p.wedstrijdenLijst.push({...pw, ronde, wedstrijd:m, kaartenCompleet:d.kaartenCompleet});
+    });
+    p.wedstrijdenLijst.sort((a,b)=>(a.ronde||0)-(b.ronde||0) || String(a.wedstrijd&&a.wedstrijd.date).localeCompare(String(b.wedstrijd&&b.wedstrijd.date)));
+    // Gemiddelden per wedstrijd
+    p.geelPW = p.geel/p.wedstrijden; p.roodPW = p.rood/p.wedstrijden; p.kaartenPW = p.kaarten/p.wedstrijden;
+    p.penPW = p.penaltys/p.wedstrijden; p.puntenPW = p.punten/p.wedstrijden;
+    p.overtrPW = p.overtrW ? p.overtr/p.overtrW : null;
+    p.kaartPer10 = p.overtr ? p.kaartenBijOvertr/p.overtr*10 : null; // kaarten per 10 gefloten overtredingen
+    p.goalsPW = p.uitslagW ? p.goals/p.uitslagW : null;
+    p.rondes = [...p.rondes].filter(x=>x!=null).sort((a,b)=>a-b);
+    refs[naam] = p;
+    ['wedstrijden','geel','rood','penaltys','punten','overtr','overtrW','kaartenBijOvertr','thuisKaarten','uitKaarten','kaartW','thuisWinst','gelijk','uitWinst','uitslagW','goals'].forEach(k=>comp[k]+=p[k]);
+  });
+  const gem = {
+    geelPW: comp.geel/comp.wedstrijden, roodPW: comp.rood/comp.wedstrijden, kaartenPW:(comp.geel+comp.rood)/comp.wedstrijden,
+    penPW: comp.penaltys/comp.wedstrijden, puntenPW: comp.punten/comp.wedstrijden,
+    overtrPW: comp.overtrW ? comp.overtr/comp.overtrW : null, kaartPer10: comp.overtr ? comp.kaartenBijOvertr/comp.overtr*10 : null,
+    goalsPW: comp.uitslagW ? comp.goals/comp.uitslagW : null,
+    thuisAandeel: (comp.thuisKaarten+comp.uitKaarten) ? comp.thuisKaarten/(comp.thuisKaarten+comp.uitKaarten) : null,
+    thuisWinstPct: comp.uitslagW ? comp.thuisWinst/comp.uitslagW : null,
+  };
+  // Beoordeling 0-99 per eigenschap: percentiel binnen de scheidsrechters met genoeg wedstrijden
+  const vergelijk = Object.values(refs).filter(p=>p.wedstrijden>=REF_MIN_WEDSTRIJDEN);
+  const RATING_KEYS = ['kaartenPW','overtrPW','penPW','roodPW','kaartPer10','puntenPW'];
+  Object.values(refs).forEach(p=>{
+    p.rating = {};
+    RATING_KEYS.forEach(k=>{
+      const v = p[k];
+      const pool = vergelijk.map(x=>x[k]).filter(x=>x!=null);
+      if(v==null || pool.length<2){ p.rating[k] = null; return; }
+      const lager = pool.filter(x=>x<v).length, gelijk = pool.filter(x=>x===v).length;
+      p.rating[k] = Math.max(1, Math.min(99, Math.round((lager + gelijk/2)/pool.length*100)));
+    });
+    p.typering = refTypering(p, gem);
+  });
+  __refProfilesCache = {refs, gem, comp};
+  return __refProfilesCache;
+}
+// Korte typering op basis van afwijking t.o.v. het competitiegemiddelde
+function refTypering(p, gem){
+  const t = [];
+  if(p.wedstrijden < REF_MIN_WEDSTRIJDEN) return [{label:'Te weinig wedstrijden', kleur:'var(--text-dim)', uitleg:'Pas vanaf '+REF_MIN_WEDSTRIJDEN+' wedstrijden zegt een profiel iets.'}];
+  if(p.kaartenPW >= gem.kaartenPW*1.25) t.push({label:'Kaartenkoning', kleur:'var(--accent)', uitleg:'Deelt duidelijk meer kaarten uit dan gemiddeld.'});
+  else if(p.kaartenPW <= gem.kaartenPW*0.75) t.push({label:'Houdt de kaarten op zak', kleur:'var(--c-teal)', uitleg:'Deelt duidelijk minder kaarten uit dan gemiddeld.'});
+  if(p.overtrPW!=null && gem.overtrPW){
+    if(p.overtrPW >= gem.overtrPW*1.12) t.push({label:'Fluit veel', kleur:'var(--c-blue)', uitleg:'Fluit meer overtredingen dan gemiddeld: het spel ligt vaker stil.'});
+    else if(p.overtrPW <= gem.overtrPW*0.88) t.push({label:'Laat doorspelen', kleur:'var(--c-teal)', uitleg:'Fluit minder overtredingen dan gemiddeld.'});
+  }
+  if(p.kaartPer10!=null && gem.kaartPer10){
+    if(p.kaartPer10 >= gem.kaartPer10*1.25) t.push({label:'Snel naar het borstzakje', kleur:'var(--c-rose)', uitleg:'Per gefloten overtreding volgt vaker een kaart.'});
+  }
+  if(p.penaltys>=2 && p.penPW >= Math.max(0.35, gem.penPW*1.5)) t.push({label:'Penaltyfluiter', kleur:'var(--c-plum)', uitleg:'Geeft bovengemiddeld vaak een penalty.'});
+  if(p.rood>=2 || (p.rood>=1 && p.roodPW>=0.25)) t.push({label:'Rood-gevaar', kleur:'var(--danger)', uitleg:'Heeft al meerdere keren (of relatief vaak) rood gegeven.'});
+  if(!t.length) t.push({label:'Middenmoter', kleur:'var(--text-dim)', uitleg:'Zit op alle punten dicht bij het competitiegemiddelde.'});
+  return t.slice(0,3);
+}
+function refNaamJs(naam){ return naam.replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function refInitialen(naam){
+  const delen = naam.split(/\s+/).filter(Boolean);
+  const achter = delen.filter((w,i)=>i>0 && !/^(van|de|der|den|het|ter|ten)$/i.test(w));
+  return ((delen[0]||'?')[0] + ((achter[achter.length-1]||delen[delen.length-1]||'')[0]||'')).toUpperCase();
+}
+function refFmt(v, dec){ return v==null||isNaN(v) ? 'onbekend' : v.toFixed(dec==null?1:dec).replace('.',','); }
+function refDelta(v, g, dec, lagerIsGroen){
+  if(v==null || g==null) return '';
+  const d = v-g; if(Math.abs(d) < Math.pow(10,-(dec==null?1:dec))/2) return `<span style="color:var(--text-dim);">= gem.</span>`;
+  const kleur = (d>0) !== !!lagerIsGroen ? 'var(--accent)' : 'var(--c-teal)';
+  return `<span style="color:${kleur};">${d>0?'+':'−'}${refFmt(Math.abs(d),dec)} t.o.v. gem.</span>`;
+}
+function setRefTableMode(v){ state.refTableMode = v; render(); }
+function openRefProfile(naam){ state.refDetail = naam; render(); window.scrollTo && window.scrollTo(0,0); }
+
+// Ranglijstkaart (top 5) in dezelfde stijl als de ranglijsten elders
+function refTop5Card(titel, uitleg, lijst, waardeFn, eenheid){
+  return `<div class="summary-card" style="text-align:left;">
+    <div class="label" style="margin-bottom:4px;">${titel}</div>
+    <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:8px;">${uitleg}</div>
+    <ol style="list-style:none;padding:0;margin:0;">
+      ${lijst.slice(0,5).map((p,i)=>`<li onclick="openRefProfile('${refNaamJs(p.naam)}')" title="Open het profiel van ${p.naam}" style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--line);cursor:pointer;">
+        <span style="font-family:'Oswald';color:var(--text-dim);width:16px;">${i+1}</span>
+        <span style="flex:1;font-size:13px;">${p.naam}</span>
+        <span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);white-space:nowrap;">${p.wedstrijden} w.</span>
+        <span style="font-family:'JetBrains Mono';font-size:13px;color:var(--accent);min-width:42px;text-align:right;">${waardeFn(p)}${eenheid||''}</span>
+      </li>`).join('') || `<li style="color:var(--text-dim);font-size:13px;padding:8px 0;">Nog niet genoeg data.</li>`}
+    </ol>
+  </div>`;
+}
+
+function renderRefSeasonOverview(){
+  const {refs, gem, comp} = computeRefereeProfiles();
+  const alle = Object.values(refs);
+  const genoeg = alle.filter(p=>p.wedstrijden>=REF_MIN_WEDSTRIJDEN);
+  const desc = k=>(a,b)=>(b[k]??-1)-(a[k]??-1);
+  const asc = k=>(a,b)=>(a[k]??99)-(b[k]??99);
+  const f1 = k=>p=>refFmt(p[k],1), f2 = k=>p=>refFmt(p[k],2);
+  // Sorteerbare hoofdtabel
+  const mode = state.refTableMode==='totaal' ? 'totaal' : 'gem';
+  const sortRaw = state.refSort || (mode==='gem' ? '-puntenPW' : '-punten');
+  const sortDesc = sortRaw.startsWith('-'); const sortKey = sortRaw.replace(/^-/,'');
+  const kolommen = mode==='gem' ? [
+    ['wedstrijden','W', p=>p.wedstrijden],
+    ['geelPW','Geel', f1('geelPW')], ['roodPW','Rood', f2('roodPW')], ['overtrPW','Overtr.', f1('overtrPW')],
+    ['penPW',"Pen.", f2('penPW')], ['kaartPer10','Kaart/10 ovt.', f1('kaartPer10')], ['puntenPW','Punten', f1('puntenPW')],
+  ] : [
+    ['wedstrijden','W', p=>p.wedstrijden],
+    ['geel','Geel', p=>p.geel], ['rood','Rood', p=>p.rood], ['overtr','Overtr.', p=>p.overtr+(p.overtrW<p.wedstrijden?'*':'')],
+    ['penaltys',"Pen.", p=>p.penaltys], ['kaarten','Kaarten', p=>p.kaarten], ['punten','Punten', p=>refFmt(p.punten,1)],
+  ];
+  const rijen = [...alle].sort((a,b)=>{
+    const va=a[sortKey], vb=b[sortKey];
+    const x = (va==null?-Infinity:va), y=(vb==null?-Infinity:vb);
+    return sortDesc ? (y-x) : (x-y);
+  });
+  const kop = (k,l)=>`<th style="cursor:pointer;white-space:nowrap;${sortKey===k?'color:var(--accent);':''}" onclick="setRefSortKey('${k}')">${l}${sortKey===k?(sortDesc?' ▾':' ▴'):''}</th>`;
+  return `
+    <div class="section-title"><span>Competitiegemiddelde per wedstrijd</span><span class="line"></span></div>
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
+      <div class="summary-card"><div class="label">Wedstrijden</div><div class="value">${comp.wedstrijden}</div></div>
+      <div class="summary-card"><div class="label">Geel</div><div class="value">${refFmt(gem.geelPW,1)}</div></div>
+      <div class="summary-card"><div class="label">Rood</div><div class="value">${refFmt(gem.roodPW,2)}</div></div>
+      <div class="summary-card"><div class="label">Overtredingen</div><div class="value">${refFmt(gem.overtrPW,1)}</div></div>
+      <div class="summary-card"><div class="label">Penalty's</div><div class="value">${refFmt(gem.penPW,2)}</div></div>
+      <div class="summary-card"><div class="label">Kaart per 10 overtr.</div><div class="value">${refFmt(gem.kaartPer10,1)}</div></div>
+      <div class="summary-card grad-gold"><div class="label">Punten</div><div class="value">${refFmt(gem.puntenPW,1)}</div></div>
+    </div>
+    <div class="section-title"><span>Ranglijsten per wedstrijd</span><span class="line"></span></div>
+    <div class="news-note" style="margin-bottom:10px;">Alleen scheidsrechters met minstens ${REF_MIN_WEDSTRIJDEN} wedstrijden, zodat één uitschieter de lijst niet bepaalt. Klik op een naam voor het profiel.</div>
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr));align-items:start;">
+      ${refTop5Card('Meeste kaarten', 'Geel + rood per wedstrijd', [...genoeg].sort(desc('kaartenPW')), f1('kaartenPW'))}
+      ${refTop5Card('Minste kaarten', 'Geel + rood per wedstrijd', [...genoeg].sort(asc('kaartenPW')), f1('kaartenPW'))}
+      ${refTop5Card('Meeste overtredingen', 'Gefloten overtredingen per wedstrijd', genoeg.filter(p=>p.overtrPW!=null).sort(desc('overtrPW')), f1('overtrPW'))}
+      ${refTop5Card('Laat het meest doorspelen', 'Minste overtredingen per wedstrijd', genoeg.filter(p=>p.overtrPW!=null).sort(asc('overtrPW')), f1('overtrPW'))}
+      ${refTop5Card('Strengste fluiter', 'Kaarten per 10 gefloten overtredingen', genoeg.filter(p=>p.kaartPer10!=null).sort(desc('kaartPer10')), f1('kaartPer10'))}
+      ${refTop5Card("Meeste penalty's", "Penalty's per wedstrijd", [...genoeg].sort((a,b)=>b.penPW-a.penPW||b.penaltys-a.penaltys), f2('penPW'))}
+      ${refTop5Card('Meeste rode kaarten', 'Totaal dit seizoen', alle.filter(p=>p.rood>0).sort((a,b)=>b.rood-a.rood||b.roodPW-a.roodPW), p=>p.rood)}
+      ${refTop5Card('Hoogste punten', 'Scheidsrechterpunten per wedstrijd', [...genoeg].sort(desc('puntenPW')), f1('puntenPW'))}
+    </div>
+    <div class="section-title"><span>Alle scheidsrechters</span><span class="line"></span></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center;">
+      <button class="btn ${mode==='gem'?'active':'ghost'}" onclick="setRefTableMode('gem')">Per wedstrijd</button>
+      <button class="btn ${mode==='totaal'?'active':'ghost'}" onclick="setRefTableMode('totaal')">Totaal</button>
+      <span style="font-size:12px;color:var(--text-dim);">Klik op een kolomkop om te sorteren.</span>
+    </div>
+    <div style="overflow-x:auto;"><table class="stat-table">
+      <thead><tr><th>#</th><th>Scheidsrechter</th>${kolommen.map(([k,l])=>kop(k,l)).join('')}<th>Typering</th></tr></thead>
+      <tbody>${rijen.map((p,i)=>`<tr style="cursor:pointer;" onclick="openRefProfile('${refNaamJs(p.naam)}')">
+        <td style="font-family:'Oswald';color:var(--text-dim);">${i+1}</td>
+        <td style="white-space:nowrap;">${p.naam}</td>
+        ${kolommen.map(([k,l,fn])=>`<td style="font-family:'JetBrains Mono';">${fn(p)}</td>`).join('')}
+        <td style="font-size:11.5px;white-space:nowrap;">${p.typering.map(t=>`<span style="color:${t.kleur};">${t.label}</span>`).join(' · ')}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>
+    <div class="news-note" style="margin-top:10px;">Punten: 0,5 per gefloten overtreding, 3 per gele kaart, 8 per rode kaart, 5 per toegekende penalty. ${mode==='totaal'?'* = overtredingen van een deel van de wedstrijden onbekend.':'Overtredingen en kaart/10 ovt. tellen alleen wedstrijden waarvan het aantal overtredingen bekend is.'}</div>
+  `;
+}
+function setRefSortKey(k){
+  const cur = state.refSort || '';
+  state.refSort = cur==='-'+k ? k : '-'+k;
+  render();
+}
+
+// Eén balk per eigenschap: waarde, competitiegemiddelde en percentiel (0-99)
+function refAttrRow(label, waarde, gemiddelde, rating, uitleg){
+  const r = rating==null ? null : rating;
+  return `<div style="padding:9px 0;border-bottom:1px solid var(--line);" title="${uitleg}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:6px;">
+      <span style="font-size:13px;">${label}</span>
+      <span style="font-family:'JetBrains Mono';font-size:12.5px;"><b>${waarde}</b> <span style="color:var(--text-dim);">gem. ${gemiddelde}</span></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;height:8px;border-radius:4px;background:var(--surface-2);position:relative;overflow:hidden;">
+        ${r==null?'':`<div style="position:absolute;left:0;top:0;bottom:0;width:${r}%;background:var(--accent);border-radius:4px;"></div>`}
+        <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--text-dim);opacity:.6;" title="Midden van de scheidsrechters"></div>
+      </div>
+      <span style="font-family:'Oswald';font-size:15px;width:26px;text-align:right;color:${r==null?'var(--text-dim)':'var(--text)'};">${r==null?'–':r}</span>
+    </div>
+  </div>`;
+}
+// Staafjes per wedstrijd (punten), met tooltip per staaf
+function refVormSvg(lijst){
+  if(!lijst.length) return '';
+  const max = Math.max(...lijst.map(w=>w.punten), 1);
+  const bw = 22, gap = 6, h = 90, w = lijst.length*(bw+gap);
+  return `<svg viewBox="0 0 ${w} ${h+18}" width="100%" style="max-width:${Math.max(w,160)}px;display:block;" role="img" aria-label="Punten per gefloten wedstrijd">
+    <line x1="0" x2="${w}" y1="${h}" y2="${h}" stroke="var(--line)" stroke-width="1"/>
+    ${lijst.map((x,i)=>{
+      const bh = Math.max(2, x.punten/max*(h-14));
+      const m = x.wedstrijd; const lab = m ? `${m.home} - ${m.away} (${m.homeScore}-${m.awayScore})` : x.wedstrijdId;
+      const tx = i*(bw+gap);
+      return `<g><title>Ronde ${x.ronde}: ${lab} — ${refFmt(x.punten,1)} pnt · ${x.geel} geel · ${x.rood} rood · ${x.overtredingen==null?'overtredingen onbekend':x.overtredingen+' overtr.'} · ${x.penaltys} pen.</title>
+        <rect x="${tx}" y="0" width="${bw}" height="${h}" fill="transparent"/>
+        <rect x="${tx}" y="${h-bh}" width="${bw}" height="${bh}" rx="4" fill="var(--accent)"/>
+        <text x="${tx+bw/2}" y="${h-bh-4}" text-anchor="middle" font-size="10" fill="var(--text-dim)" font-family="JetBrains Mono">${Math.round(x.punten)}</text>
+        <text x="${tx+bw/2}" y="${h+13}" text-anchor="middle" font-size="10" fill="var(--text-dim)" font-family="JetBrains Mono">R${x.ronde}</text>
+      </g>`;
+    }).join('')}
+  </svg>`;
+}
+function renderRefProfile(naam, inModal){
+  const {refs, gem} = computeRefereeProfiles();
+  const p = refs[naam];
+  if(!p) return `<div class="news-note">Geen data gevonden voor ${naam}.</div>`;
+  const weinig = p.wedstrijden < REF_MIN_WEDSTRIJDEN;
+  const kaartTot = p.thuisKaarten+p.uitKaarten;
+  const thuisPct = kaartTot ? Math.round(p.thuisKaarten/kaartTot*100) : null;
+  const clubs = Object.entries(p.clubs).sort((a,b)=>b[1].wedstrijden-a[1].wedstrijden || (b[1].kaartenBekend?b[1].kaarten:-1)-(a[1].kaartenBekend?a[1].kaarten:-1));
+  const spelers = Object.entries(p.spelers).filter(([k,n])=>n>=2).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const gemEersteKaart = p.eersteKaartMin.length ? Math.round(p.eersteKaartMin.reduce((s,x)=>s+x,0)/p.eersteKaartMin.length) : null;
+  const helftTot = p.eersteHelft+p.tweedeHelft;
+  const ontbrekend = p.wedstrijden - p.kaartW;
+  const metUitslag = p.uitslagW;
+  const pct = n=>metUitslag?Math.round(n/metUitslag*100)+'%':'–';
+  return `
+    ${inModal?'':`<button class="btn ghost" style="margin-bottom:12px;" onclick="setRefDetail(null)">${icon('arrow-left',13)} Terug naar het overzicht</button>`}
+    <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--surface-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-size:24px;color:var(--accent);flex-shrink:0;">${refInitialen(naam)}</div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-family:'Oswald';font-size:22px;line-height:1.1;">${naam}</div>
+        <div style="font-size:12.5px;color:var(--text-dim);margin:3px 0 7px;">Scheidsrechter · ${p.wedstrijden} wedstrijd${p.wedstrijden===1?'':'en'} · ${p.rondes.length?'ronde '+p.rondes.join(', '):''}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${p.typering.map(t=>`<span title="${t.uitleg}" style="font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid ${t.kleur};color:${t.kleur};">${t.label}</span>`).join('')}</div>
+      </div>
+      <div style="display:flex;gap:18px;">
+        <div style="text-align:center;"><div style="font-family:'Oswald';font-size:26px;color:var(--accent);">${refFmt(p.puntenPW,1)}</div><div style="font-size:11px;color:var(--text-dim);">pnt/wedstrijd</div></div>
+        <div style="text-align:center;"><div style="font-family:'Oswald';font-size:26px;">${refFmt(p.punten,1)}</div><div style="font-size:11px;color:var(--text-dim);">pnt totaal</div></div>
+      </div>
+    </div>
+    ${weinig?`<div class="news-note" style="margin-bottom:12px;">Pas ${p.wedstrijden} wedstrijd gefloten: de cijfers hieronder zeggen nog weinig.</div>`:''}
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start;">
+      <div class="summary-card" style="text-align:left;">
+        <div class="label" style="margin-bottom:2px;">Eigenschappen</div>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px;">Score 1–99 = plek tussen de scheidsrechters met minstens ${REF_MIN_WEDSTRIJDEN} wedstrijden (99 = hoogste). Streep = midden.</div>
+        ${refAttrRow('Kaarten per wedstrijd', refFmt(p.kaartenPW,1), refFmt(gem.kaartenPW,1), p.rating.kaartenPW, 'Geel + rood per wedstrijd')}
+        ${refAttrRow('Overtredingen per wedstrijd', refFmt(p.overtrPW,1), refFmt(gem.overtrPW,1), p.rating.overtrPW, 'Hoe vaak het spel wordt stilgelegd')}
+        ${refAttrRow('Strengheid (kaart per 10 overtr.)', refFmt(p.kaartPer10,1), refFmt(gem.kaartPer10,1), p.rating.kaartPer10, 'Hoe vaak een overtreding een kaart oplevert')}
+        ${refAttrRow("Penalty's per wedstrijd", refFmt(p.penPW,2), refFmt(gem.penPW,2), p.rating.penPW, "Toegekende penalty's")}
+        ${refAttrRow('Rood per wedstrijd', refFmt(p.roodPW,2), refFmt(gem.roodPW,2), p.rating.roodPW, 'Rode kaarten (ook tweede geel)')}
+        ${refAttrRow('Scheidsrechterpunten per wedstrijd', refFmt(p.puntenPW,1), refFmt(gem.puntenPW,1), p.rating.puntenPW, 'Punten volgens de scheidsrechtertelling')}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="summary-card" style="text-align:left;">
+          <div class="label" style="margin-bottom:8px;">Seizoen in cijfers</div>
+          <div class="stat-grid" style="margin-bottom:0;">
+            <div class="stat-box"><div class="n">${p.geel}</div><div class="l">Geel</div></div>
+            <div class="stat-box"><div class="n">${p.rood}</div><div class="l">Rood</div></div>
+            <div class="stat-box"><div class="n">${p.penaltys}</div><div class="l">Penalty's</div></div>
+            <div class="stat-box"><div class="n">${p.overtr}${p.overtrW<p.wedstrijden?'*':''}</div><div class="l">Overtredingen</div></div>
+            <div class="stat-box"><div class="n">${refFmt(p.goalsPW,1)}</div><div class="l">Goals/wedstr.</div></div>
+            <div class="stat-box"><div class="n">${gemEersteKaart==null?'–':gemEersteKaart+"'"}</div><div class="l">Gem. 1e kaart</div></div>
+          </div>
+          <div style="font-size:12.5px;margin-top:10px;line-height:1.6;">
+            ${refDelta(p.kaartenPW,gem.kaartenPW,1)} kaarten · ${refDelta(p.overtrPW,gem.overtrPW,1)} overtredingen per wedstrijd
+          </div>
+        </div>
+        <div class="summary-card" style="text-align:left;">
+          <div class="label" style="margin-bottom:8px;">Thuis of uit?</div>
+          ${kaartTot ? `
+          <div style="font-size:12.5px;margin-bottom:6px;">Kaarten voor de thuisploeg: <b>${p.thuisKaarten}</b> · uitploeg: <b>${p.uitKaarten}</b> <span style="color:var(--text-dim);">(competitie: ${gem.thuisAandeel==null?'–':Math.round(gem.thuisAandeel*100)+'% thuis'})</span></div>
+          <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;margin-bottom:10px;" title="${thuisPct}% van de kaarten voor de thuisploeg">
+            <div style="width:${thuisPct}%;background:var(--c-blue);"></div><div style="flex:1;background:var(--c-rose);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin:-6px 0 10px;"><span>thuis ${thuisPct}%</span><span>uit ${100-thuisPct}%</span></div>` : `<div style="font-size:12.5px;color:var(--text-dim);margin-bottom:8px;">Geen kaartgegevens per team beschikbaar.</div>`}
+          <div style="font-size:12.5px;">Uitslagen: thuiswinst <b>${pct(p.thuisWinst)}</b> · gelijk <b>${pct(p.gelijk)}</b> · uitwinst <b>${pct(p.uitWinst)}</b> <span style="color:var(--text-dim);">(competitie thuiswinst ${gem.thuisWinstPct==null?'–':Math.round(gem.thuisWinstPct*100)+'%'})</span></div>
+          ${helftTot?`<div style="font-size:12.5px;margin-top:6px;">Kaarten 1e helft <b>${p.eersteHelft}</b> · 2e helft <b>${p.tweedeHelft}</b></div>`:''}
+        </div>
+      </div>
+    </div>
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start;">
+      <div class="summary-card" style="text-align:left;">
+        <div class="label" style="margin-bottom:8px;">Punten per wedstrijd</div>
+        ${refVormSvg(p.wedstrijdenLijst)}
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Beweeg over een staaf voor de wedstrijd.</div>
+      </div>
+      <div class="summary-card" style="text-align:left;">
+        <div class="label" style="margin-bottom:8px;">Clubs gefloten</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${clubs.map(([c,d])=>`<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;">
+            <span style="flex:1;">${teamLogo(c)}${c}</span>
+            <span style="font-family:'JetBrains Mono';color:var(--text-dim);">${d.wedstrijden}×</span>
+            <span style="font-family:'JetBrains Mono';min-width:70px;text-align:right;">${d.kaartenBekend?d.kaarten+' kaart'+(d.kaarten===1?'':'en'):'–'}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="summary-card" style="text-align:left;">
+        <div class="label" style="margin-bottom:8px;">Vaker geboekt door ${naam.split(' ')[0]}</div>
+        ${spelers.length ? spelers.map(([k,n])=>{ const [sp,cl]=k.split('|'); return `<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;">
+          <span style="flex:1;">${sp} <span style="color:var(--text-dim);">${cl}</span></span>
+          <span style="font-family:'JetBrains Mono';color:var(--accent);">${n}×</span></div>`; }).join('') : `<div style="font-size:12.5px;color:var(--text-dim);">${Object.keys(p.spelers).length ? 'Nog geen speler kreeg meer dan één kaart van hem ('+Object.keys(p.spelers).length+' verschillende spelers geboekt).' : 'Nog geen kaarten bekend.'}</div>`}
+      </div>
+    </div>
+    <div class="section-title"><span>Gefloten wedstrijden</span><span class="line"></span></div>
+    <div style="overflow-x:auto;"><table class="stat-table">
+      <thead><tr><th>Ronde</th><th>Wedstrijd</th><th>Uitslag</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Pen.</th><th>Punten</th></tr></thead>
+      <tbody>${[...p.wedstrijdenLijst].reverse().map(x=>{ const m=x.wedstrijd; return `<tr>
+        <td>${x.ronde!=null?x.ronde:'–'}</td>
+        <td style="white-space:nowrap;">${m?`${teamLogo(m.home)}${m.home} - ${teamLogo(m.away)}${m.away}`:x.wedstrijdId}</td>
+        <td style="font-family:'JetBrains Mono';">${m&&m.homeScore!=null?`${m.homeScore}-${m.awayScore}`:'–'}</td>
+        <td style="font-family:'JetBrains Mono';">${x.geel}</td>
+        <td style="font-family:'JetBrains Mono';">${x.rood}</td>
+        <td style="font-family:'JetBrains Mono';">${x.overtredingen==null?'onbekend':x.overtredingen}</td>
+        <td style="font-family:'JetBrains Mono';">${x.penaltys}</td>
+        <td style="font-family:'JetBrains Mono';color:var(--accent);">${refFmt(x.punten,1)}</td>
+      </tr>`; }).join('')}</tbody>
+    </table></div>
+    ${ontbrekend>0?`<div class="news-note" style="margin-top:10px;">Van ${ontbrekend} wedstrijd${ontbrekend===1?'':'en'} is niet bekend welk team welke kaart kreeg. Die tellen niet mee voor thuis/uit, de kaarttiming, de clubs en de spelers.</div>`:''}
+  `;
+}
+function renderRefRoundOverview(round){
+  const data = REFEREE_STATS[round] || {};
+  const {refs, gem} = computeRefereeProfiles();
+  const wedstrijden = [];
+  Object.entries(data).forEach(([naam,s])=>s.perWedstrijd.forEach(pw=>{
+    const echteNaam = REFEREE_ALIASES[naam]||naam;
+    wedstrijden.push({...pw, naam:echteNaam, wedstrijd:MATCHES.find(m=>m.id===pw.wedstrijdId)});
+  }));
+  if(!wedstrijden.length) return `<div class="news-note">Nog geen scheidsrechterdata voor ronde ${round}.</div>`;
+  wedstrijden.sort((a,b)=>b.punten-a.punten);
+  const tot = wedstrijden.reduce((s,x)=>({geel:s.geel+x.geel, rood:s.rood+x.rood, pen:s.pen+x.penaltys, ovt:s.ovt+(x.overtredingen||0), ovtW:s.ovtW+(x.overtredingen!=null?1:0)}), {geel:0,rood:0,pen:0,ovt:0,ovtW:0});
+  const n = wedstrijden.length;
+  const vgl = (v,g,dec)=>`<div style="font-size:11px;margin-top:3px;">${refDelta(v,g,dec)}</div>`;
+  const meesteKaarten = [...wedstrijden].sort((a,b)=>(b.geel+b.rood)-(a.geel+a.rood))[0];
+  const meesteOvt = wedstrijden.filter(x=>x.overtredingen!=null).sort((a,b)=>b.overtredingen-a.overtredingen)[0];
+  const minsteOvt = wedstrijden.filter(x=>x.overtredingen!=null).sort((a,b)=>a.overtredingen-b.overtredingen)[0];
+  const lab = x=>x&&x.wedstrijd?`${x.wedstrijd.home} - ${x.wedstrijd.away}`:(x?x.wedstrijdId:'');
+  return `
+    <div class="section-title"><span>Ronde ${round} per wedstrijd</span><span class="line"></span></div>
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+      <div class="summary-card"><div class="label">Geel/wedstrijd</div><div class="value">${refFmt(tot.geel/n,1)}</div>${vgl(tot.geel/n,gem.geelPW,1)}</div>
+      <div class="summary-card"><div class="label">Rood totaal</div><div class="value">${tot.rood}</div></div>
+      <div class="summary-card"><div class="label">Overtr./wedstrijd</div><div class="value">${tot.ovtW?refFmt(tot.ovt/tot.ovtW,1):'–'}</div>${tot.ovtW?vgl(tot.ovt/tot.ovtW,gem.overtrPW,1):''}</div>
+      <div class="summary-card"><div class="label">Penalty's</div><div class="value">${tot.pen}</div></div>
+    </div>
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+      ${meesteKaarten?`<div class="summary-card" style="text-align:left;"><div class="label">Meeste kaarten</div><div style="font-size:13.5px;margin-top:6px;"><b>${meesteKaarten.geel+meesteKaarten.rood}</b> in ${lab(meesteKaarten)}</div><div style="font-size:12px;color:var(--text-dim);">${meesteKaarten.naam}</div></div>`:''}
+      ${meesteOvt?`<div class="summary-card" style="text-align:left;"><div class="label">Meeste overtredingen</div><div style="font-size:13.5px;margin-top:6px;"><b>${meesteOvt.overtredingen}</b> in ${lab(meesteOvt)}</div><div style="font-size:12px;color:var(--text-dim);">${meesteOvt.naam}</div></div>`:''}
+      ${minsteOvt?`<div class="summary-card" style="text-align:left;"><div class="label">Liet het meest doorspelen</div><div style="font-size:13.5px;margin-top:6px;"><b>${minsteOvt.overtredingen}</b> in ${lab(minsteOvt)}</div><div style="font-size:12px;color:var(--text-dim);">${minsteOvt.naam}</div></div>`:''}
+    </div>
+    <div style="overflow-x:auto;"><table class="stat-table">
+      <thead><tr><th>#</th><th>Scheidsrechter</th><th>Wedstrijd</th><th>Uitslag</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Pen.</th><th>Punten</th><th>Seizoen gem.</th></tr></thead>
+      <tbody>${wedstrijden.map((x,i)=>{ const m=x.wedstrijd; const p=refs[x.naam]; return `<tr style="cursor:pointer;" onclick="openRefProfile('${refNaamJs(x.naam)}')">
+        <td style="font-family:'Oswald';color:var(--text-dim);">${i+1}</td>
+        <td style="white-space:nowrap;">${x.naam}</td>
+        <td style="white-space:nowrap;">${m?`${teamLogo(m.home)}${m.home} - ${teamLogo(m.away)}${m.away}`:x.wedstrijdId}</td>
+        <td style="font-family:'JetBrains Mono';">${m&&m.homeScore!=null?`${m.homeScore}-${m.awayScore}`:'–'}</td>
+        <td style="font-family:'JetBrains Mono';">${x.geel}</td>
+        <td style="font-family:'JetBrains Mono';">${x.rood}</td>
+        <td style="font-family:'JetBrains Mono';">${x.overtredingen==null?'onbekend':x.overtredingen}</td>
+        <td style="font-family:'JetBrains Mono';">${x.penaltys}</td>
+        <td style="font-family:'JetBrains Mono';color:var(--accent);">${refFmt(x.punten,1)}</td>
+        <td style="font-family:'JetBrains Mono';color:var(--text-dim);">${p?refFmt(p.puntenPW,1):'–'}</td>
+      </tr>`; }).join('')}</tbody>
+    </table></div>
+    <div class="news-note" style="margin-top:10px;">Klik op een rij voor het profiel van de scheidsrechter. "Seizoen gem." = zijn punten per wedstrijd over het hele seizoen.</div>`;
+}
 // ==================== PERFECT TEAM (hindsight-optimale seizoensopbouw) ====================
 // Berekent met terugwerkende kracht welke opeenvolging van teams het hoogst mogelijke totaal
 // had opgeleverd, gegeven de daadwerkelijke rondepunten EN de daadwerkelijke wissellimieten
@@ -13374,70 +13782,20 @@ function renderWeekTab(){
     `;}).join('')}
     `;
   } else if(state.tab==='week_scheidsrechters'){
-    // Scheidsrechter-ranglijst: 0,5 pnt per gefloten overtreding, 3 pnt per gele kaart,
-    // 8 pnt per rode kaart, 5 pnt per toegekende penalty. Klik op een naam voor het
-    // wedstrijd-voor-wedstrijd overzicht van die scheidsrechter.
-    // Twee weergaves: "Deze ronde" (REFEREE_STATS[round]) en "Algemeen klassement"
-    // (cumulatief over alle rondes tot nu toe, via computeRefereeCumulative()).
-    const isAlgemeen = state.refView === 'algemeen';
-    const refData = isAlgemeen ? computeRefereeCumulative() : REFEREE_STATS[round];
+    // Scheidsrechters (revamp 13-10-2026): seizoensoverzicht met gemiddelden en ranglijsten,
+    // rondeoverzicht per wedstrijd, en een profiel per scheidsrechter (renderRefProfile).
+    const isAlgemeen = state.refView !== 'ronde';
     const toggleHtml = `
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="btn ${!isAlgemeen?'active':'ghost'}" onclick="setRefView('ronde')">Deze ronde</button>
-        <button class="btn ${isAlgemeen?'active':'ghost'}" onclick="setRefView('algemeen')">Algemeen klassement</button>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <button class="btn ${isAlgemeen?'active':'ghost'}" onclick="setRefView('algemeen')">Seizoen</button>
+        <button class="btn ${!isAlgemeen?'active':'ghost'}" onclick="setRefView('ronde')">Ronde ${round}</button>
       </div>`;
-    if(!refData || Object.keys(refData).length===0){
-      body = toggleHtml + `<div class="news-note">Nog geen scheidsrechter-data${isAlgemeen?'':' voor deze ronde'}. Geef me na een ronde welke scheidsrechter welke wedstrijd floot (+ overtredingen/kaarten/penalty's per team), dan bouw ik dit overzicht op.</div>`;
-    } else if(state.refDetail && refData[state.refDetail]){
-      const naam = state.refDetail;
-      const s = refData[naam];
-      body = toggleHtml + `
-        <button class="btn ghost" style="margin-bottom:10px;" onclick="setRefDetail(null)">${icon('arrow-left',13)} Terug naar ranglijst</button>
-        <div class="section-title"><span>${naam} — ${isAlgemeen?'algemeen totaal':'deze ronde'} ${s.punten.toFixed(1)} pnt</span><span class="line"></span></div>
-        <div class="news-note" style="margin-bottom:10px;">${s.wedstrijden} wedstrijd(en) gefloten · ${s.geel} gele kaart(en) · ${s.rood} rode kaart(en) · ${s.overtredingen} overtreding(en) gefloten · ${s.penaltys} penalty('s) toegekend</div>
-        <div class="summary-cards" style="margin-bottom:14px;">
-          <div class="summary-card"><div class="label">Gem. geel/wedstrijd</div><div class="value">${(s.geel/s.wedstrijden).toFixed(1)}</div></div>
-          <div class="summary-card"><div class="label">Gem. rood/wedstrijd</div><div class="value">${(s.rood/s.wedstrijden).toFixed(2)}</div></div>
-          <div class="summary-card"><div class="label">Gem. overtr./wedstrijd</div><div class="value">${(s.overtredingen/s.wedstrijden).toFixed(1)}</div></div>
-          <div class="summary-card"><div class="label">Gem. penalty's/wedstrijd</div><div class="value">${(s.penaltys/s.wedstrijden).toFixed(2)}</div></div>
-          <div class="summary-card grad-gold"><div class="label">Gem. punten/wedstrijd</div><div class="value">${(s.punten/s.wedstrijden).toFixed(1)}</div></div>
-        </div>
-        <div class="table-wrap"><table class="data-table">
-          <thead><tr><th>Wedstrijd</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Penalty's</th><th>Punten</th></tr></thead>
-          <tbody>
-            ${s.perWedstrijd.map(pw=>{
-              const m = MATCHES.find(x=>x.id===pw.wedstrijdId);
-              const label = m ? `${m.home} - ${m.away}` : pw.wedstrijdId;
-              return `<tr>
-                <td>${label}</td>
-                <td>${pw.geel}</td>
-                <td>${pw.rood}</td>
-                <td>${pw.overtredingen==null?'onbekend':pw.overtredingen}</td>
-                <td>${pw.penaltys}</td>
-                <td>${pw.punten.toFixed(1)}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table></div>`;
+    if(!Object.keys(REFEREE_STATS).length){
+      body = `<div class="news-note">Nog geen scheidsrechterdata.</div>`;
+    } else if(state.refDetail){
+      body = renderRefProfile(state.refDetail, false);
     } else {
-      const rows = Object.entries(refData).sort((a,b)=>b[1].punten-a[1].punten);
-      body = toggleHtml + `
-      <div class="news-note" style="margin-bottom:10px;">0,5 pnt per gefloten overtreding · 3 pnt per gele kaart · 8 pnt per rode kaart · 5 pnt per toegekende penalty. ${isAlgemeen?'Cumulatief over alle rondes tot nu toe.':'Alleen deze ronde.'} Klik op een scheidsrechter voor het volledige overzicht.</div>
-      <div class="table-wrap"><table class="data-table">
-        <thead><tr><th>#</th><th>Scheidsrechter</th><th>Wedstrijden</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Penalty's</th><th>Punten</th></tr></thead>
-        <tbody>
-          ${rows.map(([naam,s],i)=>`<tr style="cursor:pointer;" onclick="setRefDetail('${naam.replace(/'/g,"\\'")}')">
-            <td style="font-family:'Oswald';color:var(--text-dim);">${i+1}</td>
-            <td>${naam}</td>
-            <td>${s.wedstrijden}</td>
-            <td>${s.geel}</td>
-            <td>${s.rood}</td>
-            <td>${s.overtredingen}${s.perWedstrijd.some(pw=>pw.overtredingen==null)?' (deels onbekend)':''}</td>
-            <td>${s.penaltys}</td>
-            <td>${s.punten.toFixed(1)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table></div>`;
+      body = toggleHtml + (isAlgemeen ? renderRefSeasonOverview() : renderRefRoundOverview(round));
     }
   } else if(state.tab==='week_perfectteam'){
     body = renderPerfectTeamTab();
@@ -16184,54 +16542,10 @@ function openRefProfileModal(naam){
 }
 function renderRefProfileModal(){
   const naam = state.modal.naam;
-  const cumulative = computeRefereeCumulative();
-  const stats = cumulative[naam];
-  if(!stats){
-    return `<div class="overlay" onclick="if(event.target===this) closeModal()"><div class="box">
-      <div class="head"><h4>${naam}</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
-      <div class="body-scroll"><div class="news-note">Geen data gevonden voor deze scheidsrechter.</div></div>
-    </div></div>`;
-  }
-  // Alle wedstrijden ophalen: koppel elke perWedstrijd-entry aan de bijbehorende MATCHES-uitslag.
-  const matches = stats.perWedstrijd.map(pw=>{
-    const m = MATCHES.find(mm=>mm.id===pw.wedstrijdId);
-    const round = matchRoundNumber(pw.wedstrijdId);
-    return {...pw, round, home:m?m.home:null, away:m?m.away:null, homeScore:m?m.homeScore:null, awayScore:m?m.awayScore:null, date:m?m.date:null};
-  }).sort((a,b)=>(b.round||0)-(a.round||0));
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
-    <div class="box">
+    <div class="box" style="max-width:980px;">
       <div class="head"><h4>${naam}</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
-      <div class="body-scroll">
-        <div class="stat-grid" style="margin-bottom:16px;">
-          <div class="stat-box"><div class="n">${stats.wedstrijden}</div><div class="l">Wedstrijden</div></div>
-          <div class="stat-box"><div class="n">${stats.geel}</div><div class="l">Gele kaarten</div></div>
-          <div class="stat-box"><div class="n">${stats.rood}</div><div class="l">Rode kaarten</div></div>
-          <div class="stat-box"><div class="n">${stats.overtredingen}</div><div class="l">Overtredingen</div></div>
-          <div class="stat-box"><div class="n">${stats.penaltys}</div><div class="l">Penalty's gegeven</div></div>
-          <div class="stat-box"><div class="n">${(stats.geel+stats.rood)}</div><div class="l">Kaarten totaal</div></div>
-        </div>
-        <div class="section-title"><span>Gemiddelden per wedstrijd</span><span class="line"></span></div>
-        <div class="stat-grid" style="margin-bottom:16px;">
-          <div class="stat-box"><div class="n">${(stats.geel/stats.wedstrijden).toFixed(1)}</div><div class="l">Gele kaarten/wedstr.</div></div>
-          <div class="stat-box"><div class="n">${(stats.rood/stats.wedstrijden).toFixed(1)}</div><div class="l">Rode kaarten/wedstr.</div></div>
-          <div class="stat-box"><div class="n">${((stats.geel+stats.rood)/stats.wedstrijden).toFixed(1)}</div><div class="l">Kaarten totaal/wedstr.</div></div>
-          <div class="stat-box"><div class="n">${(stats.overtredingen/stats.wedstrijden).toFixed(1)}</div><div class="l">Overtredingen/wedstr.</div></div>
-          <div class="stat-box"><div class="n">${(stats.penaltys/stats.wedstrijden).toFixed(2)}</div><div class="l">Penalty's/wedstr.</div></div>
-        </div>
-        <div class="section-title"><span>Gefloten wedstrijden</span><span class="line"></span></div>
-        <div class="table-wrap"><table class="data-table">
-          <thead><tr><th>Ronde</th><th>Wedstrijd</th><th>Uitslag</th><th>Geel</th><th>Rood</th><th>Overtr.</th><th>Pen.</th></tr></thead>
-          <tbody>${matches.map(m=>`<tr>
-            <td>${m.round!=null?m.round:'—'}</td>
-            <td>${m.home?`${teamLogo(m.home)}${m.home} - ${teamLogo(m.away)}${m.away}`:'Onbekend'}</td>
-            <td style="font-family:'JetBrains Mono';">${m.homeScore!=null?`${m.homeScore}-${m.awayScore}`:'—'}</td>
-            <td style="font-family:'JetBrains Mono';">${m.geel}</td>
-            <td style="font-family:'JetBrains Mono';">${m.rood}</td>
-            <td style="font-family:'JetBrains Mono';">${m.overtredingen}</td>
-            <td style="font-family:'JetBrains Mono';">${m.penaltys}</td>
-          </tr>`).join('')}</tbody>
-        </table></div>
-      </div>
+      <div class="body-scroll">${renderRefProfile(naam, true)}</div>
     </div>
   </div>`;
 }
