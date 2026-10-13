@@ -12034,17 +12034,17 @@ function renderPerfectTeamTab(){
   const r = state.perfectTeamRonde || rondes[rondes.length-1];
   const huidige = data.geschiedenis.find(g=>g.ronde===r);
   return `
-    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Het best haalbare team tot nu toe, achteraf berekend: bij elke ronde-overgang worden ALLE combinaties van wélke plekken je zou wisselen doorgerekend (niet blind "de zwakste plek"), en dat twee kanten op — van ronde 1 vooruit én van de laatste ronde terug — waarna het beste van de twee wordt getoond. Geen wiskundig bewezen absoluut optimum (dat zou alle mogelijke combinaties van 500+ spelers moeten doorrekenen, onhaalbaar), maar wel de sterkste haalbare benadering.</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <span style="font-family:'Inter';font-size:12px;color:var(--text-dim);">Ronde:</span>
+      <select onchange="setPerfectTeamRonde(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 10px;font-family:'Inter';font-size:12px;">
+        ${rondes.map(rr=>`<option value="${rr}" ${r===rr?'selected':''}>Ronde ${rr}</option>`).join('')}
+      </select>
+    </div>
+    <details class="uitleg"><summary>Hoe werkt dit?</summary><div>Het best haalbare team tot nu toe, achteraf berekend: bij elke ronde-overgang worden ALLE combinaties van wélke plekken je zou wisselen doorgerekend (niet blind "de zwakste plek"), en dat twee kanten op — van ronde 1 vooruit én van de laatste ronde terug — waarna het beste van de twee wordt getoond. Geen wiskundig bewezen absoluut optimum (dat zou alle mogelijke combinaties van 500+ spelers moeten doorrekenen, onhaalbaar), maar wel de sterkste haalbare benadering.</div></details>
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:11px;color:var(--text-dim);">Cumulatief maximaal haalbaar t/m ronde ${Math.max(...rondes)}</div>
       <div style="font-family:'Jost';font-size:28px;font-weight:700;color:var(--accent);">${data.totaal} pnt</div>
       <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Berekend ${data.methode==='achteruit'?'van ronde ' + Math.max(...rondes) + ' terug naar ronde 1':'van ronde 1 vooruit naar ronde ' + Math.max(...rondes)} (beste van de twee) — vooruit gaf ${data.vooruitTotaal} pnt, achteruit gaf ${data.achteruitTotaal} pnt.</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-      <span style="font-family:'Inter';font-size:12px;color:var(--text-dim);">Bekijk ronde:</span>
-      <select onchange="setPerfectTeamRonde(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 10px;font-family:'Inter';font-size:12px;">
-        ${rondes.map(rr=>`<option value="${rr}" ${r===rr?'selected':''}>Ronde ${rr}</option>`).join('')}
-      </select>
     </div>
     ${!huidige ? '' : `
     <div style="display:flex;gap:10px;margin-bottom:14px;">
@@ -12444,7 +12444,7 @@ function renderWeekTab(){
     body = renderPerfectTeamTab();
   }
   return `
-    ${!noData && state.tab!=='week_potentieel' ? renderWeekRoundSelector() : ''}
+    ${!noData && state.tab!=='week_potentieel' && state.tab!=='week_perfectteam' ? renderWeekRoundSelector() : ''}
     ${body}
   `;
 }
