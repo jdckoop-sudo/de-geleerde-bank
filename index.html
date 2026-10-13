@@ -1091,6 +1091,17 @@
   body.wa .section-title{color:var(--sec,var(--text-dim));}
   body.wa .section-title .line{background:color-mix(in srgb, var(--sec,var(--line)) 35%, transparent);}
   body.wa .side-kop{color:var(--sec,var(--text-dim));}
+  .ws-swap{font-family:'Inter';font-size:12px;line-height:1.5;white-space:nowrap;}
+  .ws-swap .ws-uit{color:var(--danger);text-decoration:line-through;text-decoration-thickness:1px;}
+  .ws-swap .ws-in{color:var(--def);}
+  .ws-swap small{color:var(--text-dim);font-size:10.5px;}
+  .ws-swap.plan{color:var(--text-dim);}
+  .round-switch{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 14px;}
+  .round-switch select{background:var(--surface);border:1px solid var(--line);border-radius:10px;color:var(--text);padding:7px 10px;font-family:'Inter';font-size:13px;font-weight:600;}
+  .rs-btn{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .rs-btn:disabled{opacity:.35;cursor:default;}
+  .rs-hint{font-family:'Inter';font-size:12px;color:var(--text-dim);}
+  @media (max-width:760px){ .rs-hint{display:none;} }
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -4111,6 +4122,51 @@ async function downloadTeamScreenshot(theme){
     holder.remove();
   }
 }
+// Mijn Team: terugbladeren naar een gespeelde ronde (team + punten van toen), 13-10-2026
+function teamHistoryRounds(){
+  const c = state.followedCoach; if(!c) return [];
+  return Object.keys(CASTING_COUCH_TEAM_SQUADS).map(Number).filter(r=>CASTING_COUCH_TEAM_SQUADS[r][c] && SEASON_2627_SNAPSHOTS[r]).sort((a,b)=>a-b);
+}
+function setTeamViewRound(r){ state.teamViewRound = r ? Number(r) : null; render(); }
+function stepTeamViewRound(dir){
+  const rs = teamHistoryRounds(); if(!rs.length) return;
+  const cur = state.teamViewRound;
+  if(cur==null){ if(dir<0) setTeamViewRound(rs[rs.length-1]); return; }
+  const i = rs.indexOf(cur)+dir;
+  setTeamViewRound(i>=rs.length ? null : i<0 ? rs[0] : rs[i]);
+}
+function renderTeamRoundSwitch(){
+  if(state.mode!=='real') return '';
+  const rs = teamHistoryRounds();
+  if(!rs.length) return '';
+  const cur = state.teamViewRound;
+  return `<div class="round-switch">
+    <button class="rs-btn" onclick="stepTeamViewRound(-1)" ${cur!=null && cur===rs[0]?'disabled':''} title="Vorige ronde">${icon('back',14)}</button>
+    <select onchange="setTeamViewRound(this.value)">
+      <option value="" ${cur==null?'selected':''}>Huidig team</option>
+      ${rs.slice().reverse().map(r=>`<option value="${r}" ${cur===r?'selected':''}>Ronde ${r} — ${(LEAGUE_ROUND_SNAPSHOTS[r]&&CASTING_COUCH_COACHES.find(c=>c.coach===state.followedCoach)&&LEAGUE_ROUND_SNAPSHOTS[r].standings[CASTING_COUCH_COACHES.find(c=>c.coach===state.followedCoach).team]||{}).ronde ?? '?'} pnt</option>`).join('')}
+    </select>
+    <button class="rs-btn" onclick="stepTeamViewRound(1)" ${cur==null?'disabled':''} title="Volgende ronde"><span style="display:inline-flex;transform:scaleX(-1);">${icon('back',14)}</span></button>
+    ${cur!=null ? `<button class="btn ghost" style="padding:6px 12px;font-size:12px;" onclick="setTeamViewRound(null)">Terug naar huidig team</button>` : `<span class="rs-hint">Blader terug om je team en punten van eerdere rondes te zien</span>`}
+  </div>`;
+}
+function renderTeamHistoryRound(r){
+  const coach = state.followedCoach;
+  const data = CASTING_COUCH_TEAM_SQUADS[r] && CASTING_COUCH_TEAM_SQUADS[r][coach];
+  if(!data) return `<div class="news-note">Geen team bekend voor ronde ${r}.</div>`;
+  const snap = SEASON_2627_SNAPSHOTS[r];
+  const perPlayer = data.squad.map(x=>({...x, points: snap && snap.playerRoundPoints ? (snap.playerRoundPoints[x.key]||0) : 0}));
+  const cc = CASTING_COUCH_COACHES.find(c=>c.coach===coach);
+  const st = cc && LEAGUE_ROUND_SNAPSHOTS[r] ? LEAGUE_ROUND_SNAPSHOTS[r].standings[cc.team] : null;
+  const pos = st ? (()=>{ const arr=Object.entries(LEAGUE_ROUND_SNAPSHOTS[r].standings).sort((a,b)=>b[1].ronde-a[1].ronde); return arr.findIndex(([t])=>t===cc.team)+1; })() : null;
+  const transfer = r>=2 ? computeCoachTransfer(coach, r) : null;
+  const side = `<div class="side-card side-total">
+      <div class="side-kop">Ronde ${r} — officieel</div>
+      <div class="side-big">${st?st.ronde:'?'}<span>pnt</span></div>
+      <div class="side-sub">${st?`Totaal na deze ronde: <b>${st.totaal}</b> · ${pos}e van ${Object.keys(LEAGUE_ROUND_SNAPSHOTS[r].standings).length} in Casting Couch die ronde${st.positieAlgemeenKlassement?` · algemeen ${st.positieAlgemeenKlassement}e`:''}`:'Officieel totaal onbekend'}</div>
+    </div>${coachTransferSideCard(transfer)}`;
+  return renderFantasySquadPitch(perPlayer, r, 'groen', `${data.team} · ${data.formatie}`, side);
+}
 function renderTeamTab(){
   const defs = slotDefs();
   const total = squadTotalPrice();
@@ -4217,7 +4273,8 @@ function renderTeamTab(){
         </div>
       </div>`;
     })() : ''}
-    <div class="team-layout"><div class="team-main">
+    ${renderTeamRoundSwitch()}
+    ${state.teamViewRound ? renderTeamHistoryRound(state.teamViewRound) : `    <div class="team-layout"><div class="team-main">
     ${renderMissingClubsPanel()}
     ${state.teamView==='pitch' ? renderPitchView(basis, reserve) : `
     <div class="lcard"><div class="lcard-head">Basis <small>${state.formation}</small></div>${basis.map(slotHtml).join('')}</div>
@@ -4229,6 +4286,7 @@ function renderTeamTab(){
       ${renderPointsStatsCards()}
       ${renderRoundEstimateCard()}
     </aside></div>
+`}
     <div style="margin-top:28px;">${renderScoutingWatchlist()}</div>
     <div style="margin-top:28px;">${renderHeadToHead()}</div>
   `;
@@ -6338,6 +6396,24 @@ function renderCalendarTab(){
 // mag doen (normaal 1, bij een periode-start 3 — zie windowAllowanceForRound/PERIOD_FIRST_ROUND).
 // Losse tab naast de Kalender omdat de kalender-badges pas zichtbaar zijn als je toevallig de
 // juiste maand open hebt staan; hier staat het hele seizoen in één overzichtelijke tabel.
+// Gemaakte (en geplande) wissels per ronde voor de gevolgde coach.
+function wisselCel(r){
+  const coach = state.followedCoach;
+  const gepland = state.mode==='real' ? (state.scheduledSwaps||[]).filter(x=>x.round===r) : [];
+  const geplandHtml = gepland.map(x=>{ const d=slotDefs().find(dd=>dd.id===x.slotId); const cur=state.squad[x.slotId]; return `<div class="ws-swap plan">${icon('clock',11)} gepland: ${cur?pitchSurname(cur.Speler):'lege plek'} → <b>${pitchSurname(x.playerName)}</b></div>`; }).join('');
+  if(!coach) return geplandHtml || '<span style="color:var(--text-dim);">kies een coach</span>';
+  const squads = CASTING_COUCH_TEAM_SQUADS[r];
+  if(!squads || !squads[coach]) return geplandHtml || '<span style="color:var(--text-dim);">—</span>';
+  if(r===1 || !CASTING_COUCH_TEAM_SQUADS[r-1] || !CASTING_COUCH_TEAM_SQUADS[r-1][coach]) return `<span style="color:var(--text-dim);">startteam</span>`;
+  const t = computeCoachTransfer(coach, r);
+  if(!t || (!t.uit.length && !t.erin.length)) return `<span style="color:var(--text-dim);">geen wissel</span>${geplandHtml}`;
+  const posOrder = s=>POS_ORDER.indexOf(s.pos);
+  const uit = t.uit.slice().sort((a,b)=>posOrder(a)-posOrder(b)), erin = t.erin.slice().sort((a,b)=>posOrder(a)-posOrder(b));
+  const n = Math.max(uit.length, erin.length);
+  const regels = [];
+  for(let i=0;i<n;i++){ const a=uit[i], b=erin[i]; regels.push(`<div class="ws-swap"><span class="ws-uit">${a?pitchSurname(a.naam):'—'}</span> → <b class="ws-in">${b?pitchSurname(b.naam):'—'}</b>${b?` <small>${b.club}</small>`:''}</div>`); }
+  return regels.join('') + geplandHtml;
+}
 function renderWisselschemaTab(){
   const effRound = effectiveRoundNumber();
   const todayStr = effectiveTodayStr();
@@ -6356,7 +6432,7 @@ function renderWisselschemaTab(){
   return `
     <div class="news-note">${icon('refresh',13)} Overzicht van elke Eredivisie-speelronde dit seizoen: de speeldata en hoeveel wissels je die ronde in Casting Couch mag doen. Normaal mag je <b>1</b> wissel per ronde; bij een periode-start (gemarkeerd) mag je <b>3</b> wissels doen. Ronde 1 (en de voorbereiding daarvoor) is onbeperkt wisselen.</div>
     <div style="overflow-x:auto;"><table class="stat-table">
-      <thead><tr><th>Ronde</th><th>Eerste speeldag</th><th>Laatste speeldag</th><th>Wedstrijden</th><th>Wissels toegestaan</th><th>Status</th></tr></thead>
+      <thead><tr><th>Ronde</th><th>Eerste speeldag</th><th>Laatste speeldag</th><th>Wedstrijden</th><th>Wissels toegestaan</th><th>Jouw wissels${state.followedCoach?` <span style="font-weight:400;text-transform:none;">(${state.followedCoach})</span>`:''}</th><th>Status</th></tr></thead>
       <tbody>
         ${rows.map(row=>`
           <tr style="${row.isCurrent?`background:var(--surface-2);`:''}${row.isPeriod?`border-left:3px solid var(--accent);`:''}">
@@ -6365,6 +6441,7 @@ function renderWisselschemaTab(){
             <td>${row.lastDate && row.lastDate!==row.firstDate?fmtDate(row.lastDate):'—'}</td>
             <td>${row.nMatches||'—'}</td>
             <td>${row.unlimited ? `<b style="color:var(--accent);">onbeperkt</b>` : `<b style="color:${row.isPeriod?'var(--accent)':'var(--text)'};">${row.allowance}</b>${row.isPeriod?' <span style="font-size:10px;color:var(--text-dim);">(periodewissel)</span>':''}`}</td>
+            <td>${wisselCel(row.r)}</td>
             <td style="font-size:11px;color:var(--text-dim);">${row.isCurrent?'<b style="color:var(--accent);">huidige ronde</b>':row.isPast?'gespeeld':'nog te spelen'}</td>
           </tr>
         `).join('')}
@@ -11088,7 +11165,8 @@ function castingCouchWeekGapInfo(round){
   const teams = CASTING_COUCH_TEAM_SQUADS[round];
   if(!teams) return null;
   const officialTotals = (coachName, info) => { const s = LEAGUE_ROUND_SNAPSHOTS[round]; return s && s.standings[info.team] ? s.standings[info.team].ronde : null; };
-  const rows = computeCoachWeekScores(round, teams, officialTotals);
+  const echteTeams = Object.fromEntries(Object.entries(teams).filter(([c])=>!c.startsWith('__')));
+  const rows = computeCoachWeekScores(round, echteTeams, officialTotals);
   if(!rows || !rows.length) return null;
   return {topScore: rows[0].total, topName: rows[0].coach};
 }
