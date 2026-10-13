@@ -1071,6 +1071,26 @@
   .int-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Inter';font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim);vertical-align:middle;white-space:nowrap;}
   .int-badge.act{border-color:var(--accent);color:var(--accent);}
   .int-badge.jeugd{font-weight:600;}
+  /* Kleurvlakken uit de staal: zijmenu, werkbalken, sectiekoppen (13-10-2026) */
+  body.wa .nav2{background:var(--nav-bg,var(--bg-alt)) !important;border-right:none !important;}
+  body.wa .nav2-title{color:var(--nav-text,var(--text)) !important;}
+  body.wa .nav2-sub{color:var(--nav-dim,var(--text-dim)) !important;}
+  body.wa .nav2-rule{background:var(--nav-act,var(--accent)) !important;}
+  body.wa .nav2-btn{color:var(--nav-dim,var(--text-dim)) !important;}
+  body.wa .nav2-btn:hover{background:color-mix(in srgb, var(--nav-text,#fff) 10%, transparent) !important;color:var(--nav-text,var(--text)) !important;}
+  body.wa .nav2-btn.active{background:var(--nav-act,var(--accent)) !important;color:var(--nav-act-text,var(--on-accent)) !important;font-weight:600;}
+  body.wa .nav2-btn.active .icon-wrap{color:var(--nav-act-text,var(--on-accent)) !important;}
+  body.wa .nav2-btn.active::before{display:none;}
+  body.wa .nav2-foot{border-top-color:color-mix(in srgb, var(--nav-text,#fff) 18%, transparent) !important;}
+  @media (max-width:760px){
+    body.wa .mnav{background:var(--nav-bg,var(--bg-alt)) !important;border-top:none !important;}
+    body.wa .mnav-btn{color:var(--nav-dim,var(--text-dim)) !important;}
+    body.wa .mnav-btn.active{background:var(--nav-act,var(--accent)) !important;color:var(--nav-act-text,var(--on-accent)) !important;}
+  }
+  body.wa main > .toolbar, body.wa .team-bar, body.wa .overig-ronde, body.wa .tow-forms-box{background:var(--zone-bg,var(--bg-alt)) !important;border-color:var(--zone-line,var(--line)) !important;}
+  body.wa .section-title{color:var(--sec,var(--text-dim));}
+  body.wa .section-title .line{background:color-mix(in srgb, var(--sec,var(--line)) 35%, transparent);}
+  body.wa .side-kop{color:var(--sec,var(--text-dim));}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -2859,6 +2879,26 @@ const WA_PITCH = {
 (function(){
   const css = Object.entries(WA_PITCH).map(([id,c])=>`body.wa-${id}, .wa-export.wa-${id}{--pitch-a:${c.a};--pitch-b:${c.b};--pitch-alt-a:${c.altA};--pitch-alt-b:${c.altB};--pitch-line:${c.line};}`).join('\n');
   document.head.insertAdjacentHTML('beforeend', `<style id="wa-pitch-colors">${css}</style>`);
+})();
+// Extra kleurvlakken per thema (13-10-2026): zijmenu (nav), filter-/werkbalken (zone) en sectiekoppen (sec),
+// elk uit een andere kleur van de staal; aparte waarden voor licht en donker.
+const WA_ZONES = {
+  'rushmore-donker':  {nav:'#173A2B', navText:'#F1E7D3', navDim:'#A9C4B4', act:'#D9B25F', actText:'#1B1830', zone:'#3A2B33', zoneLine:'#DEB08E55', sec:'#DEB08E'},
+  'rushmore-licht':   {nav:'#26213F', navText:'#F1E7D3', navDim:'#B7B0CC', act:'#D9B25F', actText:'#26213F', zone:'#F3DCC6', zoneLine:'#DEB08E', sec:'#2E6A4F'},
+  'tenenbaums-donker':{nav:'#3A2414', navText:'#F1E6E7', navDim:'#CDB4A6', act:'#C8321E', actText:'#FFFFFF', zone:'#1F3A47', zoneLine:'#A7C9D755', sec:'#A7C9D7'},
+  'tenenbaums-licht': {nav:'#575B80', navText:'#FFFFFF', navDim:'#D8D9EA', act:'#C8321E', actText:'#FFFFFF', zone:'#DCEAF0', zoneLine:'#A7C9D7', sec:'#8E4C18'},
+  'aquatic-donker':   {nav:'#3D1A0E', navText:'#F4EEDC', navDim:'#D9B9A6', act:'#DDBE3A', actText:'#0E2633', zone:'#3A3112', zoneLine:'#D29A1E66', sec:'#D29A1E'},
+  'aquatic-licht':    {nav:'#2F6F8E', navText:'#FFFFFF', navDim:'#E3EFF5', act:'#DDBE3A', actText:'#0E2633', zone:'#F7EDC0', zoneLine:'#DDBE3A', sec:'#B42D0E'},
+  'darjeeling-donker':{nav:'#3D1D0C', navText:'#F7EDDC', navDim:'#DDBFA5', act:'#E59C25', actText:'#0C2A25', zone:'#12324A', zoneLine:'#5FACCF55', sec:'#5FACCF'},
+  'darjeeling-licht': {nav:'#0B6E5B', navText:'#FFFFFF', navDim:'#D5F0E9', act:'#E59C25', actText:'#1E1A16', zone:'#DCEFF7', zoneLine:'#5FACCF', sec:'#A34E0E'},
+  'mrfox-donker':     {nav:'#3E0E12', navText:'#F6E9D4', navDim:'#D6B5AA', act:'#E0C31F', actText:'#24170F', zone:'#16314A', zoneLine:'#4F9AC455', sec:'#4F9AC4'},
+  'mrfox-licht':      {nav:'#951D25', navText:'#F6E9D4', navDim:'#EBC9C2', act:'#E0C31F', actText:'#24170F', zone:'#F8EDB5', zoneLine:'#E0C31F', sec:'#24668C'},
+  'moonrise-donker':  {nav:'#1E3530', navText:'#F2E6CF', navDim:'#AFC7BF', act:'#E4B21A', actText:'#2A1214', zone:'#3A2E14', zoneLine:'#97743166', sec:'#87B1A5'},
+  'moonrise-licht':   {nav:'#87B1A5', navText:'#1F2A27', navDim:'#2E423E', act:'#8B1A1E', actText:'#FFFFFF', zone:'#EADBC0', zoneLine:'#977431', sec:'#8B1A1E'},
+};
+(function(){
+  const css = Object.entries(WA_ZONES).map(([k,z])=>`body.wa-${k}{--nav-bg:${z.nav};--nav-text:${z.navText};--nav-dim:${z.navDim};--nav-act:${z.act};--nav-act-text:${z.actText};--zone-bg:${z.zone};--zone-line:${z.zoneLine};--sec:${z.sec};}`).join('\n');
+  document.head.insertAdjacentHTML('beforeend', `<style id="wa-zone-colors">${css}</style>`);
 })();
 const WA_THEMES = [
   {id:'rushmore', label:'Rushmore', mode:'donker', swatch:['#D9B25F','#DEB08E','#2E6A4F','#26213F','#D33A2C']},
