@@ -2947,12 +2947,13 @@ function matchRoundNumber(matchId){
   return m ? parseInt(m[1]) : null;
 }
 // Key-wissel-assists: een invaller die, ná zijn eigen wissel-moment, een assist gaf bij een doelpunt.
-// Live berekend uit MATCHES (subs + goals.assist), analoog aan COACH_KEY_SUBS (die doelpunten dekt).
+// Live berekend uit MATCHES (subs + goals.assist), analoog aan computeKeyGoalSubs (die doelpunten dekt).
 function computeKeyAssistSubs(){
   if(typeof MATCHES === 'undefined') return [];
   const out = [];
   MATCHES.forEach(m=>{
     if(m.homeScore==null || !m.subs || !m.subs.length) return;
+    if(m.type!=='Eredivisie' || matchRoundNumber(m.id)==null) return;
     const subbedIn = {}; // naam -> minuut erin
     m.subs.forEach(s=>{ subbedIn[s.in] = parseInt(String(s.minuteIn!=null?s.minuteIn:s.minute).split('+')[0]); });
     (m.goals||[]).forEach(g=>{
@@ -7296,8 +7297,44 @@ function renderParelsTab(){
 
 
 const CLUB_COACH = {"Fortuna Sittard": "D. Buijs", "AZ": "L. Echteld", "Sparta Rotterdam": "R. Meijer", "FC Utrecht": "A. Correia", "sc Heerenveen": "R. Veldman", "PEC Zwolle": "H. van der Vegt", "Go Ahead Eagles": "J. Oosting", "ADO Den Haag": "R. Peter", "PSV": "P. Bosz", "FC Groningen": "D. Lukkien", "SC Cambuur": "J. Plat", "Feyenoord": "G. van Bronckhorst", "Excelsior": "R. den Uil", "N.E.C.": "D. Schreuder", "Willem II": "J. Stegeman", "Telstar": "H. Brugge", "Ajax": "M. Michel", "FC Twente": "J. van den Brom"};
-const COACH_MATCH_STATS = {"D. Buijs": {club:"Fortuna Sittard", win:2, draw:1, loss:1, points:7, keySubs:2, played:4}, "L. Echteld": {club:"AZ", win:4, draw:0, loss:0, points:12, keySubs:4, played:4}, "R. Meijer": {club:"Sparta Rotterdam", win:2, draw:1, loss:2, points:7, keySubs:2, played:5}, "A. Correia": {club:"FC Utrecht", win:2, draw:1, loss:3, points:7, keySubs:2, played:6}, "R. Veldman": {club:"sc Heerenveen", win:1, draw:2, loss:1, points:5, keySubs:2, played:4}, "H. van der Vegt": {club:"PEC Zwolle", win:1, draw:0, loss:4, points:3, keySubs:0, played:5}, "J. Oosting": {club:"Go Ahead Eagles", win:2, draw:1, loss:1, points:7, keySubs:2, played:4}, "R. Peter": {club:"ADO Den Haag", win:0, draw:1, loss:3, points:1, keySubs:0, played:4}, "P. Bosz": {club:"PSV", win:3, draw:1, loss:0, points:10, keySubs:1, played:4}, "D. Lukkien": {club:"FC Groningen", win:2, draw:0, loss:2, points:6, keySubs:1, played:4}, "J. Plat": {club:"SC Cambuur", win:0, draw:0, loss:6, points:0, keySubs:1, played:6}, "G. van Bronckhorst": {club:"Feyenoord", win:2, draw:2, loss:0, points:8, keySubs:0, played:4}, "R. den Uil": {club:"Excelsior", win:3, draw:0, loss:1, points:9, keySubs:1, played:4}, "D. Schreuder": {club:"N.E.C.", win:2, draw:0, loss:1, points:6, keySubs:2, played:3}, "J. Stegeman": {club:"Willem II", win:0, draw:1, loss:2, points:1, keySubs:1, played:3}, "H. Brugge": {club:"Telstar", win:1, draw:0, loss:3, points:3, keySubs:0, played:4}, "M. Michel": {club:"Ajax", win:2, draw:1, loss:0, points:7, keySubs:3, played:3}, "J. van den Brom": {club:"FC Twente", win:2, draw:0, loss:1, points:6, keySubs:0, played:3}};
-const COACH_KEY_SUBS = [{matchId:"ere_r1_m1", club:"N.E.C.", speler:"Kaj Sierhuis", minuteIn:46, goalMinute:"82"}, {matchId:"ere_r1_m2", club:"Go Ahead Eagles", speler:"Erik Flataker", minuteIn:62, goalMinute:"63"}, {matchId:"ere_r1_m3", club:"Fortuna Sittard", speler:"Édouard Michut", minuteIn:60, goalMinute:"91"}, {matchId:"ere_r1_m4", club:"AZ", speler:"Calvin Stengs", minuteIn:57, goalMinute:"68"}, {matchId:"ere_r1_m6", club:"FC Utrecht", speler:"Adrian Blake", minuteIn:62, goalMinute:"80"}, {matchId:"ere_r1_m7", club:"Ajax", speler:"Jorthy Mokio", minuteIn:61, goalMinute:"76"}, {matchId:"ere_r1_m7", club:"Ajax", speler:"Julian Brandt", minuteIn:61, goalMinute:"91"}, {matchId:"ere_r1_m8", club:"sc Heerenveen", speler:"Luca Oyen", minuteIn:46, goalMinute:"50"}, {matchId:"ere_r2_m9", club:"Sparta Rotterdam", speler:"Robin van Cruijsen", minuteIn:76, goalMinute:"90+7"}, {matchId:"ere_r2_m10", club:"NEC", speler:"Kaj Sierhuis", minuteIn:65, goalMinute:"67"}, {matchId:"ere_r2_m10", club:"Willem II", speler:"Thomas Verheydt", minuteIn:69, goalMinute:"77"}, {matchId:"ere_r2_m11", club:"AZ", speler:"Ayoub Oufkir", minuteIn:81, goalMinute:"84"}, {matchId:"ere_r2_m13", club:"Fortuna Sittard", speler:"Shiloh 't Zand", minuteIn:71, goalMinute:"90+6"}, {matchId:"ere_r2_m14", club:"FC Groningen", speler:"Nils Eggens", minuteIn:80, goalMinute:"81"}, {matchId:"ere_r2_m17", club:"sc Heerenveen", speler:"Maxence Rivera", minuteIn:58, goalMinute:"82"}, {matchId:"ere_r3_m18", club:"AZ", speler:"Jizz Hornkamp", minuteIn:45, goalMinute:"58"}, {matchId:"ere_r3_m18", club:"AZ", speler:"Jizz Hornkamp", minuteIn:45, goalMinute:"90+5"}, {matchId:"ere_r3_m19", club:"Sparta Rotterdam", speler:"Milan Zonneveld", minuteIn:62, goalMinute:"67"}, {matchId:"ere_r3_m19", club:"FC Utrecht", speler:"Adrian Blake", minuteIn:72, goalMinute:"76"}, {matchId:"ere_r3_m22", club:"Go Ahead Eagles", speler:"Stefán Ingi Sigurdarson", minuteIn:75, goalMinute:"90+1"}, {matchId:"ere_r4_m26", club:"Excelsior", speler:"Nesto Groen", minuteIn:67, goalMinute:"90+2"}, {matchId:"ere_r4_m28", club:"N.E.C.", speler:"Perr Schuurs", minuteIn:80, goalMinute:"83"}, {matchId:"ere_r4_m29", club:"PSV", speler:"Sven Mijnans", minuteIn:77, goalMinute:"86"}, {matchId:"ere_r4_m32", club:"Ajax", speler:"Marcos Leonardo", minuteIn:73, goalMinute:"78"}, {matchId:"ere_r4_m33", club:"SC Cambuur", speler:"Ilyes Hamache", minuteIn:85, goalMinute:"88"}];
+// Trainersstatistieken worden sinds 13-10-2026 live berekend uit MATCHES (alle gespeelde rondes),
+// met de trainer per club uit CLUB_COACH. Trainerswissels tijdens het seizoen worden niet bijgehouden.
+let _coachMatchStatsCache = null;
+function getCoachMatchStats(){
+  if(_coachMatchStatsCache) return _coachMatchStatsCache;
+  const out = {};
+  Object.entries(CLUB_COACH).forEach(([club, coach])=>{ out[coach] = {club, win:0, draw:0, loss:0, points:0, keySubs:0, played:0, goalsFor:0, goalsAgainst:0}; });
+  const byClub = {}; Object.values(out).forEach(o=>{ byClub[o.club] = o; });
+  const minNum = v=>parseInt(String(v==null?'':v).split('+')[0]);
+  MATCHES.forEach(m=>{
+    if(m.homeScore==null || m.awayScore==null) return;
+    if(m.type!=='Eredivisie' || matchRoundNumber(m.id)==null) return; // alleen competitiewedstrijden
+    [[m.home, m.homeScore, m.awayScore],[m.away, m.awayScore, m.homeScore]].forEach(([club, gv, gt])=>{
+      const o = byClub[club]; if(!o) return;
+      o.played++; o.goalsFor += gv; o.goalsAgainst += gt;
+      if(gv>gt){ o.win++; o.points += 3; } else if(gv===gt){ o.draw++; o.points += 1; } else o.loss++;
+    });
+  });
+  computeKeyGoalSubs().forEach(k=>{ if(byClub[k.club]) byClub[k.club].keySubs++; });
+  _coachMatchStatsCache = out;
+  return out;
+}
+// Invallers die na hun wissel scoorden — live uit MATCHES (alleen Eredivisie, eigen doelpunten tellen niet).
+function computeKeyGoalSubs(){
+  const out = [];
+  const minNum = v=>parseInt(String(v==null?'':v).split('+')[0]);
+  MATCHES.forEach(m=>{
+    if(m.homeScore==null || m.type!=='Eredivisie' || matchRoundNumber(m.id)==null) return;
+    const subbedIn = {};
+    (m.subs||[]).forEach(sb=>{ subbedIn[sb.in+'|'+sb.team] = minNum(sb.minuteIn!=null?sb.minuteIn:sb.minute); });
+    (m.goals||[]).forEach(g=>{
+      if(g.ownGoal) return;
+      const k = g.player+'|'+g.team;
+      if(k in subbedIn && minNum(g.minute) >= subbedIn[k]) out.push({matchId:m.id, club:g.team, speler:g.player, minuteIn:subbedIn[k], goalMinute:g.minute});
+    });
+  });
+  return out;
+}
 
 const RANK_GROUPS = [
   {key:'Algemeen', label:'Algemeen', pos:null, icon:'trophy'},
@@ -7485,7 +7522,7 @@ function renderCoachRankContent(){
   const keyAssistSubs = computeKeyAssistSubs();
   const keyAssistCounts = {}; // club -> aantal
   keyAssistSubs.forEach(k=>{ keyAssistCounts[k.club] = (keyAssistCounts[k.club]||0)+1; });
-  const rows = Object.entries(COACH_MATCH_STATS).map(([coach,s])=>({coach, ...s, keyAssistSubs: keyAssistCounts[s.club]||0}));
+  const rows = Object.entries(getCoachMatchStats()).map(([coach,s])=>({coach, ...s, keyAssistSubs: keyAssistCounts[s.club]||0}));
   const q = normSearch(state.rankHighlight);
   function card(title, field, ascending){
     const sorted = [...rows].sort((a,b)=> ascending ? a[field]-b[field] : b[field]-a[field]);
@@ -7506,7 +7543,7 @@ function renderCoachRankContent(){
     </div>`;
   }
   return `
-    <div class="news-note">Gebaseerd op de trainersnamen uit de per-wedstrijd Excel-exports van ronde 3 en 4 — voor ronde 1-2 was in die bestanden geen trainersnaam vermeld, dus daar is AANGENOMEN dat dezelfde trainer aanbleef (redelijk voor de eerste seizoensweken, maar niet 100% geverifieerd). Wedstrijduitslagen/win-gelijk-verlies zelf zijn wel voor alle 4 rondes uit de brondata gehaald. Punten volgen de gewone competitieregels (winst 3, gelijk 1, verlies 0) — dit zijn GEEN CVHJ-fantasypunten. "Key wissel doelpunten" = een ingevallen speler die na zijn wissel zelf scoorde; "Key wissel assists" = een ingevallen speler die na zijn wissel een assist gaf (over alle 4 rondes). Klik op een titel voor de volledige lijst van alle 18 coaches.</div>
+    <div class="news-note">Bijgewerkt na elke ronde: berekend uit alle gespeelde Eredivisie-wedstrijden in het dashboard (nu t/m ronde ${lastCompletedRound()||'?'}). De trainer per club is de huidige trainer; een trainerswissel tijdens het seizoen wordt niet apart bijgehouden. Punten volgen de competitieregels (winst 3, gelijk 1) — dit zijn géén CVHJ-fantasypunten. "Key wissel doelpunten" = een invaller die na zijn wissel zelf scoorde (eigen doelpunten tellen niet); "Key wissel assists" = een invaller die na zijn wissel een assist gaf. Klik op een titel voor de volledige lijst van alle 18 trainers.</div>
     <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start;">
       ${card('Meeste gewonnen wedstrijden', 'win')}
       ${card('Meeste gelijkgespeeld', 'draw')}
@@ -7515,7 +7552,7 @@ function renderCoachRankContent(){
       ${card('Meeste key wissel doelpunten', 'keySubs')}
       ${card('Meeste key wissel assists', 'keyAssistSubs')}
     </div>
-    ${(COACH_KEY_SUBS.length || keyAssistSubs.length) ? (() => {
+    ${(()=>{ const COACH_KEY_SUBS = computeKeyGoalSubs(); return (COACH_KEY_SUBS.length || keyAssistSubs.length) ? (() => {
       const allTeams = [...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort();
       const rounds = [...new Set([...COACH_KEY_SUBS, ...keyAssistSubs].map(k=>matchRoundNumber(k.matchId)))].filter(r=>r!=null).sort((a,b)=>a-b);
       const filterFn = k => (state.keySubRound==null || matchRoundNumber(k.matchId)===state.keySubRound) && (!state.keySubClub || k.club===state.keySubClub);
@@ -7543,18 +7580,18 @@ function renderCoachRankContent(){
     </div>
     ${filteredGoalSubs.length ? `
     <div style="font-family:'Inter';font-size:11px;color:var(--text-dim);margin-bottom:6px;">Welke invaller scoorde na zijn wissel</div>
-    <div class="table-wrap"><table class="data-table">
+    <div class="table-wrap"><table class="stat-table">
       <thead><tr><th>Ronde</th><th>Speler</th><th>Club</th><th>Tegenstander (uitslag)</th><th>Erin</th><th>Doelpunt</th></tr></thead>
       <tbody>${filteredGoalSubs.map(k=>`<tr><td>${matchRoundNumber(k.matchId)}</td><td>${k.speler}</td><td>${teamLogo(k.club)}${k.club}</td><td>${oppCell(k)}</td><td>${k.minuteIn}'</td><td>${k.goalMinute}'</td></tr>`).join('')}</tbody>
     </table></div>` : `<div class="news-note" style="margin-bottom:16px;">Geen resultaten voor dit filter.</div>`}
     ${filteredAssistSubs.length ? `
     <div style="font-family:'Inter';font-size:11px;color:var(--text-dim);margin:16px 0 6px;">Welke invaller gaf een assist na zijn wissel</div>
-    <div class="table-wrap"><table class="data-table">
+    <div class="table-wrap"><table class="stat-table">
       <thead><tr><th>Ronde</th><th>Speler</th><th>Club</th><th>Tegenstander (uitslag)</th><th>Erin</th><th>Assist bij</th><th>Doelpunt</th></tr></thead>
       <tbody>${filteredAssistSubs.map(k=>`<tr><td>${matchRoundNumber(k.matchId)}</td><td>${k.speler}</td><td>${teamLogo(k.club)}${k.club}</td><td>${oppCell(k)}</td><td>${k.minuteIn}'</td><td>${k.scorer}</td><td>${k.goalMinute}'</td></tr>`).join('')}</tbody>
     </table></div>` : `<div class="news-note">Geen resultaten voor dit filter.</div>`}
       `;
-    })() : ''}
+    })() : ''; })()}
   `;
 }
 
@@ -14154,7 +14191,7 @@ function openCoachStatModal(title, field, ascending){
   const keyAssistSubs = computeKeyAssistSubs();
   const keyAssistCounts = {};
   keyAssistSubs.forEach(k=>{ keyAssistCounts[k.club] = (keyAssistCounts[k.club]||0)+1; });
-  const rows = Object.entries(COACH_MATCH_STATS).map(([coach,s])=>({
+  const rows = Object.entries(getCoachMatchStats()).map(([coach,s])=>({
     naam:coach, club:s.club, sub:`${s.played} gespeeld`,
     val: field==='keyAssistSubs' ? (keyAssistCounts[s.club]||0) : s[field],
   }));
@@ -14168,7 +14205,7 @@ function openCoachProfileModal(naam){
 }
 function renderCoachProfileModal(){
   const naam = state.modal.naam;
-  const stats = COACH_MATCH_STATS[naam];
+  const stats = getCoachMatchStats()[naam];
   if(!stats){
     return `<div class="overlay" onclick="if(event.target===this) closeModal()"><div class="box">
       <div class="head"><h4>${naam}</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
@@ -14177,7 +14214,7 @@ function renderCoachProfileModal(){
   }
   const club = stats.club;
   // Alle wedstrijden van deze coach se club, met per wedstrijd het aantal wissels dat de club zelf maakte.
-  const clubMatches = MATCHES.filter(m=>(m.home===club || m.away===club) && m.homeScore!=null && matchRoundNumber(m.id)!=null)
+  const clubMatches = MATCHES.filter(m=>(m.home===club || m.away===club) && m.homeScore!=null && m.type==='Eredivisie' && matchRoundNumber(m.id)!=null)
     .sort((a,b)=>(matchRoundNumber(b.id)||0)-(matchRoundNumber(a.id)||0));
   let totalSubsMade = 0;
   const subPairCounts = {}; // "Uit -> In" -> aantal
@@ -14215,7 +14252,7 @@ function renderCoachProfileModal(){
           ${topSubs.map(s=>`<div class="news-note" style="margin-bottom:6px;">${icon('refresh',12)} ${s}</div>`).join('')}
         </div>` : `<div class="news-note" style="margin-bottom:16px;">Geen wissel meerdere keren herhaald — elke wissel deze coach maakte was (tot nu toe) uniek.</div>`}
         <div class="section-title"><span>Gespeelde wedstrijden</span><span class="line"></span></div>
-        <div class="table-wrap"><table class="data-table">
+        <div class="table-wrap"><table class="stat-table">
           <thead><tr><th>Ronde</th><th>Wedstrijd</th><th>Uitslag</th><th>Wissels</th></tr></thead>
           <tbody>${matchRows.map(m=>`<tr>
             <td>${m.round!=null?m.round:'—'}</td>
