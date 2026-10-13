@@ -459,6 +459,10 @@
     background:radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--pos-color) 35%, transparent), var(--surface-2) 75%);
     border:2px solid var(--pos-color);}
   .player-photo img{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:100%;width:auto;display:block;}
+  .pp-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:4px 0 16px;scrollbar-width:none;}
+  .pp-tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:'Oswald';font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:9px 12px;cursor:pointer;white-space:nowrap;}
+  .pp-tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .pp-tabs button:hover{color:var(--text);}
   .player-photo .pos-chip{position:absolute;left:4px;bottom:4px;font-size:9.5px;padding:2px 6px;box-shadow:0 1px 4px rgba(0,0,0,0.4);}
   .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
   .stat-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;}
@@ -10540,97 +10544,267 @@ function renderPlayerModal(){
   const {name, team, fromSlot} = state.modal;
   const p = PLAYERS.find(pl=>pl.Speler===name && pl.Team===team);
   if(!p) return '';
-  const color = POS_COLOR[p.Positie];
   if(!state.modal.season){
     state.modal.season = latestSeasonData(p).season || '2025/26';
   }
+  if(!state.modal.ptab) state.modal.ptab = 'overzicht';
+  const tab = state.modal.ptab;
   const sel = state.modal.season;
   const d = seasonDataForSeason(p, sel);
   const isGK = p.Positie==='Goalkeeper';
   const inj = findInjury(p.Speler, p.Team);
   const canAdd = !fromSlot && canAddPlayerToTeam(p);
+  let inhoud = '';
+  if(tab==='overzicht') inhoud = renderPlayerOverviewTab(p);
+  else if(tab==='punten') inhoud = renderPlayerPointsTab(p, sel, d, isGK);
+  else if(tab==='wedstrijden') inhoud = `${renderOpponentsHtml(p)}${renderPlayerRoundChart(p)}${renderPlayerRoundTable(p)}`;
+  else if(tab==='statistieken') inhoud = renderPlayerOverigeStatsSection(p) || `<div class="news-note">Nog geen voetbal.com-statistieken voor deze speler.</div>`;
+  else if(tab==='blessures') inhoud = `
+        ${inj ? `<div class="news-note" style="border-color:var(--danger);">${inj.Status==='Geschorst'?icon('x',12):inj.Status==='Twijfelgeval'?icon('warning',12):icon('x',13)} <b>${inj.Status}</b> — ${inj.Type}${inj.Sinds?` (sinds ${inj.Sinds})`:''}. Verwachte terugkeer: ${inj.Terugkeer}. (bron: fcupdate.nl, laatste update ${inj.LaatsteUpdate})</div>` : `<div class="news-note" style="margin-bottom:12px;">${icon('info',12)} Staat nu niet op de blessure- of schorsingenlijst.</div>`}
+        ${renderPlayerInjuryIndexSection(p)}
+        <div class="stat-grid">
+          ${statTile(playerInjuryHistory(p.Speler, p.Team).length, 'Keer geblesseerd (dit seizoen)', {alwaysShow:true, key:'InjuryHistory'})}
+          ${statTile(playerSuspensionHistory(p.Speler, p.Team).length, 'Keer geschorst (dit seizoen)', {alwaysShow:true, key:'SuspensionHistory'})}
+        </div>
+        ${renderStatDetailPanel(p, '2026/27')}`;
+  else if(tab==='notitie') inhoud = `
+        <div class="section-title" style="margin-top:0;"><span>Eigen notitie</span><span class="line"></span></div>
+        <textarea id="note-input" placeholder="Eigen aantekening over deze speler..." style="width:100%;min-height:90px;background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:'Inter';font-size:13px;padding:10px;margin-bottom:8px;">${getNote(p)}</textarea>
+        <button class="btn ghost" style="margin-bottom:14px;" onclick="savePlayerNote('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">Notitie opslaan</button>
+        <div><a href="https://www.transfermarkt.nl/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(p.Speler)}" target="_blank" rel="noopener" class="tm-link">${icon('link',12)} Bekijk ${p.Speler} op Transfermarkt.nl</a></div>`;
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
-    <div class="box">
+    <div class="box" style="max-width:980px;width:min(980px,96vw);">
       <div class="head"><h4>Spelerprofiel</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
       <div class="body-scroll">
-        ${canAdd ? `<button class="btn primary" style="width:100%;margin-bottom:14px;" onclick="quickAdd('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${icon('shirt',15)} Toevoegen aan team</button>` : ''}
-        <div class="player-head">
-          ${(()=>{ const ph = playerPhoto(p.Speler); return ph
-            ? `<div class="player-photo" style="--pos-color:${color};"><img src="${ph}" alt="${p.Speler.replace(/"/g,'&quot;')}"><span class="pos-chip" style="background:${color}">${POS_SHORT[p.Positie]}</span></div>`
-            : `<span class="pos-chip" style="background:${color}">${POS_SHORT[p.Positie]}</span>`; })()}
-          <div><h2>${p.Speler} ${injuryBadge(inj)} ${penaltyIconHtml(p.Speler, p.Team, 16)}${cornerIconHtml(p.Speler, p.Team, 16)}${freekickIconHtml(p.Speler, p.Team, 16)} ${RUGNUMMERS[p.Speler+'|'+p.Team] ? `<span style="font-family:'JetBrains Mono';font-size:14px;color:var(--text-dim);font-weight:600;">#${RUGNUMMERS[p.Speler+'|'+p.Team]}</span>` : ''}</h2><div class="sub">${jerseySvg(p.Team,16)}<a href="#" onclick="closeModal();setTab('clubs');selectClubView('${p.Team.replace(/'/g,"\\'")}');return false;" style="color:var(--accent);text-decoration:none;cursor:pointer;">${teamLogo(p.Team)}${p.Team}</a> · ${fmtEuro(p.Prijs)} · prijs/punt-ratio ${p._strength ?? 'N/A'}% (o.b.v. laatst bekende seizoen)</div>
-          ${(()=>{
-            const key = p.Speler+'|'+p.Team;
-            const natie = NATIONALITEITEN[key]; const rug = RUGNUMMERS[key]; const age = LEEFTIJDEN[key];
-            if(!natie && !rug && age==null) return '';
-            const vlag = natie ? (NATIONALITEIT_VLAG[natie]||'') : '';
-            const bits = [];
-            if(rug) bits.push(`#${rug}`);
-            if(natie) bits.push(`${vlag} ${natie}`);
-            if(age!=null) bits.push(`${age} jaar`);
-            return `<div class="sub" style="margin-top:4px;">${icon('info',11)} ${bits.join(' · ')}</div>`;
-          })()}
-          <div style="margin-top:6px;">${starRatingHtml(p,'lg')}</div></div>
-        </div>
-        ${renderPlayerInjuryIndexSection(p)}
-        <div class="formation-row" style="margin-bottom:10px;">
-          ${SEASON_ORDER.map(s=>`<button class="${sel===s?'active':''}" onclick="setModalSeason('${s}')" ${!seasonDataForSeason(p,s)?'disabled':''} title="${!seasonDataForSeason(p,s)?'Geen data voor dit seizoen':''}">${s}</button>`).join('')}
-        </div>
-        ${d ? `
-        <div style="font-size:12px;color:var(--text-dim);margin:-4px 0 12px;">Speelde in ${sel} voor: ${teamLogo(d.Team||p.Team)}<b style="color:var(--text);">${d.Team||p.Team}</b>${(d.Team||p.Team)!==p.Team?' (nu bij '+p.Team+')':''}</div>
-        <div class="news-note" style="margin-bottom:10px;">${icon('info',11)} Klik op een tegel om te zien in welke wedstrijd(en) die punten zijn ontstaan (2026/27). Categorieën met 0 punten worden niet getoond.</div>
-        <div class="stat-grid">
-          ${statTile(d.Totaal, 'Punten totaal', {alwaysShow:true, key: sel==='2026/27'?'Totaal':null})}
-          ${statTile(d.Minuten, 'Minuten', {alwaysShow:true, key: sel==='2026/27'?'Minuten':null})}
-          ${statTile(d.Gespeeld, 'Wedstrijden', {alwaysShow:true, key: sel==='2026/27'?'Wedstrijden':null})}
-          ${d.GespeeldBasis!=null ? statTile(d.GespeeldBasis, 'Wedstrijden basis', {alwaysShow:true, key: sel==='2026/27'?'GespeeldBasis':null}) : ''}
-          ${d.GespeeldBasis!=null ? statTile(d.GespeeldInvaller, 'Wedstrijden invaller', {alwaysShow:true, key: sel==='2026/27'?'GespeeldInvaller':null}) : ''}
-          ${sel==='2026/27' && d.GoalsCount!=null ? statTile(d.GoalsCount, 'Aantal doelpunten', {alwaysShow:true, key:null}) : ''}
-          ${statTile(d.Goals, 'Punten uit doelpunten', {key:'Goals'})}
-          ${sel==='2026/27' && d.AssistsCount!=null ? statTile(d.AssistsCount, 'Aantal assists', {alwaysShow:true, key:null}) : ''}
-          ${statTile(d.Assists, 'Punten uit assists', {key:'Assists'})}
-          ${sel==='2026/27' ? statTile(invallerGoalsOrAssistsPoints(p,'goals'), 'Doelpunten als invaller', {key:'GoalsInvaller'}) : ''}
-          ${sel==='2026/27' ? statTile(invallerGoalsOrAssistsPoints(p,'assists'), 'Assists als invaller', {key:'AssistsInvaller'}) : ''}
-          ${statTile(d.CleanSheet, 'Punten "de nul gehouden"', {key:'CleanSheet'})}
-          ${sel==='2026/27' ? statTile(computeWinDrawPoints(p).winPts, 'Punten gewonnen wedstrijden', {key:'Gewonnen'}) : ''}
-          ${sel==='2026/27' ? statTile(computeWinDrawPoints(p).drawPts, 'Punten gelijkgespeeld', {key:'Gelijk'}) : ''}
-          ${statTile(d.PenM, "Punten pen. gescoord", {key:'PenM'})}
-          ${statTile(d.PenMis, 'Punten pen. gemist', {key:'PenMis', color:d.PenMis<0?'var(--danger)':null})}
-          ${isGK ? statTile(d.PenGest, 'Punten pen. gestopt', {key:'PenGest'}) : ''}
-          ${isGK ? statTile(d.Reddingen, `Punten reddingen${sel==='2026/27' && d.Reddingen!=null?' (schatting)':''}`, {key:'Reddingen'}) : ''}
-          ${statTile(d.Kaarten, 'Puntenverlies kaarten', {key:'Kaarten', color:d.Kaarten<0?'var(--danger)':null})}
-          ${statTile(playerInjuryHistory(p.Speler, p.Team).length, 'Aantal keer geblesseerd', {key:'InjuryHistory'})}
-          ${statTile(playerSuspensionHistory(p.Speler, p.Team).length, 'Aantal keer geschorst', {key:'SuspensionHistory'})}
-        </div>
-        ${renderStatDetailPanel(p, sel)}
-        ${sel==='2026/27' ? renderPlayerCastingCouchSection(p) : ''}
-        ${sel==='2026/27' ? renderPointsDonut(p) : ''}
-        <div style="font-size:11px;color:var(--text-dim);margin:-8px 0 16px;">Waarden zijn puntenbijdrages volgens het CVHJ-puntensysteem (bijv. clean sheet-punten ÷ 5 = aantal clean sheets als verdediger), geen ruwe telling.${sel==='2026/27' ? ' Voor 2026/27 zijn doelpunten/assists/clean sheets/kaarten/penalty\'s live opgeteld uit de rondedata, inclusief de bevestigde CVHJ-waardes (penalty gescoord = 4 pnt vast, penalty gemist = -2 pnt vast, los van een gewoon doelpunt). "Punten reddingen" is een SCHATTING (schoten op doel tegen − tegengoals per wedstrijd, ÷5 afgerond naar beneden), geen exacte CVHJ-telling — die staat namelijk nergens los vermeld in de wedstrijddata. Penalty gestopt blijft "n.b." (zit niet in de schoten-op-doel-schatting).' : ''}</div>
-        ` : `<div class="news-note">Geen data voor seizoen ${sel}${sel==='2026/27' ? ' — nog geen ronde-data dit seizoen voor deze speler.' : ' — speler zat toen (nog) niet in de Eredivisie-dataset.'}</div>`}
-        ${generatePlayerQuickSummary(p, sel)}
-        ${sel==='2026/27' ? renderPlayerOverigeStatsSection(p) : ''}
-        ${fromSlot ? `<div class="modal-actions" style="margin-bottom:14px;">
-          <button class="btn ghost" onclick="openPicker('${fromSlot}')">Vervangen</button>
-          <button class="btn danger" onclick="removeFromSlot('${fromSlot}');closeModal()">Verwijderen uit team</button>
-        </div>` : ''}
-        ${fromSlot ? benchSwapButtonHtml(fromSlot, p) : ''}
+        ${renderPlayerHero(p)}
+        ${(canAdd || fromSlot) ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+          ${canAdd ? `<button class="btn primary" style="flex:1;min-width:200px;" onclick="quickAdd('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${icon('shirt',15)} Toevoegen aan team</button>` : ''}
+          ${fromSlot ? `<button class="btn ghost" onclick="openPicker('${fromSlot}')">Vervangen</button>
+          <button class="btn danger" onclick="removeFromSlot('${fromSlot}');closeModal()">Verwijderen uit team</button>` : ''}
+        </div>${fromSlot ? benchSwapButtonHtml(fromSlot, p) : ''}` : ''}
         ${p.former ? `<div class="news-note" style="border-color:#9B6BC4;">${icon('clock',14)} Deze speler zit niet meer in de huidige Eredivisie-spelerspool (2026/27) — hij komt hier alleen naar voren bij het bekijken van 2025/26 of 2024/25, en kan niet aan je team worden toegevoegd.</div>` : ''}
         ${p.transferHistory && p.transferHistory.length ? `<div class="news-note">${icon('refresh',12)} Transfer: ${p.transferHistory.map(t=>`${teamLogo(t.from)}${t.from} → ${teamLogo(t.to)}${t.to} (sinds seizoen ${t.season})`).join(' · ')}</div>` : ''}
-        ${generatePlayerSummaryHtml(p, sel)}
-        ${renderOpponentsHtml(p)}
-        ${renderPlayerRoundChart(p)}
-        <div class="news-note">
-          ${icon('globe',13)} Interlands: ik houd nog niet bij of spelers daadwerkelijk worden opgeroepen voor <b>hun</b> nationale elftal — dat is een toekomstige uitbreiding, te beginnen bij het Nederlands elftal (seizoen 2026/27 loopt inmiddels). Let op: ik heb geen nationaliteitsgegevens per speler — deze teller zou dus alleen relevant zijn als deze speler daadwerkelijk voor Oranje in aanmerking komt, en zegt niets over zijn werkelijke nationaliteit.
+        <div class="pp-tabs" role="tablist">
+          ${PP_TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?'active':''}" onclick="setPlayerTab('${k}')">${l}${k==='blessures'&&inj?' <span style="color:var(--danger);">●</span>':''}</button>`).join('')}
         </div>
-        <a href="https://www.transfermarkt.nl/schnellsuche/ergebnis/schnellsuche?query=${encodeURIComponent(p.Speler)}" target="_blank" rel="noopener" class="tm-link">${icon('link',12)} Bekijk ${p.Speler} op Transfermarkt.nl</a>
-        ${inj ? `<div class="news-note" style="border-color:var(--danger);">${inj.Status==='Geschorst'?icon('x',12):inj.Status==='Twijfelgeval'?icon('warning',12):icon('x',13)} <b>${inj.Status}</b> — ${inj.Type}${inj.Sinds?` (sinds ${inj.Sinds})`:''}. Verwachte terugkeer: ${inj.Terugkeer}. (bron: fcupdate.nl, laatste update ${inj.LaatsteUpdate})</div>` : ''}
-        <div class="section-title"><span>Notitie</span><span class="line"></span></div>
-        <textarea id="note-input" placeholder="Eigen aantekening over deze speler..." style="width:100%;min-height:60px;background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:'Inter';font-size:13px;padding:10px;margin-bottom:8px;">${getNote(p)}</textarea>
-        <button class="btn ghost" style="margin-bottom:14px;" onclick="savePlayerNote('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">Notitie opslaan</button>
-        ${renderAlternatives(p)}
+        ${inhoud}
       </div>
     </div>
   </div>`;
+}
+
+// ==================== SPELERSPROFIEL (revamp 13-10-2026) ====================
+// Kop met foto en kerncijfers, daaronder tabbladen (Overzicht, Punten, Wedstrijden, Statistieken,
+// Blessures, Notitie). Overzicht vergelijkt de speler met positiegenoten (score 1-99 = percentiel
+// binnen dezelfde positie, alleen spelers met minstens 1 wedstrijd in 2026/27).
+const PP_TABS = [['overzicht','Overzicht'],['punten','Punten'],['wedstrijden','Wedstrijden'],['statistieken','Statistieken'],['blessures','Blessures'],['notitie','Notitie']];
+function setPlayerTab(t){ state.modal.ptab = t; render(); const b=document.querySelector('.overlay .body-scroll'); if(b) b.scrollTop=0; }
+let __ppPosCache = null;
+function ppMetrics(p){
+  const d = current2627SeasonData(p);
+  if(!d || !d.Gespeeld) return null;
+  const key = p.Speler+'|'+p.Team;
+  const rounds = availableSnapshotRounds();
+  const last = rounds.slice(-3).map(r=>((SEASON_2627_SNAPSHOTS[r].playerRoundPoints||{})[key])||0);
+  const vorm = last.length ? (last.length===3 ? (3*last[2]+2*last[1]+last[0])/6 : last.reduce((a,b)=>a+b,0)/last.length) : 0;
+  const isAchter = p.Positie==='Goalkeeper' || p.Positie==='Defender';
+  return {
+    ppw: d.Totaal/d.Gespeeld,
+    vorm,
+    minPerRonde: rounds.length ? (d.Minuten||0)/rounds.length : 0,
+    betrokken: isAchter ? ((d.CleanSheet||0)/Math.max(1,CLEANSHEET_PTS_PER[p.Positie]||1))/d.Gespeeld : ((d.GoalsCount||0)+(d.AssistsCount||0))/d.Gespeeld,
+    waarde: p.Prijs ? d.Totaal/p.Prijs : 0,
+    discipline: d.Gespeeld ? (d.Kaarten||0)/d.Gespeeld : 0, // negatief = puntenverlies; hoger = beter
+  };
+}
+function ppPositionPools(){
+  if(__ppPosCache) return __ppPosCache;
+  const pools = {};
+  PLAYERS.filter(p=>!p.former).forEach(p=>{
+    const m = ppMetrics(p); if(!m) return;
+    (pools[p.Positie] = pools[p.Positie] || []).push(m);
+  });
+  __ppPosCache = pools;
+  return pools;
+}
+function ppPercentile(pool, k, v){
+  const vals = pool.map(m=>m[k]);
+  if(vals.length<3 || v==null) return null;
+  const lager = vals.filter(x=>x<v).length, gelijk = vals.filter(x=>x===v).length;
+  return Math.max(1, Math.min(99, Math.round((lager+gelijk/2)/vals.length*100)));
+}
+function ppBar(label, waarde, r, uitleg, kleur){
+  return `<div style="padding:8px 0;border-bottom:1px solid var(--line);" title="${uitleg}">
+    <div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;font-size:13px;">
+      <span>${label}</span><span style="font-family:'JetBrains Mono';font-size:12px;color:var(--text-dim);">${waarde}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="flex:1;height:8px;border-radius:4px;background:var(--surface-2);position:relative;overflow:hidden;">
+        ${r==null?'':`<div style="position:absolute;left:0;top:0;bottom:0;width:${r}%;background:${kleur};border-radius:4px;"></div>`}
+        <div style="position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:var(--text-dim);opacity:.6;"></div>
+      </div>
+      <span style="font-family:'Oswald';font-size:15px;width:26px;text-align:right;">${r==null?'–':r}</span>
+    </div>
+  </div>`;
+}
+function ppNum(v, dec){ return v==null||isNaN(v) ? '–' : (Math.round(v*Math.pow(10,dec||0))/Math.pow(10,dec||0)).toFixed(dec||0).replace('.',','); }
+function renderPlayerHero(p){
+  const color = POS_COLOR[p.Positie];
+  const key = p.Speler+'|'+p.Team;
+  const inj = findInjury(p.Speler, p.Team);
+  const d = current2627SeasonData(p);
+  const ph = playerPhoto(p.Speler);
+  const natie = NATIONALITEITEN[key], rug = RUGNUMMERS[key], age = LEEFTIJDEN[key];
+  const bits = [];
+  if(rug) bits.push('#'+rug);
+  if(natie) bits.push(`${NATIONALITEIT_VLAG[natie]||''} ${natie}`);
+  if(age!=null) bits.push(age+' jaar');
+  const inMijnTeam = Object.values(state.squad||{}).some(sp=>sp && sp.Speler===p.Speler && sp.Team===p.Team);
+  let cc = null; try{ cc = computePlayerCurrentCoaches(p); }catch(e){}
+  const volgende = currentRoundNumber()+1;
+  let est = null; try{ if(!p.former) est = estimatePlayerPointsForRound(p, volgende); }catch(e){}
+  const chips = [];
+  chips.push(`<span style="background:${color};color:#0B2E1F;font-family:'JetBrains Mono';font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">${POS_LABEL&&POS_LABEL[p.Positie]?POS_LABEL[p.Positie]:p.Positie}</span>`);
+  if(inMijnTeam) chips.push(`<span style="border:1px solid var(--myteam);color:var(--myteam);font-size:11px;padding:2px 8px;border-radius:999px;">In mijn team</span>`);
+  if(inj) chips.push(`<span style="border:1px solid var(--danger);color:var(--danger);font-size:11px;padding:2px 8px;border-radius:999px;">${inj.Status}${inj.Terugkeer?' · '+inj.Terugkeer:''}</span>`);
+  if(cc && cc.total) chips.push(`<span style="border:1px solid var(--line);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:999px;">Casting Couch ${cc.count}/${cc.total}</span>`);
+  const kpi = (v,l,accent)=>`<div style="min-width:74px;text-align:center;padding:8px 6px;background:var(--surface-2);border-radius:10px;">
+      <div style="font-family:'Oswald';font-size:22px;line-height:1.1;${accent?'color:var(--accent);':''}">${v}</div>
+      <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px;">${l}</div></div>`;
+  return `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:linear-gradient(135deg, ${color}26, transparent 60%), var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
+    <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:260px;">
+      ${ph ? `<div class="player-photo" style="--pos-color:${color};width:104px;height:110px;"><img src="${ph}" alt="${p.Speler.replace(/"/g,'&quot;')}"></div>`
+           : `<div style="width:84px;height:84px;border-radius:50%;background:var(--surface-2);border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-size:28px;color:${color};flex-shrink:0;">${(p.Speler.split(' ').map(w=>w[0]).join('').slice(0,2)).toUpperCase()}</div>`}
+      <div style="min-width:0;">
+        <div style="font-family:'Oswald';font-size:24px;line-height:1.15;">${p.Speler} ${penaltyIconHtml(p.Speler, p.Team, 15)}${cornerIconHtml(p.Speler, p.Team, 15)}${freekickIconHtml(p.Speler, p.Team, 15)}</div>
+        <div style="font-size:13px;margin:3px 0;">${teamLogo(p.Team)}${p.Team}${bits.length?` <span style="color:var(--text-dim);">· ${bits.join(' · ')}</span>`:''}</div>
+        <div style="margin:4px 0 7px;">${starRatingHtml(p,'lg')}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">${chips.join('')}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${kpi(d?d.Totaal:'–','punten 26/27',true)}
+      ${kpi(d&&d.Gespeeld?ppNum(d.Totaal/d.Gespeeld,1):'–','pnt/wedstrijd')}
+      ${kpi('€'+ppNum(p.Prijs,2).replace(/,?0+$/,'')+'M','prijs')}
+      ${kpi(d&&p.Prijs?ppNum(d.Totaal/p.Prijs,1):'–','pnt per €1M')}
+      ${est ? kpi(ppNum(est.score,1), `verwacht R${volgende}${est.opponent?` (${est.thuis?'thuis':'uit'})`:''}`) : ''}
+    </div>
+  </div>`;
+}
+function renderPlayerOverviewTab(p){
+  const m = ppMetrics(p);
+  const pool = (ppPositionPools()[p.Positie])||[];
+  const isAchter = p.Positie==='Goalkeeper' || p.Positie==='Defender';
+  const kleur = POS_COLOR[p.Positie];
+  const volgende = currentRoundNumber()+1;
+  const komend = [];
+  for(let r=volgende; r<volgende+3 && r<=34; r++){
+    const mt = matchForClubInRound(p.Team, r); let e=null; try{ e = estimatePlayerPointsForRound(p, r); }catch(x){}
+    komend.push({r, mt, e});
+  }
+  const key = p.Speler+'|'+p.Team;
+  const recent = availableSnapshotRounds().slice(-5).map(r=>({r, pts:((SEASON_2627_SNAPSHOTS[r].playerRoundPoints||{})[key]), min:((SEASON_2627_SNAPSHOTS[r].playerRoundMinutes||{})[key])}));
+  return `
+    <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start;margin-bottom:14px;">
+      <div class="summary-card" style="text-align:left;">
+        <div class="label" style="margin-bottom:2px;">Profiel t.o.v. ${POS_LABEL&&POS_LABEL[p.Positie]?POS_LABEL[p.Positie].toLowerCase()+'s':'positiegenoten'}</div>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:4px;">Score 1–99 = plek tussen ${pool.length} spelers op dezelfde positie die dit seizoen speelden (99 = beste). Streep = midden.</div>
+        ${m ? `
+        ${ppBar('Punten per wedstrijd', ppNum(m.ppw,1), ppPercentile(pool,'ppw',m.ppw), 'Gemiddelde CVHJ-punten per gespeelde wedstrijd', kleur)}
+        ${ppBar('Vorm (laatste 3 rondes)', ppNum(m.vorm,1)+' pnt', ppPercentile(pool,'vorm',m.vorm), 'Gewogen 3:2:1, laatste ronde telt het zwaarst', kleur)}
+        ${ppBar('Speeltijd', ppNum(m.minPerRonde,0)+' min/ronde', ppPercentile(pool,'minPerRonde',m.minPerRonde), 'Minuten per gespeelde ronde van de competitie', kleur)}
+        ${ppBar(isAchter?'Nul gehouden':'Doelpunt + assist', ppNum(m.betrokken,2)+' per wedstr.', ppPercentile(pool,'betrokken',m.betrokken), isAchter?'Clean sheets per wedstrijd':'Doelpunten en assists per wedstrijd', kleur)}
+        ${ppBar('Waarde voor geld', ppNum(m.waarde,1)+' pnt/€1M', ppPercentile(pool,'waarde',m.waarde), 'Punten dit seizoen per miljoen prijs', kleur)}
+        ${ppBar('Discipline', ppNum(m.discipline,1)+' pnt/wedstr.', ppPercentile(pool,'discipline',m.discipline), 'Puntenverlies door kaarten per wedstrijd; hoge score = weinig kaarten', kleur)}
+        ` : `<div class="news-note">Nog geen wedstrijden gespeeld in 2026/27, dus nog geen vergelijking.</div>`}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="summary-card" style="text-align:left;">
+          <div class="label" style="margin-bottom:8px;">Komende wedstrijden</div>
+          ${komend.map(k=>{ if(!k.mt) return `<div style="font-size:12.5px;color:var(--text-dim);padding:5px 0;">R${k.r}: geen wedstrijd bekend</div>`;
+            const thuis = k.mt.home===p.Team; const opp = thuis?k.mt.away:k.mt.home;
+            return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
+              <span style="font-family:'JetBrains Mono';color:var(--text-dim);width:30px;">R${k.r}</span>
+              <span style="flex:1;">${teamLogo(opp)}${opp} <span style="color:var(--text-dim);font-size:11.5px;">${thuis?'thuis':'uit'}${k.mt.date?' · '+fmtDate(k.mt.date):''}</span></span>
+              <span style="font-family:'JetBrains Mono';color:var(--accent);" title="Verwachte punten volgens het model van het potentiële team">${k.e?ppNum(k.e.score,1):'–'}</span>
+            </div>`; }).join('')}
+          <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Rechts: verwachte punten (model v${POTENTIAL_MODEL_VERSION}).</div>
+        </div>
+        <div class="summary-card" style="text-align:left;">
+          <div class="label" style="margin-bottom:8px;">Laatste rondes</div>
+          <div style="display:flex;gap:6px;">
+            ${recent.map(x=>{ const v=x.pts; const bg = v==null?'var(--surface-2)':v>=8?'var(--c-teal)':v>=3?'var(--accent)':v<0?'var(--danger)':'var(--surface-2)';
+              const fg = (v!=null && (v>=3||v<0))?'#0B2E1F':'var(--text)';
+              return `<div title="Ronde ${x.r}: ${v==null?'niet in de spelerslijst':v+' pnt'}${x.min!=null?', '+x.min+' min':''}" style="flex:1;text-align:center;">
+                <div style="background:${bg};color:${fg};border-radius:8px;padding:8px 0;font-family:'Oswald';font-size:17px;">${v==null?'–':v}</div>
+                <div style="font-size:10.5px;color:var(--text-dim);margin-top:3px;">R${x.r}${x.min!=null?' · '+x.min+"'":''}</div></div>`; }).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    ${generatePlayerQuickSummary(p, '2026/27')}
+    ${renderPlayerCastingCouchSection(p)}
+    ${renderAlternatives(p)}
+  `;
+}
+function renderPlayerRoundTable(p){
+  const key = p.Speler+'|'+p.Team;
+  const rows = availableSnapshotRounds().map(r=>{
+    const snap = SEASON_2627_SNAPSHOTS[r];
+    const pts = (snap.playerRoundPoints||{})[key];
+    const min = (snap.playerRoundMinutes||{})[key];
+    const mt = matchForClubInRound(p.Team, r);
+    return {r, pts, min, mt};
+  }).reverse();
+  if(!rows.length) return '';
+  return `<div class="section-title"><span>Per ronde</span><span class="line"></span></div>
+    <div style="overflow-x:auto;"><table class="stat-table">
+      <thead><tr><th>Ronde</th><th>Tegenstander</th><th>Uitslag</th><th>Minuten</th><th>Punten</th></tr></thead>
+      <tbody>${rows.map(x=>{ const m=x.mt; let opp='–', uitslag='–', wdl='';
+        if(m){ const thuis=m.home===p.Team; opp=`${teamLogo(thuis?m.away:m.home)}${thuis?m.away:m.home} <span style="color:var(--text-dim);font-size:11px;">${thuis?'(t)':'(u)'}</span>`;
+          if(m.homeScore!=null){ const e=thuis?m.homeScore:m.awayScore, t=thuis?m.awayScore:m.homeScore; uitslag=`${e}-${t}`; wdl = e>t?'var(--c-teal)':e<t?'var(--danger)':'var(--text-dim)'; } }
+        return `<tr${m?` style="cursor:pointer;" onclick="openMatchModal('${m.id}')"`:''}>
+          <td>${x.r}</td><td style="white-space:nowrap;">${opp}</td>
+          <td style="font-family:'JetBrains Mono';color:${wdl||'inherit'};">${uitslag}</td>
+          <td style="font-family:'JetBrains Mono';">${x.min==null?'–':x.min}</td>
+          <td style="font-family:'JetBrains Mono';color:var(--accent);">${x.pts==null?'–':x.pts}</td></tr>`; }).join('')}</tbody>
+    </table></div>`;
+}
+function renderPlayerPointsTab(p, sel, d, isGK){
+  return `
+    <div class="formation-row" style="margin-bottom:10px;">
+      ${SEASON_ORDER.map(s=>`<button class="${sel===s?'active':''}" onclick="setModalSeason('${s}')" ${!seasonDataForSeason(p,s)?'disabled':''} title="${!seasonDataForSeason(p,s)?'Geen data voor dit seizoen':''}">${s}</button>`).join('')}
+    </div>
+    ${d ? `
+    <div style="font-size:12px;color:var(--text-dim);margin:-4px 0 12px;">Speelde in ${sel} voor: ${teamLogo(d.Team||p.Team)}<b style="color:var(--text);">${d.Team||p.Team}</b>${(d.Team||p.Team)!==p.Team?' (nu bij '+p.Team+')':''}</div>
+    ${sel==='2026/27'?`<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;">${icon('info',11)} Klik op een tegel om te zien in welke wedstrijd(en) die punten zijn ontstaan. Categorieën met 0 punten worden niet getoond.</div>`:''}
+    <div class="stat-grid">
+      ${statTile(d.Totaal, 'Punten totaal', {alwaysShow:true, key: sel==='2026/27'?'Totaal':null})}
+      ${statTile(d.Minuten, 'Minuten', {alwaysShow:true, key: sel==='2026/27'?'Minuten':null})}
+      ${statTile(d.Gespeeld, 'Wedstrijden', {alwaysShow:true, key: sel==='2026/27'?'Wedstrijden':null})}
+      ${d.GespeeldBasis!=null ? statTile(d.GespeeldBasis, 'Wedstrijden basis', {alwaysShow:true, key: sel==='2026/27'?'GespeeldBasis':null}) : ''}
+      ${d.GespeeldBasis!=null ? statTile(d.GespeeldInvaller, 'Wedstrijden invaller', {alwaysShow:true, key: sel==='2026/27'?'GespeeldInvaller':null}) : ''}
+      ${sel==='2026/27' && d.GoalsCount!=null ? statTile(d.GoalsCount, 'Aantal doelpunten', {alwaysShow:true, key:null}) : ''}
+      ${statTile(d.Goals, 'Punten uit doelpunten', {key:'Goals'})}
+      ${sel==='2026/27' && d.AssistsCount!=null ? statTile(d.AssistsCount, 'Aantal assists', {alwaysShow:true, key:null}) : ''}
+      ${statTile(d.Assists, 'Punten uit assists', {key:'Assists'})}
+      ${sel==='2026/27' ? statTile(invallerGoalsOrAssistsPoints(p,'goals'), 'Doelpunten als invaller', {key:'GoalsInvaller'}) : ''}
+      ${sel==='2026/27' ? statTile(invallerGoalsOrAssistsPoints(p,'assists'), 'Assists als invaller', {key:'AssistsInvaller'}) : ''}
+      ${statTile(d.CleanSheet, 'Punten "de nul gehouden"', {key:'CleanSheet'})}
+      ${sel==='2026/27' ? statTile(computeWinDrawPoints(p).winPts, 'Punten gewonnen wedstrijden', {key:'Gewonnen'}) : ''}
+      ${sel==='2026/27' ? statTile(computeWinDrawPoints(p).drawPts, 'Punten gelijkgespeeld', {key:'Gelijk'}) : ''}
+      ${statTile(d.PenM, "Punten pen. gescoord", {key:'PenM'})}
+      ${statTile(d.PenMis, 'Punten pen. gemist', {key:'PenMis', color:d.PenMis<0?'var(--danger)':null})}
+      ${isGK ? statTile(d.PenGest, 'Punten pen. gestopt', {key:'PenGest'}) : ''}
+      ${isGK ? statTile(d.Reddingen, `Punten reddingen${sel==='2026/27' && d.Reddingen!=null?' (schatting)':''}`, {key:'Reddingen'}) : ''}
+      ${statTile(d.Kaarten, 'Puntenverlies kaarten', {key:'Kaarten', color:d.Kaarten<0?'var(--danger)':null})}
+    </div>
+    ${renderStatDetailPanel(p, sel)}
+    ${sel==='2026/27' ? renderPointsDonut(p) : ''}
+    <div style="font-size:11px;color:var(--text-dim);margin:-8px 0 16px;">Waarden zijn puntenbijdrages volgens het CVHJ-puntensysteem (bijv. clean sheet-punten ÷ 5 = aantal clean sheets als verdediger), geen ruwe telling.</div>
+    ` : `<div class="news-note">Geen data voor seizoen ${sel}${sel==='2026/27' ? ' — nog geen ronde-data dit seizoen voor deze speler.' : ' — speler zat toen (nog) niet in de Eredivisie-dataset.'}</div>`}
+    ${generatePlayerSummaryHtml(p, sel)}
+  `;
 }
 
 function matchSearchLinks(m){
