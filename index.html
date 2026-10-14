@@ -733,24 +733,6 @@
 
   /* ===== Wes Anderson-thema's (herziening 13-10-2026) ===== */
   body.wa{--radius:12px;--type-friendly:#8A8F94;--type-ere:var(--accent);--type-euro:#8E7BB5;--type-int:#5E8FB0;--type-beker:#B9773A;}
-  body.wa-rushmore-donker, .wa-export.wa-rushmore-donker{--bg:#1B1830;--bg-alt:#211D3A;--surface:#29254A;--surface-2:#332E57;--line:rgba(241,231,211,.11);--text:#F1E7D3;--text-dim:#ADA5C2;
-    --accent:#D9B25F;--accent-dim:#6E5A32;--on-accent:#1B1830;--gk:#DEB08E;--def:#6FB491;--mid:#D9B25F;--fwd:#E2665A;--danger:#E8766A;--myteam:#DEB08E;
-    --c-gold:#D9B25F;--c-teal:#6FB491;--c-plum:#A397CF;--c-rose:#E2665A;--c-blue:#86AECF;}
-  body.wa-tenenbaums-licht, .wa-export.wa-tenenbaums-licht{--bg:#F2E8E6;--bg-alt:#FBF6F4;--surface:#FFFDFB;--surface-2:#EFE3E0;--line:rgba(46,42,62,.13);--text:#2E2A3E;--text-dim:#6B6680;
-    --accent:#C4321F;--accent-dim:#E8BAB1;--on-accent:#FFFFFF;--gk:#A7C9D7;--def:#9EA2C8;--mid:#E0AA72;--fwd:#E58676;--danger:#C4321F;--myteam:#575B80;
-    --c-gold:#A55C21;--c-teal:#3F7F98;--c-plum:#575B80;--c-rose:#C4321F;--c-blue:#3F7F98;}
-  body.wa-aquatic-donker, .wa-export.wa-aquatic-donker{--bg:#0E2633;--bg-alt:#12303F;--surface:#173A4C;--surface-2:#1D4558;--line:rgba(244,238,220,.11);--text:#F4EEDC;--text-dim:#9DBAC6;
-    --accent:#DDBE3A;--accent-dim:#6B5D1F;--on-accent:#0E2633;--gk:#8CC0D0;--def:#6FB3D3;--mid:#DDBE3A;--fwd:#EE8A4B;--danger:#F27A5C;--myteam:#EF6A4A;
-    --c-gold:#DDBE3A;--c-teal:#73A8B9;--c-plum:#A3AEDD;--c-rose:#EF6A4A;--c-blue:#6FB3D3;}
-  body.wa-darjeeling-licht, .wa-export.wa-darjeeling-licht{--bg:#F7EDDC;--bg-alt:#FCF6EC;--surface:#FFFBF4;--surface-2:#F1E4CE;--line:rgba(35,48,46,.13);--text:#23302E;--text-dim:#66695F;
-    --accent:#0B7A65;--accent-dim:#A9D6CA;--on-accent:#FFFFFF;--gk:#7DBEDB;--def:#5DC2AA;--mid:#EBAB45;--fwd:#F08E6E;--danger:#D60E2B;--myteam:#D60E2B;
-    --c-gold:#C8841A;--c-teal:#0B7A65;--c-plum:#8566AA;--c-rose:#D60E2B;--c-blue:#2F84AD;}
-  body.wa-mrfox-donker, .wa-export.wa-mrfox-donker{--bg:#24170F;--bg-alt:#2B1C13;--surface:#352419;--surface-2:#402D20;--line:rgba(246,233,212,.11);--text:#F6E9D4;--text-dim:#C4AA90;
-    --accent:#DB8A34;--accent-dim:#6E4418;--on-accent:#24170F;--gk:#E0C31F;--def:#73B3D8;--mid:#DB8A34;--fwd:#D6606A;--danger:#E0767F;--myteam:#F0D9A8;
-    --c-gold:#E0C31F;--c-teal:#73B3D8;--c-plum:#C08AA8;--c-rose:#D6606A;--c-blue:#73B3D8;}
-  body.wa-moonrise-licht, .wa-export.wa-moonrise-licht{--bg:#EFE3CC;--bg-alt:#F7EEDD;--surface:#FCF6EA;--surface-2:#E9DCC2;--line:rgba(58,42,30,.14);--text:#3A2A1E;--text-dim:#776350;
-    --accent:#8B1A1E;--accent-dim:#D9AFA0;--on-accent:#FFFFFF;--gk:#94BCB1;--def:#C2AA66;--mid:#E8BA2E;--fwd:#D07470;--danger:#A3262A;--myteam:#2F6F64;
-    --c-gold:#A87C08;--c-teal:#4E8679;--c-plum:#80607E;--c-rose:#A3262A;--c-blue:#4F81A0;}
   body.wa{background:var(--bg);transition:none;color:var(--text);font-variant-numeric:tabular-nums;}
   body.wa .wrap{background:none;}
 
@@ -804,7 +786,6 @@
   .pitch{max-width:460px;border:none;border-radius:16px;padding:22px 10px 26px;box-shadow:inset 0 0 0 2px rgba(246,238,220,.25);
     background:repeating-linear-gradient(180deg, #3E7C59 0 8.33%, #437F5D 8.33% 16.66%);}
   .pitch-blue{background:repeating-linear-gradient(180deg, #3A6B8C 0 8.33%, #3F7092 8.33% 16.66%);}
-  body.wa-aquatic-donker .pitch:not(.pitch-blue){background:repeating-linear-gradient(180deg, #3D7A63 0 8.33%, #427F68 8.33% 16.66%);}
   .pitch-goal{border-color:rgba(246,238,220,.55);}
   .pitch-row{justify-content:space-evenly;gap:2px;}
   .pitch-team-label{background:rgba(0,0,0,.28);color:#F6EEDC;font-family:'Jost';font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-size:9.5px;border-radius:999px;padding:4px 10px;}
@@ -886,24 +867,6 @@
   .box .squad-main{flex-basis:380px;}
 
   /* Tegenversies (licht/donker) — zelfde vijf kleuren, andere rolverdeling */
-  body.wa-rushmore-licht, .wa-export.wa-rushmore-licht{--bg:#F6ECE2;--bg-alt:#FBF5EF;--surface:#FFFCF8;--surface-2:#F0E2D4;--line:rgba(38,33,63,.13);--text:#26213F;--text-dim:#625B77;
-    --accent:#2E6A4F;--accent-dim:#B9D3C6;--on-accent:#FFFFFF;--gk:#DEB08E;--def:#7DB596;--mid:#D9B25F;--fwd:#E58A7E;--danger:#C0392B;--myteam:#26213F;
-    --c-gold:#A9842F;--c-teal:#2E6A4F;--c-plum:#4A4370;--c-rose:#C0392B;--c-blue:#3E6E95;}
-  body.wa-tenenbaums-donker, .wa-export.wa-tenenbaums-donker{--bg:#24263A;--bg-alt:#2A2C43;--surface:#33364F;--surface-2:#3D405C;--line:rgba(241,230,231,.11);--text:#F1E6E7;--text-dim:#B6B4CB;
-    --accent:#A7C9D7;--accent-dim:#4D6470;--on-accent:#24263A;--gk:#E3D3D5;--def:#8FB6C7;--mid:#D08A4E;--fwd:#E66A58;--danger:#EE7462;--myteam:#E3A0A6;
-    --c-gold:#D08A4E;--c-teal:#A7C9D7;--c-plum:#9FA2D0;--c-rose:#EE7462;--c-blue:#A7C9D7;}
-  body.wa-aquatic-licht, .wa-export.wa-aquatic-licht{--bg:#EAF2F3;--bg-alt:#F5F9F9;--surface:#FFFFFF;--surface-2:#DDEBEE;--line:rgba(18,48,63,.13);--text:#12303F;--text-dim:#4B6976;
-    --accent:#2B7395;--accent-dim:#B5D4E1;--on-accent:#FFFFFF;--gk:#8CC0D0;--def:#6FB3D3;--mid:#DDBE3A;--fwd:#EE8A4B;--danger:#C2300F;--myteam:#B57F0F;
-    --c-gold:#A47B0D;--c-teal:#2B7395;--c-plum:#5B66A6;--c-rose:#C2300F;--c-blue:#2B7395;}
-  body.wa-darjeeling-donker, .wa-export.wa-darjeeling-donker{--bg:#0C2A25;--bg-alt:#10332D;--surface:#153D36;--surface-2:#1B4840;--line:rgba(247,237,220,.11);--text:#F7EDDC;--text-dim:#A9C7BE;
-    --accent:#E59C25;--accent-dim:#6B4A12;--on-accent:#0C2A25;--gk:#5FACCF;--def:#3FB89B;--mid:#E59C25;--fwd:#F08A45;--danger:#F26074;--myteam:#F26074;
-    --c-gold:#E59C25;--c-teal:#3FB89B;--c-plum:#B79BE0;--c-rose:#F26074;--c-blue:#5FACCF;}
-  body.wa-mrfox-licht, .wa-export.wa-mrfox-licht{--bg:#F6EBDC;--bg-alt:#FBF4EA;--surface:#FFFBF5;--surface-2:#EFDFC8;--line:rgba(59,36,22,.13);--text:#3B2416;--text-dim:#775B45;
-    --accent:#951D25;--accent-dim:#E2B3B0;--on-accent:#FFFFFF;--gk:#E0C31F;--def:#73B3D8;--mid:#DB8A34;--fwd:#D9737A;--danger:#951D25;--myteam:#2E6E93;
-    --c-gold:#A9821A;--c-teal:#2E6E93;--c-plum:#8A5A78;--c-rose:#951D25;--c-blue:#2E6E93;}
-  body.wa-moonrise-donker, .wa-export.wa-moonrise-donker{--bg:#2A1214;--bg-alt:#331719;--surface:#3D1D1F;--surface-2:#4A2427;--line:rgba(242,230,207,.11);--text:#F2E6CF;--text-dim:#CCB29A;
-    --accent:#E4B21A;--accent-dim:#6E5510;--on-accent:#2A1214;--gk:#87B1A5;--def:#C2A35E;--mid:#E4B21A;--fwd:#E07B6E;--danger:#EA776F;--myteam:#9CC7BA;
-    --c-gold:#E4B21A;--c-teal:#87B1A5;--c-plum:#C49ABF;--c-rose:#EA776F;--c-blue:#8FB6CF;}
 
   .theme-card{cursor:default;}
   .theme-modes{display:flex;gap:6px;margin-top:10px;}
@@ -944,7 +907,7 @@
   .team-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;padding:8px;background:var(--bg-alt);border:1px solid var(--line);border-radius:14px;}
   .team-bar .mode-toggle{padding:2px;}
   .team-bar .mode-toggle button{padding:6px 12px;}
-  .team-bar select{min-height:34px;}
+  .team-bar select{min-height:34px;background:var(--surface);border:1px solid var(--line);border-radius:999px;color:var(--text);padding:0 10px;font-family:"Inter";font-size:13px;font-weight:600;}
   .team-bar .budget-pill{padding:6px 12px;font-size:12.5px;}
   .team-bar .tb-right{display:flex;gap:6px;margin-left:auto;}
   .team-bar .btn{padding:7px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:4px;}
@@ -968,8 +931,8 @@
   @media (max-width:760px){ .plan-grid{grid-template-columns:1fr;} }
 
   /* Veld in themakleuren uit de staal */
-  .pitch{background:repeating-linear-gradient(180deg, var(--pitch-a,#3E7C59) 0 8.33%, var(--pitch-b,#437F5D) 8.33% 16.66%) !important;box-shadow:inset 0 0 0 2px var(--pitch-line,#F6EEDC);}
-  .pitch.pitch-blue{background:repeating-linear-gradient(180deg, var(--pitch-alt-a,#3A6B8C) 0 8.33%, var(--pitch-alt-b,#3F7092) 8.33% 16.66%) !important;}
+  .pitch{background:repeating-linear-gradient(180deg, transparent 0 8.33%, var(--pitch-b) 8.33% 16.66%), var(--pitch-a) !important;box-shadow:inset 0 0 0 2px var(--pitch-line,#F6EEDC);}
+  .pitch.pitch-blue{background:repeating-linear-gradient(180deg, transparent 0 8.33%, var(--pitch-alt-b) 8.33% 16.66%), var(--pitch-alt-a) !important;}
   .pitch-markings rect, .pitch-markings line, .pitch-markings circle, .pitch-markings path{stroke:var(--pitch-line,#F6EEDC) !important;stroke-opacity:.8;}
   .pitch-markings circle[r="2.5"]{fill:var(--pitch-line,#F6EEDC) !important;}
   .wa-export .pitch.wx-pitch{background:var(--pitch-a,#3E7C59) !important;border-color:var(--pitch-line);}
@@ -1068,6 +1031,26 @@
   .overig-ronde select{font-weight:600;background:var(--surface-2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-family:'Inter';font-size:13px;}
   .overig-ronde span{font-size:12px;color:var(--text-dim);}
   @media (max-width:760px){ .view-toggle.overig-cats{flex-wrap:nowrap !important;overflow-x:auto;scrollbar-width:none;max-width:100%;} .view-toggle.overig-cats button{flex-shrink:0;} }
+  .pw-pos{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:color-mix(in srgb, var(--pc) 22%, transparent);color:var(--text);box-shadow:inset 0 0 0 1px var(--pc);white-space:nowrap;}
+  .pw-table td{vertical-align:middle;}
+  .pw-table .pw-naam{display:flex;align-items:center;gap:6px;min-width:170px;}
+  .pw-table .pw-club{font-size:11px;color:var(--text-dim);}
+  .pw-tag{background:var(--myteam);color:var(--on-accent);font-size:9px;font-weight:800;padding:1px 5px;border-radius:999px;}
+  .pw-table tr.pw-mijn td{background:color-mix(in srgb, var(--myteam) 14%, transparent);}
+  .pw-pijl{color:var(--text-dim);padding:0 2px !important;}
+  .pw-keer{min-width:64px;font-family:'Inter';font-size:12px;}
+  .pw-bar{height:4px;background:var(--surface-2);border-radius:2px;margin-top:3px;overflow:hidden;}
+  .pw-bar i{display:block;height:100%;background:var(--accent);}
+  .pw-rondes{display:flex;gap:3px;}
+  .pw-rondes span{width:18px;height:18px;border-radius:4px;font-size:9.5px;font-family:'Inter';display:flex;align-items:center;justify-content:center;background:var(--surface-2);color:var(--text-dim);}
+  .pw-rondes span[style]{color:#16130F;font-weight:700;}
+  .pw-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .pw-sub{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+  @media (max-width:760px){ .pw-sum{grid-template-columns:1fr 1fr !important;gap:8px !important;} .pw-sum .summary-card:last-child{grid-column:1 / -1;} .pw-sum .value{font-size:22px !important;}
+    .pw-filters{display:grid !important;grid-template-columns:1fr 1fr;} .pw-filters input[type=text]{grid-column:1 / -1;} .pw-filters select{min-width:0;width:100%;} }
+  .pw-filters input[type=text]{min-width:160px;flex:1;}
+  .pw-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;}
+  .pw-check input{width:auto !important;min-width:0 !important;margin:0;flex:none;}
   .int-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Inter';font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim);vertical-align:middle;white-space:nowrap;}
   .int-badge.act{border-color:var(--accent);color:var(--accent);}
   .int-badge.jeugd{font-weight:600;}
@@ -1111,6 +1094,23 @@
   .rs-hint{font-family:'Inter';font-size:12px;color:var(--text-dim);}
   @media (max-width:760px){ .rs-hint{display:none;} }
   body.wa .squad-side .side-card, body.wa .team-side .summary-card, body.wa .coach-season .summary-card{background:var(--card-bg,var(--surface)) !important;border-color:var(--card-line,var(--line)) !important;}
+
+  /* Thema's: uitsluitend kleuren uit de staal (gegenereerd 14-10-2026, tools/genereer_themas.py) */
+  body.wa-rushmore-donker, .wa-export.wa-rushmore-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#D9B25F;--accent-dim:rgba(217,178,95,.35);--on-accent:#161616;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--danger:#D33A2C;--myteam:#DEB08E;--c-gold:#D9B25F;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#D9B25F;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:#A6A6A6;--nav-bg:#2E6A4F;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#D9B25F;--nav-act-text:#161616;--zone-bg:#26213F;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#DEB08E;--card-bg:#26213F;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-rushmore-licht, .wa-export.wa-rushmore-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#2E6A4F;--accent-dim:rgba(46,106,79,.35);--on-accent:#FFFFFF;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--danger:#D33A2C;--myteam:#D33A2C;--c-gold:#2E6A4F;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#2E6A4F;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:#5A5A5A;--nav-bg:#26213F;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#2E6A4F;--nav-act-text:#FFFFFF;--zone-bg:#DEB08E;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#2E6A4F;--card-bg:#D9B25F;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-tenenbaums-donker, .wa-export.wa-tenenbaums-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#A7C9D7;--accent-dim:rgba(167,201,215,.35);--on-accent:#161616;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--danger:#C8321E;--myteam:#C8321E;--c-gold:#A7C9D7;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#C8321E;--c-blue:#A7C9D7;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#A7C9D7;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:#A6A6A6;--nav-bg:#575B80;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#A7C9D7;--nav-act-text:#161616;--zone-bg:#A55C21;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#E3D3D5;--card-bg:#575B80;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
+  body.wa-tenenbaums-licht, .wa-export.wa-tenenbaums-licht{--bg:#E3D3D5;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#C8321E;--accent-dim:rgba(200,50,30,.35);--on-accent:#FFFFFF;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--danger:#C8321E;--myteam:#575B80;--c-gold:#C8321E;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#C8321E;--c-blue:#A7C9D7;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#C8321E;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:#5A5A5A;--nav-bg:#575B80;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E3D3D5;--nav-act-text:#161616;--zone-bg:#A7C9D7;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#A55C21;--card-bg:#A55C21;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
+  body.wa-aquatic-donker, .wa-export.wa-aquatic-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#DDBE3A;--accent-dim:rgba(221,190,58,.35);--on-accent:#161616;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--danger:#D23511;--myteam:#D23511;--c-gold:#DDBE3A;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#D23511;--c-blue:#73A8B9;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#DDBE3A;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:#A6A6A6;--nav-bg:#4489A9;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#DDBE3A;--nav-act-text:#161616;--zone-bg:#D29A1E;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#73A8B9;--card-bg:#73A8B9;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-aquatic-licht, .wa-export.wa-aquatic-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#D23511;--accent-dim:rgba(210,53,17,.35);--on-accent:#FFFFFF;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--danger:#D23511;--myteam:#4489A9;--c-gold:#D23511;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#D23511;--c-blue:#73A8B9;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#D23511;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:#5A5A5A;--nav-bg:#4489A9;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#DDBE3A;--nav-act-text:#161616;--zone-bg:#DDBE3A;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#D23511;--card-bg:#73A8B9;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-darjeeling-donker, .wa-export.wa-darjeeling-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E59C25;--accent-dim:rgba(229,156,37,.35);--on-accent:#161616;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--danger:#E2102E;--myteam:#E2102E;--c-gold:#E59C25;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E2102E;--c-blue:#5FACCF;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E59C25;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:#A6A6A6;--nav-bg:#0E8B73;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#E59C25;--nav-act-text:#161616;--zone-bg:#5FACCF;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#5FACCF;--card-bg:#E57A25;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-darjeeling-licht, .wa-export.wa-darjeeling-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#E2102E;--accent-dim:rgba(226,16,46,.35);--on-accent:#FFFFFF;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--danger:#E2102E;--myteam:#E57A25;--c-gold:#E2102E;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E2102E;--c-blue:#5FACCF;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#E2102E;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:#5A5A5A;--nav-bg:#0E8B73;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#E59C25;--nav-act-text:#161616;--zone-bg:#5FACCF;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#0E8B73;--card-bg:#E59C25;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-mrfox-donker, .wa-export.wa-mrfox-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E0C31F;--accent-dim:rgba(224,195,31,.35);--on-accent:#161616;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--danger:#C77A2E;--myteam:#4F9AC4;--c-gold:#E0C31F;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#C77A2E;--c-blue:#E0C31F;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E0C31F;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:#A6A6A6;--nav-bg:#951D25;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E0C31F;--nav-act-text:#161616;--zone-bg:#4F9AC4;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#4F9AC4;--card-bg:#C77A2E;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-mrfox-licht, .wa-export.wa-mrfox-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#C77A2E;--accent-dim:rgba(199,122,46,.35);--on-accent:#161616;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--danger:#951D25;--myteam:#4F9AC4;--c-gold:#C77A2E;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#951D25;--c-blue:#E0C31F;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#C77A2E;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:#5A5A5A;--nav-bg:#951D25;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#C77A2E;--nav-act-text:#161616;--zone-bg:#E0C31F;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#951D25;--card-bg:#4F9AC4;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
+  body.wa-moonrise-donker, .wa-export.wa-moonrise-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E4B21A;--accent-dim:rgba(228,178,26,.35);--on-accent:#161616;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--danger:#977431;--myteam:#E3D0B0;--c-gold:#E4B21A;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#977431;--c-blue:#87B1A5;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E4B21A;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:#A6A6A6;--nav-bg:#8B1A1E;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E4B21A;--nav-act-text:#161616;--zone-bg:#977431;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#87B1A5;--card-bg:#87B1A5;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
+  body.wa-moonrise-licht, .wa-export.wa-moonrise-licht{--bg:#E3D0B0;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#8B1A1E;--accent-dim:rgba(139,26,30,.35);--on-accent:#FFFFFF;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--danger:#8B1A1E;--myteam:#977431;--c-gold:#8B1A1E;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#8B1A1E;--c-blue:#87B1A5;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#8B1A1E;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:#5A5A5A;--nav-bg:#87B1A5;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#8B1A1E;--nav-act-text:#FFFFFF;--zone-bg:#E4B21A;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#8B1A1E;--card-bg:#977431;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
+  body.wa main > .toolbar > :is(span,label,small), body.wa .team-bar > :is(span,label,small), body.wa .tow-forms-box > :is(span,label,div:not([class])), body.wa .pw-check{color:var(--zone-text) !important;}
+  body.wa .overig-ronde label, body.wa .overig-ronde span{color:var(--zone-text) !important;opacity:.85;}
+  body.wa .squad-side .side-card, body.wa .team-side .summary-card, body.wa .coach-season .summary-card{color:var(--card-text);--text:var(--card-text);--text-dim:var(--card-text);--line:var(--card-line);--surface-2:var(--card-line);--sec:var(--card-text);}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1862,7 +1862,7 @@ function normSearch(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]
 
 const NAV_GROUPS = [
   {id:'team', label:'Mijn Team', iconName:'navTeam', tabs:['team','stats','wisselschema'], color:'var(--accent)', desc:'Opstelling, wissels en je eigen statistieken'},
-  {id:'besteteam', label:'Beste team', iconName:'navStar', tabs:['week_potentieel','week_team','week_perfectteam'], color:'var(--accent)', desc:'Verwacht, achteraf en het perfecte seizoen'},
+  {id:'besteteam', label:'Beste team', iconName:'navStar', tabs:['week_team','week_potentieel','week_perfectteam'], color:'var(--accent)', desc:'Achteraf, verwacht en het perfecte seizoen'},
   {id:'week', label:'Ronde', iconName:'navRonde', tabs:['week_players','week_coach','week_couch','week_algemeen','week_scheidsrechters'], color:'var(--accent)', desc:'Terugblik op een gespeelde ronde'},
   {id:'league', label:'Casting Couch', iconName:'navTrophy', tabs:['league','leagueStats','wissels','spelersZoeker','hof'], color:'var(--accent)', desc:'Onze eigen competitie'},
   {id:'scout', label:'Spelers', iconName:'navUsers', tabs:['scout','rankings','parels','clubs','positiewisselingen','penaltys','transfers'], color:'var(--accent)', desc:'Zoeken, vergelijken en ontdekken'},
@@ -2888,38 +2888,10 @@ async function loadSquad(){
 // Oude thema's (standaard, licht, donker, egirl, darren, clubthema's) en taalvarianten zijn weg.
 // Veldkleuren per thema, uit de kleurenstaal (herziening 13-10-2026): a/b = stroken eigen veld,
 // altA/altB = veld van een ander team (Team v/d week, coaches), line = veldlijnen.
-const WA_PITCH = {
-  rushmore:   {a:'#2E6A4F', b:'#33724F', altA:'#34305A', altB:'#3A3562', line:'#F1E7D3'},
-  tenenbaums: {a:'#575B80', b:'#5D6188', altA:'#9A5520', altB:'#A25B24', line:'#E3D3D5'},
-  aquatic:    {a:'#3F7FA0', b:'#4486A8', altA:'#9C6E12', altB:'#A47514', line:'#F4EEDC'},
-  darjeeling: {a:'#0E8B73', b:'#13937A', altA:'#B0561A', altB:'#B85D1E', line:'#F7EDDC'},
-  mrfox:      {a:'#3F86B0', b:'#458DB7', altA:'#7E1B22', altB:'#861F27', line:'#F6E9D4'},
-  moonrise:   {a:'#5F8D80', b:'#659487', altA:'#7A1A1E', altB:'#832024', line:'#F7EEDD'},
-};
-(function(){
-  const css = Object.entries(WA_PITCH).map(([id,c])=>`body.wa-${id}, .wa-export.wa-${id}{--pitch-a:${c.a};--pitch-b:${c.b};--pitch-alt-a:${c.altA};--pitch-alt-b:${c.altB};--pitch-line:${c.line};}`).join('\n');
-  document.head.insertAdjacentHTML('beforeend', `<style id="wa-pitch-colors">${css}</style>`);
-})();
-// Extra kleurvlakken per thema (13-10-2026): zijmenu (nav), filter-/werkbalken (zone) en sectiekoppen (sec),
-// elk uit een andere kleur van de staal; aparte waarden voor licht en donker.
-const WA_ZONES = {
-  'rushmore-donker':  {nav:'#173A2B', navText:'#F1E7D3', navDim:'#A9C4B4', act:'#D9B25F', actText:'#1B1830', zone:'#3A2B33', zoneLine:'#DEB08E55', sec:'#DEB08E', card:'#3A3220', cardLine:'#D9B25F44'},
-  'rushmore-licht':   {nav:'#26213F', navText:'#F1E7D3', navDim:'#B7B0CC', act:'#D9B25F', actText:'#26213F', zone:'#F3DCC6', zoneLine:'#DEB08E', sec:'#2E6A4F', card:'#DDEBE3', cardLine:'#2E6A4F44'},
-  'tenenbaums-donker':{nav:'#3A2414', navText:'#F1E6E7', navDim:'#CDB4A6', act:'#C8321E', actText:'#FFFFFF', zone:'#1F3A47', zoneLine:'#A7C9D755', sec:'#A7C9D7', card:'#3E2630', cardLine:'#E3D3D533'},
-  'tenenbaums-licht': {nav:'#575B80', navText:'#FFFFFF', navDim:'#D8D9EA', act:'#C8321E', actText:'#FFFFFF', zone:'#DCEAF0', zoneLine:'#A7C9D7', sec:'#8E4C18', card:'#F5E6E8', cardLine:'#E3D3D5'},
-  'aquatic-donker':   {nav:'#3D1A0E', navText:'#F4EEDC', navDim:'#D9B9A6', act:'#DDBE3A', actText:'#0E2633', zone:'#3A3112', zoneLine:'#D29A1E66', sec:'#D29A1E', card:'#12443F', cardLine:'#73A8B944'},
-  'aquatic-licht':    {nav:'#2F6F8E', navText:'#FFFFFF', navDim:'#E3EFF5', act:'#DDBE3A', actText:'#0E2633', zone:'#F7EDC0', zoneLine:'#DDBE3A', sec:'#B42D0E', card:'#DDEEF2', cardLine:'#73A8B9'},
-  'darjeeling-donker':{nav:'#3D1D0C', navText:'#F7EDDC', navDim:'#DDBFA5', act:'#E59C25', actText:'#0C2A25', zone:'#12324A', zoneLine:'#5FACCF55', sec:'#5FACCF', card:'#3F1219', cardLine:'#E2102E44'},
-  'darjeeling-licht': {nav:'#0B6E5B', navText:'#FFFFFF', navDim:'#D5F0E9', act:'#E59C25', actText:'#1E1A16', zone:'#DCEFF7', zoneLine:'#5FACCF', sec:'#A34E0E', card:'#FBEBCF', cardLine:'#E59C25'},
-  'mrfox-donker':     {nav:'#3E0E12', navText:'#F6E9D4', navDim:'#D6B5AA', act:'#E0C31F', actText:'#24170F', zone:'#16314A', zoneLine:'#4F9AC455', sec:'#4F9AC4', card:'#3D2A12', cardLine:'#C77A2E55'},
-  'mrfox-licht':      {nav:'#951D25', navText:'#F6E9D4', navDim:'#EBC9C2', act:'#E0C31F', actText:'#24170F', zone:'#F8EDB5', zoneLine:'#E0C31F', sec:'#24668C', card:'#DCEBF4', cardLine:'#4F9AC4'},
-  'moonrise-donker':  {nav:'#1E3530', navText:'#F2E6CF', navDim:'#AFC7BF', act:'#E4B21A', actText:'#2A1214', zone:'#3A2E14', zoneLine:'#97743166', sec:'#87B1A5', card:'#33291A', cardLine:'#97743166'},
-  'moonrise-licht':   {nav:'#87B1A5', navText:'#1F2A27', navDim:'#2E423E', act:'#8B1A1E', actText:'#FFFFFF', zone:'#EADBC0', zoneLine:'#977431', sec:'#8B1A1E', card:'#F8EBC4', cardLine:'#E4B21A'},
-};
-(function(){
-  const css = Object.entries(WA_ZONES).map(([k,z])=>`body.wa-${k}{--nav-bg:${z.nav};--nav-text:${z.navText};--nav-dim:${z.navDim};--nav-act:${z.act};--nav-act-text:${z.actText};--zone-bg:${z.zone};--zone-line:${z.zoneLine};--sec:${z.sec};--card-bg:${z.card};--card-line:${z.cardLine};}`).join('\n');
-  document.head.insertAdjacentHTML('beforeend', `<style id="wa-zone-colors">${css}</style>`);
-})();
+// Alle themakleuren komen uit de staal (WA_THEMES[].swatch); neutrale grijzen alleen voor achtergrond en tekst.
+// Gegenereerd met tools/genereer_themas.py (14-10-2026). b/altB = schaduw voor de veldstrepen, geen eigen kleur.
+const WA_PITCH = {"rushmore": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#26213F", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "tenenbaums": {"a": "#575B80", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#E3D3D5"}, "aquatic": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "darjeeling": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "mrfox": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#951D25", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "moonrise": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#8B1A1E", "altB": "rgba(0,0,0,.08)", "line": "#E3D0B0"}};
+const WA_ZONES = {"rushmore-donker": {"nav": "#2E6A4F", "navText": "#FFFFFF", "act": "#D9B25F", "actText": "#161616", "zone": "#26213F", "zoneText": "#FFFFFF", "sec": "#DEB08E", "card": "#26213F", "cardText": "#FFFFFF"}, "rushmore-licht": {"nav": "#26213F", "navText": "#FFFFFF", "act": "#2E6A4F", "actText": "#FFFFFF", "zone": "#DEB08E", "zoneText": "#161616", "sec": "#2E6A4F", "card": "#D9B25F", "cardText": "#161616"}, "tenenbaums-donker": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#A7C9D7", "actText": "#161616", "zone": "#A55C21", "zoneText": "#FFFFFF", "sec": "#E3D3D5", "card": "#575B80", "cardText": "#FFFFFF"}, "tenenbaums-licht": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#E3D3D5", "actText": "#161616", "zone": "#A7C9D7", "zoneText": "#161616", "sec": "#A55C21", "card": "#A55C21", "cardText": "#FFFFFF"}, "aquatic-donker": {"nav": "#4489A9", "navText": "#161616", "act": "#DDBE3A", "actText": "#161616", "zone": "#D29A1E", "zoneText": "#161616", "sec": "#73A8B9", "card": "#73A8B9", "cardText": "#161616"}, "aquatic-licht": {"nav": "#4489A9", "navText": "#161616", "act": "#DDBE3A", "actText": "#161616", "zone": "#DDBE3A", "zoneText": "#161616", "sec": "#D23511", "card": "#73A8B9", "cardText": "#161616"}, "darjeeling-donker": {"nav": "#0E8B73", "navText": "#161616", "act": "#E59C25", "actText": "#161616", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#5FACCF", "card": "#E57A25", "cardText": "#161616"}, "darjeeling-licht": {"nav": "#0E8B73", "navText": "#161616", "act": "#E59C25", "actText": "#161616", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#0E8B73", "card": "#E59C25", "cardText": "#161616"}, "mrfox-donker": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#E0C31F", "actText": "#161616", "zone": "#4F9AC4", "zoneText": "#161616", "sec": "#4F9AC4", "card": "#C77A2E", "cardText": "#161616"}, "mrfox-licht": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#C77A2E", "actText": "#161616", "zone": "#E0C31F", "zoneText": "#161616", "sec": "#951D25", "card": "#4F9AC4", "cardText": "#161616"}, "moonrise-donker": {"nav": "#8B1A1E", "navText": "#FFFFFF", "act": "#E4B21A", "actText": "#161616", "zone": "#977431", "zoneText": "#FFFFFF", "sec": "#87B1A5", "card": "#87B1A5", "cardText": "#161616"}, "moonrise-licht": {"nav": "#87B1A5", "navText": "#161616", "act": "#8B1A1E", "actText": "#FFFFFF", "zone": "#E4B21A", "zoneText": "#161616", "sec": "#8B1A1E", "card": "#977431", "cardText": "#FFFFFF"}};
 const WA_THEMES = [
   {id:'rushmore', label:'Rushmore', mode:'donker', swatch:['#D9B25F','#DEB08E','#2E6A4F','#26213F','#D33A2C']},
   {id:'tenenbaums', label:'The Royal Tenenbaums', mode:'licht', swatch:['#C8321E','#A55C21','#A7C9D7','#575B80','#E3D3D5']},
@@ -3468,57 +3440,66 @@ function renderPositiewisselingenTab(){
   const f = state.posWisselFilter || {};
   const rows = POSITION_MISMATCHES_SAMENGEVOEGD;
   if(!rows.length) return `<div class="news-note">Nog geen opstellingsdata verwerkt om posities te vergelijken.</div>`;
-  const rondesVerwerkt = [...new Set(rows.flatMap(r=>Object.keys(r.perRonde).map(Number)))].sort((a,b)=>a-b);
-  const huidigeRonde = typeof currentRoundNumber==='function' ? currentRoundNumber() : Math.max(...rondesVerwerkt);
-  const rondesOntbrekend = [];
-  for(let r=1; r<huidigeRonde; r++){ if(!rondesVerwerkt.includes(r)) rondesOntbrekend.push(r); }
-
-  const cvhjFilter = f.cvhj || 'alle';
-  const actueleFilter = f.actueel || 'alle';
-  const q = normSearch(f.search||'');
-  let filtered = rows.filter(row=>{
-    if(cvhjFilter!=='alle' && row.cvhjPositie!==cvhjFilter) return false;
-    if(actueleFilter!=='alle' && row.actuelePositie!==actueleFilter) return false;
-    if(q && !normSearch(row.naam).includes(q)) return false;
-    return true;
-  });
-  filtered.sort((a,b)=>b.aantalKeer-a.aantalKeer);
-
-  const posOpties = [
-    {id:'alle', label:'Alle posities'}, {id:'Goalkeeper', label:'Keeper'},
-    {id:'Defender', label:'Verdediger'}, {id:'Midfielder', label:'Middenvelder'}, {id:'Forward', label:'Aanvaller'},
-  ];
   const POS_NL = {Goalkeeper:'Keeper', Defender:'Verdediger', Midfielder:'Middenvelder', Forward:'Aanvaller'};
-
+  const POSSEN = ['Goalkeeper','Defender','Midfielder','Forward'];
+  const rondes = [...new Set(rows.flatMap(r=>Object.keys(r.perRonde).map(Number)))].sort((a,b)=>a-b);
+  // Verrijken met spelerslijst (prijs, punten) en aandeel
+  const data = rows.map(r=>{
+    const pl = PLAYERS.find(p=>p.Speler===r.naam && p.Team===r.club) || null;
+    const basis = r.seizoenBasisplaatsen ?? r.totaalWaarnemingen;
+    return {...r, pl, prijs: pl ? pl.Prijs : null, punten: playerSeasonPoints2627(r.naam, r.club),
+      basis, pct: basis ? Math.round(r.aantalKeer/basis*100) : 0, inTeam: isInMyTeam({Speler:r.naam, Team:r.club})};
+  });
+  const clubs = [...new Set(data.map(r=>r.club))].sort((a,b)=>a.localeCompare(b));
+  const cvhj = f.cvhj||'alle', actueel = f.actueel||'alle', club = f.club||'alle', min = Number(f.min||1), sort = f.sort||'keer';
+  const q = normSearch(f.search||'');
+  let lijst = data.filter(r=>(cvhj==='alle'||r.cvhjPositie===cvhj) && (actueel==='alle'||r.actuelePositie===actueel)
+    && (club==='alle'||r.club===club) && r.aantalKeer>=min && (!f.mijn||r.inTeam) && (!q||normSearch(r.naam).includes(q)));
+  const SORT = {keer:(a,b)=>b.aantalKeer-a.aantalKeer||b.pct-a.pct, pct:(a,b)=>b.pct-a.pct||b.aantalKeer-a.aantalKeer,
+    punten:(a,b)=>b.punten-a.punten, prijs:(a,b)=>(a.prijs??99)-(b.prijs??99), naam:(a,b)=>a.naam.localeCompare(b.naam)};
+  lijst.sort(SORT[sort]||SORT.keer);
+  const sel = (key, val, opties)=>`<select onchange="setPosWisselFilter('${key}', this.value)">${opties.map(([v,l])=>`<option value="${v}" ${String(val)===String(v)?'selected':''}>${l}</option>`).join('')}</select>`;
+  const posChip = pos=>`<span class="pw-pos" style="--pc:${POS_COLOR[pos]}">${POS_NL[pos]}</span>`;
+  // Samenvatting: welke verschuivingen komen het vaakst voor
+  const combi = {}; data.forEach(r=>{ const k=r.cvhjPositie+'>'+r.actuelePositie; combi[k]=(combi[k]||0)+1; });
+  const topCombi = Object.entries(combi).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const mijn = data.filter(r=>r.inTeam);
   return `
-    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Spelers die op het CVHJ-platform een andere positie hebben dan waar ze daadwerkelijk hebben gestaan in de opstellingen van de wedstrijdbestanden (alleen basisspelers, wissels niet meegeteld) — samengevoegd over alle wedstrijden die ik tot nu toe kon controleren (ronde ${rondesVerwerkt.join(', ')}).${rondesOntbrekend.length ? ` Ronde${rondesOntbrekend.length>1?'s':''} ${rondesOntbrekend.join(' en ')} (regulier) heb ik nog geen bruikbaar wedstrijdbestand van.` : ''}</div>
-    <div class="toolbar" style="margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-      <input type="text" id="input-poswissel-search" placeholder="Zoek op spelersnaam..." value="${f.search||''}" oninput="setPosWisselFilter('search', this.value)" style="min-width:180px;">
-      <select onchange="setPosWisselFilter('cvhj', this.value)">
-        <option value="alle">Is op CVHJ: alle posities</option>
-        ${posOpties.filter(o=>o.id!=='alle').map(o=>`<option value="${o.id}" ${cvhjFilter===o.id?'selected':''}>Is op CVHJ: ${o.label}</option>`).join('')}
-      </select>
-      <select onchange="setPosWisselFilter('actueel', this.value)">
-        <option value="alle">Speelt eigenlijk: alle posities</option>
-        ${posOpties.filter(o=>o.id!=='alle').map(o=>`<option value="${o.id}" ${actueleFilter===o.id?'selected':''}>Speelt eigenlijk: ${o.label}</option>`).join('')}
-      </select>
+    <div class="summary-cards pw-sum" style="margin-bottom:12px;">
+      <div class="summary-card"><div class="label">Spelers met een andere positie</div><div class="value">${data.length}</div><div class="pw-sub">gecontroleerd: ronde ${rondes[0]}–${rondes[rondes.length-1]}${rondes.length<rondes[rondes.length-1]?` (niet alle rondes)`:''}</div></div>
+      <div class="summary-card" style="cursor:pointer;" onclick="setPosWisselFilter('mijn', ${f.mijn?'false':'true'})"><div class="label">In jouw team</div><div class="value">${mijn.length}</div><div class="pw-sub">${mijn.map(r=>r.naam.split(' ').slice(-1)[0]).join(', ')||'geen'}</div></div>
+      <div class="summary-card" style="text-align:left;"><div class="label">Meest voorkomend</div>${topCombi.map(([k,n])=>{ const [a,b]=k.split('>'); return `<div style="font-size:12px;margin-top:3px;cursor:pointer;" onclick="state.posWisselFilter=Object.assign(state.posWisselFilter||{}, {cvhj:'${a}', actueel:'${b}'});render();">${POS_NL[a]} → ${POS_NL[b]} <b>${n}</b></div>`; }).join('')}</div>
     </div>
-    <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">${filtered.length} resultaten</div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      ${filtered.length===0 ? `<div class="news-note">Geen spelers gevonden voor deze filters.</div>` : filtered.map(row=>{
-        const rondesTekst = Object.entries(row.perRonde).sort((a,b)=>a[0]-b[0]).map(([r,pos])=>`R${r}: ${POS_NL[pos]}`).join(', ');
-        const inTeam = isInMyTeam({Speler:row.naam, Team:row.club});
-        return `
-        <div class="picker-item" style="cursor:pointer;${inTeam?'background:color-mix(in srgb, var(--myteam) 16%, transparent);box-shadow:inset 3px 0 0 var(--myteam);':''}" onclick="openPlayerModal('${encodeURIComponent(row.naam)}','${encodeURIComponent(row.club)}')">
-          <div style="flex:1;">
-            <div style="font-size:13px;font-weight:600;">${teamLogo(row.club)}${row.naam} <span style="color:var(--text-dim);font-size:11px;font-weight:400;">(${row.club})</span>${inTeam?` <span style="background:var(--myteam);color:var(--on-accent);font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;">IN JOUW TEAM</span>`:''}</div>
-            <div style="font-size:11px;color:var(--text-dim);margin-top:2px;">Is op CVHJ: <b style="color:var(--text);">${POS_NL[row.cvhjPositie]}</b> · speelt meestal: <b style="color:var(--accent);">${POS_NL[row.actuelePositie]}</b></div>
-            <div style="font-size:10px;color:var(--text-dim);margin-top:1px;">Per ronde: ${rondesTekst}</div>
-          </div>
-          <div style="font-family:'Inter';font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;text-align:right;">${row.aantalKeer}/${row.seizoenBasisplaatsen ?? row.totaalWaarnemingen}<div style="font-size:9px;color:var(--text-dim);font-weight:400;">basisplaatsen dit seizoen<br>op ${POS_NL[row.actuelePositie].toLowerCase()}${row.seizoenBasisplaatsen!=null && row.totaalWaarnemingen!==row.seizoenBasisplaatsen ? `<br>(${row.totaalWaarnemingen} van de ${row.seizoenBasisplaatsen} gecontroleerd)` : ''}</div></div>
-        </div>
-      `;}).join('')}
+    <details class="uitleg" style="margin-bottom:12px;"><summary>Hoe werkt dit?</summary>
+      <div>Per speler: de positie op het CVHJ-platform (bepaalt de punten) tegenover de positie waarop hij in de wedstrijden echt als basisspeler stond. Alleen basisplaatsen tellen, wissels niet. "Keer" = aantal basisplaatsen op de andere positie, van zijn basisplaatsen dit seizoen. Gecontroleerde rondes: ${rondes.join(', ')}; voor andere rondes zijn geen opstellingen met echte posities beschikbaar. Een middenvelder die als verdediger speelt krijgt in CVHJ geen clean-sheetpunten van een verdediger, maar wel middenvelderspunten voor doelpunten — andersom ook.</div>
+    </details>
+    <div class="toolbar pw-filters" style="margin-bottom:10px;">
+      <input type="text" id="input-poswissel-search" placeholder="Zoek speler..." value="${f.search||''}" oninput="setPosWisselFilter('search', this.value)">
+      ${sel('club', club, [['alle','Alle clubs'], ...clubs.map(c=>[c,c])])}
+      ${sel('cvhj', cvhj, [['alle','CVHJ: alle posities'], ...POSSEN.map(p=>[p,'CVHJ: '+POS_NL[p]])])}
+      ${sel('actueel', actueel, [['alle','Speelt als: alles'], ...POSSEN.map(p=>[p,'Speelt als: '+POS_NL[p]])])}
+      ${sel('min', min, [[1,'Minstens 1×'],[2,'Minstens 2×'],[3,'Minstens 3×'],[5,'Minstens 5×']])}
+      ${sel('sort', sort, [['keer','Sorteer: meeste keer'],['pct','Sorteer: hoogste %'],['punten','Sorteer: CVHJ-punten'],['prijs','Sorteer: goedkoopst'],['naam','Sorteer: naam']])}
+      <label class="pw-check"><input type="checkbox" ${f.mijn?'checked':''} onchange="setPosWisselFilter('mijn', this.checked)"> Alleen mijn team</label>
+      ${Object.keys(f).some(k=>f[k] && f[k]!=='alle') ? `<button class="btn ghost" style="padding:6px 10px;font-size:11px;" onclick="state.posWisselFilter={};render();">Wis filters</button>` : ''}
     </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">${lijst.length} van ${data.length} spelers</div>
+    ${lijst.length===0 ? `<div class="news-note">Geen spelers gevonden voor deze filters.</div>` : `
+    <div style="overflow-x:auto;">
+      <table class="stat-table pw-table">
+        <thead><tr><th>Speler</th><th>CVHJ</th><th></th><th>Speelt als</th><th title="Basisplaatsen op de andere positie / basisplaatsen dit seizoen">Keer</th><th>Per ronde</th><th>Prijs</th><th>Pnt</th></tr></thead>
+        <tbody>
+        ${lijst.map(r=>`<tr class="${r.inTeam?'pw-mijn':''}" style="cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(r.naam)}','${encodeURIComponent(r.club)}')">
+          <td class="pw-naam">${teamLogo(r.club)}<span><b>${r.naam}</b>${r.inTeam?' <span class="pw-tag">JOUW TEAM</span>':''}<br><span class="pw-club">${r.club}</span></span></td>
+          <td>${posChip(r.cvhjPositie)}</td><td class="pw-pijl">→</td><td>${posChip(r.actuelePositie)}</td>
+          <td><div class="pw-keer"><b>${r.aantalKeer}</b>/${r.basis}<div class="pw-bar"><i style="width:${r.pct}%"></i></div></div></td>
+          <td><div class="pw-rondes">${rondes.map(n=>{ const pos=r.perRonde[n]; return `<span title="Ronde ${n}: ${pos?POS_NL[pos]:'geen basisplaats of niet gecontroleerd'}" style="${pos?`background:${POS_COLOR[pos]};`:''}">${n}</span>`; }).join('')}</div></td>
+          <td>${r.prijs!=null?fmtEuro(r.prijs):'–'}</td><td>${r.punten}</td>
+        </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Per ronde: kleur = positie waarop hij die ronde begon (keeper/verdediger/middenvelder/aanvaller in de positiekleuren); leeg = geen basisplaats of ronde niet gecontroleerd.</div>`}
   `;
 }
 function renderScoutTab(){
@@ -7857,7 +7838,18 @@ function findPlayerForTransfer(rec, direction, club){
   const expectedTeam = direction==='in' ? club : (rec.tegenClubNL || null);
   let p = expectedTeam ? PLAYERS.find(pl=>pl.Speler===rec.speler && pl.Team===expectedTeam) : null;
   if(!p) p = PLAYERS.find(pl=>pl.Speler===rec.speler);
-  return p || null;
+  if(p) return p;
+  // Andere schrijfwijze (Tsygankov/Tsyhankov, Marc ter Stegen/Marc-André ter Stegen, accenten):
+  // alleen koppelen als er bij de verwachte club precies één kandidaat is.
+  if(!expectedTeam) return null;
+  const fold = t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
+  const t = fold(rec.speler).split(' '); const achter = t[t.length-1];
+  const cand = PLAYERS.filter(pl=>pl.Team===expectedTeam && !pl.former);
+  const lev = (a,b)=>{ const d=[...Array(b.length+1).keys()]; for(let i=1;i<=a.length;i++){ let prev=d[0]; d[0]=i; for(let j=1;j<=b.length;j++){ const tmp=d[j]; d[j]=Math.min(d[j]+1,d[j-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=tmp; } } return d[b.length]; };
+  let hit = cand.filter(pl=>{ const u=fold(pl.Speler).split(' '); return u[u.length-1]===achter && u[0][0]===t[0][0]; });
+  if(hit.length!==1) hit = cand.filter(pl=>{ const u=fold(pl.Speler).split(' '); return u[0]===t[0] && lev(u[u.length-1],achter)<=2; });
+  if(hit.length!==1) hit = cand.filter(pl=>{ const u=fold(pl.Speler).split(' '); return u[u.length-1]===achter && (u[0].includes(t[0])||t[0].includes(u[0])); });
+  return hit.length===1 ? hit[0] : null;
 }
 function transferRowHtml(rec, direction, club){
   const p = findPlayerForTransfer(rec, direction, club);
@@ -8013,7 +8005,7 @@ function registerDownloadFns(r){
 function downloadOverigeStatistieken(){
   const sheets = Object.keys(OVERIGE_CATEGORIE_CONFIG).map(sheet=>{
     const cfg = OVERIGE_CATEGORIE_CONFIG[sheet];
-    const rijen = (OVERIGE_STATISTIEKEN[sheet]||[]).slice().sort((a,b)=>b[cfg.metric]-a[cfg.metric]);
+    const rijen = overigSeasonRows(sheet).slice().sort((a,b)=>b[cfg.metric]-a[cfg.metric]);
     const kolommen = ['Speler','Club','Wedstrijden', cfg.metric, ...(cfg.extra||[])];
     const rows = [kolommen];
     rijen.forEach(r=>rows.push(kolommen.map((k,i)=> i===0?r.naam : i===1?r.club : (r[k] ?? ''))));
@@ -14768,14 +14760,21 @@ function playerSeasonPoints2627(naam, club){
   }
   return __playerSeasonPointsCache[naam+'|'+club] || 0;
 }
+// Goals, assists en kaarten komen niet van voetbal.com maar uit de portaal-events per ronde
+// (SEASON_2627_SNAPSHOTS); daardoor is elke gespeelde ronde los te kiezen (bron:'snap').
 const OVERIGE_CATEGORIE_CONFIG = {
+  Doelpunten: {label:'Goals', metric:'Totaal', metricLabel:'goals', bron:'snap', velden:{Totaal:['playerRoundGoals']}},
+  Assists: {label:'Assists', metric:'Totaal', metricLabel:'assists', bron:'snap', velden:{Totaal:['playerRoundAssists']}},
+  'Gele kaarten': {label:'Gele kaarten', negatief:true, metric:'Totaal', metricLabel:'gele kaarten', bron:'snap', velden:{Totaal:['playerRoundYellow']}},
+  'Rode kaarten': {label:'Rode kaarten', negatief:true, metric:'Totaal', metricLabel:'rode kaarten', bron:'snap', velden:{Totaal:['playerRoundRed']}},
+  Kaarten: {label:'Alle kaarten', negatief:true, metric:'Totaal', metricLabel:'kaarten', bron:'snap', velden:{Totaal:['playerRoundYellow','playerRoundRed'], Geel:['playerRoundYellow'], Rood:['playerRoundRed']}, extra:['Geel','Rood']},
   Hoekschoppen: {label:'Hoekschoppen', metric:'Totaal', metricLabel:'hoekschoppen'},
   Doelpogingen: {label:'Doelpogingen', metric:'Schoten', metricLabel:'schoten', extra:['Doelpunten','Quota']},
   Passes: {label:'Passes', metric:'Totaal', metricLabel:'passes', extra:['Aangekomen','Mislukte passes','Quota %']},
   Duels: {label:'Duels', metric:'Totaal', metricLabel:'duels', extra:['Gewonnen','Verloren','Quota %']},
-  'Overtredingen begaan': {label:'Overtredingen', metric:'Totaal', metricLabel:'overtredingen'},
+  'Overtredingen begaan': {label:'Overtredingen', negatief:true, metric:'Totaal', metricLabel:'overtredingen'},
   'Vrije trappen': {label:'Vrije trappen', metric:'Totaal', metricLabel:'vrije trappen'},
-  Buitenspel: {label:'Buitenspel', metric:'Totaal', metricLabel:'buitenspel'},
+  Buitenspel: {label:'Buitenspel', negatief:true, metric:'Totaal', metricLabel:'buitenspel'},
 };
 function setOverigCategorie(v){ state.overigCategorie = v; state.overigDetail = null; state.overigWeergave = 'speler'; render(); }
 function toggleOverigDetail(key){ state.overigDetail = state.overigDetail===key ? null : key; render(); }
@@ -14811,13 +14810,13 @@ function renderOverigeStatCategorie(sheet){
     ${renderOverigRondeKiezer()}
     <div class="summary-cards" style="margin-bottom:14px;">
       <div class="summary-card"><div class="label">Totaal ${cfg.metricLabel} ${periode}</div><div class="value">${s.totaal}</div></div>
-      ${s.bestSpeler ? `<div class="summary-card grad-gold" style="cursor:pointer;" onclick="closeModal();openPlayerModal('${encodeURIComponent(s.bestSpeler.naam)}','${encodeURIComponent(s.bestSpeler.club)}')" title="Klik voor het spelersprofiel"><div class="label">Beste speler</div><div class="value" style="font-size:14px;">${s.bestSpeler.naam}</div><div class="label">${s.bestSpeler[cfg.metric]} ${cfg.metricLabel}</div></div>` : ''}
+      ${s.bestSpeler ? `<div class="summary-card grad-gold" style="cursor:pointer;" onclick="closeModal();openPlayerModal('${encodeURIComponent(s.bestSpeler.naam)}','${encodeURIComponent(s.bestSpeler.club)}')" title="Klik voor het spelersprofiel"><div class="label">${cfg.negatief?'Meeste '+cfg.metricLabel:'Beste speler'}</div><div class="value" style="font-size:14px;">${s.bestSpeler.naam}</div><div class="label">${s.bestSpeler[cfg.metric]} ${cfg.metricLabel}</div></div>` : ''}
     </div>
     <div class="summary-cards" style="margin-bottom:14px;">
-      ${s.besteClub ? `<div class="summary-card" style="cursor:pointer;" onclick="closeModal();setTab('clubs');selectClubView('${s.besteClub[0].replace(/'/g,"\\'")}')" title="Klik voor de club"><div class="label">Beste club</div><div class="value" style="font-size:14px;">${teamLogo(s.besteClub[0])}${s.besteClub[0]}</div><div class="label">${s.besteClub[1]} ${cfg.metricLabel} ${periode}</div></div>` : ''}
-      ${s.slechtsteClub ? `<div class="summary-card" style="cursor:pointer;" onclick="closeModal();setTab('clubs');selectClubView('${s.slechtsteClub[0].replace(/'/g,"\\'")}')" title="Klik voor de club"><div class="label">Slechtste club</div><div class="value" style="font-size:14px;">${teamLogo(s.slechtsteClub[0])}${s.slechtsteClub[0]}</div><div class="label">${s.slechtsteClub[1]} ${cfg.metricLabel} ${periode}</div></div>` : ''}
+      ${s.besteClub ? `<div class="summary-card" style="cursor:pointer;" onclick="closeModal();setTab('clubs');selectClubView('${s.besteClub[0].replace(/'/g,"\\'")}')" title="Klik voor de club"><div class="label">${cfg.negatief?'Club met de meeste':'Beste club'}</div><div class="value" style="font-size:14px;">${teamLogo(s.besteClub[0])}${s.besteClub[0]}</div><div class="label">${s.besteClub[1]} ${cfg.metricLabel} ${periode}</div></div>` : ''}
+      ${s.slechtsteClub ? `<div class="summary-card" style="cursor:pointer;" onclick="closeModal();setTab('clubs');selectClubView('${s.slechtsteClub[0].replace(/'/g,"\\'")}')" title="Klik voor de club"><div class="label">${cfg.negatief?'Club met de minste':'Slechtste club'}</div><div class="value" style="font-size:14px;">${teamLogo(s.slechtsteClub[0])}${s.slechtsteClub[0]}</div><div class="label">${s.slechtsteClub[1]} ${cfg.metricLabel} ${periode}</div></div>` : ''}
     </div>
-    <div class="news-note" style="margin-bottom:12px;">${icon('info',11)} Bron: voetbal.com-export (${sheet}), seizoen 2026/27. "CVHJ-pnt" is het aantal CVHJ-fantasypunten dat de speler ${periode} behaalde (los van deze statistiek). Klik op een speler (of club) voor de volledige uitsplitsing.${sheet==='Vrije trappen' ? ' Let op: hier tellen alleen vrije trappen die op/richting het doel werden genomen mee — vrije trappen die bijvoorbeeld kort of zijwaarts werden uitgenomen zitten hier niet bij.' : ''}</div>
+    <div class="news-note" style="margin-bottom:12px;">${icon('info',11)} Bron: ${cfg.bron==='snap'?'wedstrijdevents van het CVHJ-portaal':'voetbal.com-export ('+sheet+')'}, seizoen 2026/27. "CVHJ-pnt" is het aantal CVHJ-fantasypunten dat de speler ${periode} behaalde (los van deze statistiek). Klik op een speler (of club) voor de volledige uitsplitsing.${sheet==='Vrije trappen' ? ' Let op: hier tellen alleen vrije trappen die op/richting het doel werden genomen mee — vrije trappen die bijvoorbeeld kort of zijwaarts werden uitgenomen zitten hier niet bij.' : ''}</div>
     <div class="view-toggle" style="margin-bottom:12px;flex-wrap:wrap;">
       <button class="${weergave==='speler'?'active':''}" onclick="setOverigWeergave('speler')">Per speler</button>
       <button class="${weergave==='club'?'active':''}" onclick="setOverigWeergave('club')">Per club</button>
@@ -15048,23 +15047,47 @@ function computePerRondeOverig(sheet, ronde){
   rows.overgeslagen = overgeslagen;
   return rows;
 }
-function overigRonde(){ const r = state.overigRonde; return (r && overigRondesBeschikbaar().includes(r)) ? r : null; }
-function overigRows(sheet){ const r = overigRonde(); return r ? (computePerRondeOverig(sheet, r)||[]) : (OVERIGE_STATISTIEKEN[sheet]||[]); }
+function overigIsSnap(sheet){ const c = OVERIGE_CATEGORIE_CONFIG[sheet||state.overigCategorie]; return !!(c && c.bron==='snap'); }
+function overigRondesVoor(sheet){ return overigIsSnap(sheet) ? availableSnapshotRounds().slice().sort((a,b)=>b-a) : overigRondesBeschikbaar(); }
+function overigRonde(){ const r = state.overigRonde; return (r && overigRondesVoor().includes(r)) ? r : null; }
+// Goals/assists/kaarten per speler uit de rondesnapshots; ronde = null → heel seizoen.
+function overigSnapRows(sheet, ronde){
+  const cfg = OVERIGE_CATEGORIE_CONFIG[sheet]; const rondes = ronde ? [ronde] : availableSnapshotRounds();
+  const per = {};
+  rondes.forEach(r=>{ const sn = SEASON_2627_SNAPSHOTS[r]; if(!sn) return;
+    const gespeeld = sn.playerRoundMinutes||{};
+    Object.entries(cfg.velden).forEach(([veld, bronnen])=>bronnen.forEach(b=>Object.entries(sn[b]||{}).forEach(([key,v])=>{
+      if(!v) return; const i = key.lastIndexOf('|');
+      const d = per[key] || (per[key] = {naam:key.slice(0,i), club:key.slice(i+1), _r:new Set()});
+      d[veld] = (d[veld]||0) + v; })));
+    Object.values(per).forEach(d=>{ if(gespeeld[d.naam+'|'+d.club]) d._r.add(r); });
+  });
+  // Wedstrijden = rondes met speelminuten in de gekozen periode
+  Object.values(per).forEach(d=>{ let n=0; rondes.forEach(r=>{ const sn=SEASON_2627_SNAPSHOTS[r]; if(sn && (sn.playerRoundMinutes||{})[d.naam+'|'+d.club]) n++; }); d.Wedstrijden = n; delete d._r;
+    Object.keys(cfg.velden).forEach(v=>{ if(d[v]==null) d[v]=0; }); });
+  return Object.values(per).filter(d=>d[cfg.metric]>0);
+}
+function overigSeasonRows(sheet){ return overigIsSnap(sheet) ? overigSnapRows(sheet, null) : (OVERIGE_STATISTIEKEN[sheet]||[]); }
+function overigRows(sheet){ const r = overigRonde(); if(overigIsSnap(sheet)) return overigSnapRows(sheet, r); return r ? (computePerRondeOverig(sheet, r)||[]) : (OVERIGE_STATISTIEKEN[sheet]||[]); }
 function overigPunten(naam, club){
   const r = overigRonde();
   if(!r) return playerSeasonPoints2627(naam, club);
   const sn = SEASON_2627_SNAPSHOTS[r]; return sn && sn.playerRoundPoints ? (sn.playerRoundPoints[naam+'|'+club]||0) : 0;
 }
 function renderOverigRondeKiezer(){
-  const r = overigRonde(); const beschikbaar = overigRondesBeschikbaar();
-  const opties = []; for(let n=OVERIGE_STATISTIEKEN_T_M_RONDE; n>=1; n--) opties.push(n);
+  const r = overigRonde(); const snap = overigIsSnap(); const beschikbaar = overigRondesVoor();
+  const tm = snap ? Math.max(0, ...availableSnapshotRounds()) : OVERIGE_STATISTIEKEN_T_M_RONDE;
+  const opties = []; for(let n=tm; n>=1; n--) opties.push(n);
+  const uitleg = snap
+    ? (r ? `Alleen ronde ${r}, uit de wedstrijdevents van het CVHJ-portaal.` : `Elke gespeelde ronde is los te kiezen (bron: wedstrijdevents van het CVHJ-portaal).`)
+    : (r ? `Alleen wat er in ronde ${r} bij kwam (verschil met de stand na ronde ${r-1}). Spelers die de bron eerder niet toonde, of waarvan de bron alleen een oud cijfer corrigeerde, tellen niet mee.` : `Losse rondes beschikbaar vanaf ronde ${Math.min(...beschikbaar)}; eerdere rondes zijn niet apart gemeten.`);
   return `<div class="overig-ronde">
     <label>Periode</label>
     <select onchange="setOverigRonde(this.value==='seizoen'?null:Number(this.value))">
-      <option value="seizoen" ${!r?'selected':''}>Heel seizoen (t/m ronde ${OVERIGE_STATISTIEKEN_T_M_RONDE})</option>
+      <option value="seizoen" ${!r?'selected':''}>Heel seizoen (t/m ronde ${tm})</option>
       ${opties.map(n=>`<option value="${n}" ${r===n?'selected':''} ${beschikbaar.includes(n)?'':'disabled'}>Ronde ${n}${beschikbaar.includes(n)?'':' — geen losse meting'}</option>`).join('')}
     </select>
-    <span>${r ? `Alleen wat er in ronde ${r} bij kwam (verschil met de stand na ronde ${r-1}). Spelers die de bron eerder niet toonde, of waarvan de bron alleen een oud cijfer corrigeerde, tellen niet mee.` : `Losse rondes beschikbaar vanaf ronde ${beschikbaar.length?Math.min(...beschikbaar):'–'}; daarvoor is alleen het seizoenstotaal bekend.`}</span>
+    <span>${uitleg}</span>
   </div>`;
 }
 function computePenaltyTakers(){
