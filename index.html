@@ -11469,7 +11469,9 @@ function computeCoachWeekScores(round, teamsSource, officialTotals){
         const pts = (snap.playerRoundPoints && snap.playerRoundPoints[s.key]) || 0;
         const mins = (snap.playerRoundMinutes && snap.playerRoundMinutes[s.key]);
         const p = playerByKey(s.key);
-        return {...s, points: pts, playerRoundMinutes: mins, speler: p ? p.Speler : s.key.split('|')[0]};
+        // Landelijke teams hebben alleen {key,pos,reserve}: naam en club uit de sleutel halen ("Naam|Club").
+        const sep = s.key.lastIndexOf('|');
+        return {...s, naam: s.naam || s.key.slice(0, sep), club: s.club || s.key.slice(sep+1), points: pts, playerRoundMinutes: mins, speler: p ? p.Speler : s.key.split('|')[0]};
       });
       // Het echte teampuntentotaal volgt de CVHJ-bankregels (bankspeler scoort 50%, of 100% als
       // hij een afwezige basisspeler op dezelfde linie vervangt) — te foutgevoelig om zelf exact na
