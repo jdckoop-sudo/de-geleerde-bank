@@ -6571,9 +6571,12 @@ function renderWisselschemaTab(){
     const unlimited = isUnlimitedRound(r);
     const allowance = unlimited ? null : windowAllowanceForRound(r);
     const isPeriod = PERIOD_FIRST_ROUND.has(r) && !unlimited;
-    const isPast = lastDate && lastDate < todayStr;
-    const isCurrent = r===effRound;
-    rows.push({r, firstDate, lastDate, nMatches, unlimited, allowance, isPeriod, isPast, isCurrent});
+    const rondeMs = MATCHES.filter(mm=>mm.type==='Eredivisie' && matchRoundNumber(mm.id)===r);
+    const allesGespeeld = rondeMs.length>0 && rondeMs.every(mm=>mm.homeScore!=null);
+    const isPast = allesGespeeld || (lastDate && lastDate < todayStr);
+    const isCurrent = r===effRound && !isPast;
+    const isVolgende = !isCurrent && r===wisselRound() && !isPast && !rows.some(x=>x.isCurrent);
+    rows.push({r, firstDate, lastDate, nMatches, unlimited, allowance, isPeriod, isPast, isCurrent, isVolgende});
   }
   return `
     <div class="news-note">${icon('refresh',13)} Overzicht van elke Eredivisie-speelronde dit seizoen: de speeldata en hoeveel wissels je die ronde in Casting Couch mag doen. Normaal mag je <b>1</b> wissel per ronde; bij een periode-start (gemarkeerd) mag je <b>3</b> wissels doen. Ronde 1 (en de voorbereiding daarvoor) is onbeperkt wisselen.</div>
@@ -6581,14 +6584,14 @@ function renderWisselschemaTab(){
       <thead><tr><th>Ronde</th><th>Eerste speeldag</th><th>Laatste speeldag</th><th>Wedstrijden</th><th>Wissels toegestaan</th><th>Jouw wissels${state.followedCoach?` <span style="font-weight:400;text-transform:none;">(${state.followedCoach})</span>`:''}</th><th>Status</th></tr></thead>
       <tbody>
         ${rows.map(row=>`
-          <tr style="${row.isCurrent?`background:var(--surface-2);`:''}${row.isPeriod?`border-left:3px solid var(--accent);`:''}">
+          <tr style="${row.isCurrent||row.isVolgende?`background:var(--surface-2);`:''}${row.isPeriod?`border-left:3px solid var(--accent);`:''}">
             <td style="font-weight:700;">${row.r}${row.isPeriod?` ${icon('refresh',12)}`:''}</td>
             <td>${row.firstDate?fmtDate(row.firstDate):'—'}</td>
             <td>${row.lastDate && row.lastDate!==row.firstDate?fmtDate(row.lastDate):'—'}</td>
             <td>${row.nMatches||'—'}</td>
             <td>${row.unlimited ? `<b style="color:var(--accent-text,var(--accent));">onbeperkt</b>` : `<b style="color:${row.isPeriod?'var(--accent)':'var(--text)'};">${row.allowance}</b>${row.isPeriod?' <span style="font-size:10px;color:var(--text-dim);">(periodewissel)</span>':''}`}</td>
             <td>${wisselCel(row.r)}</td>
-            <td style="font-size:11px;color:var(--text-dim);">${row.isCurrent?'<b style="color:var(--accent-text,var(--accent));">huidige ronde</b>':row.isPast?'gespeeld':'nog te spelen'}</td>
+            <td style="font-size:11px;color:var(--text-dim);">${row.isCurrent?'<b style="color:var(--accent-text,var(--accent));">bezig</b>':row.isVolgende?'<b style="color:var(--accent-text,var(--accent));">volgende ronde</b>':row.isPast?'gespeeld':'nog te spelen'}</td>
           </tr>
         `).join('')}
       </tbody>
