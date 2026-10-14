@@ -1121,7 +1121,6 @@
   .pitch .pc-mine .pc-name, .bench2 .pc-mine .pc-name{background:var(--myteam) !important;color:var(--on-myteam) !important;box-shadow:0 0 0 2px var(--on-myteam);}
   .pc-mine .pc-star{color:var(--on-myteam);}
   .pc-mine .pc-av{box-shadow:0 0 0 3px var(--myteam), 0 0 0 6px var(--on-myteam), 0 3px 8px rgba(0,0,0,.35) !important;}
-  .pc-mine::before{content:"MIJN";position:absolute;top:-9px;right:6px;z-index:4;font-family:'Inter';font-size:8px;font-weight:800;letter-spacing:.06em;padding:1px 5px;border-radius:999px;background:var(--myteam);color:var(--on-myteam);box-shadow:0 0 0 1.5px var(--on-myteam);}
   .pitch-chip.pc2.pc-mine{position:relative;}
   .bench2 .pc-opp{color:var(--text-dim) !important;text-shadow:none;}
   .nav-dot{margin-left:auto;font-style:normal;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--danger);color:var(--on-danger);font-size:10.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
@@ -4437,7 +4436,7 @@ function renderFantasySquadPitch(perPlayer, round, pitchVariant, label, sideHtml
     const color = POS_COLOR[d.pos] || '#888';
     const naam = d.speler || d.naam;
     const mine = isInMyTeam({Speler:naam, Team:d.club});
-    return `<div class="pitch-chip pc2${mine?' pc-mine':''}" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')" title="${naam} · ${d.club}${mine?' · zit in Mijn Team':''}">
+    return `<div class="pitch-chip pc2${mine?' pc-mine':''}" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')" title="${naam} · ${d.club}${mine?' · zit in jouw team':''}">
       ${pitchAvatarHtml(naam, d.club, color)}
       ${pitchPtsHtml(d.points)}
       <div class="pc-name">${mine?`<span class="pc-star">${icon('star',8)}</span>`:''}${pitchSurname(naam)}</div>
@@ -4469,7 +4468,7 @@ function renderFantasySquadPitch(perPlayer, round, pitchVariant, label, sideHtml
       const color = POS_COLOR[d.pos] || '#888';
       const naam = d.speler || d.naam;
       const mine = isInMyTeam({Speler:naam, Team:d.club});
-      return `<div class="pitch-chip pc2${mine?' pc-mine':''}" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')" title="${naam} · ${d.club}${mine?' · zit in Mijn Team':''}">
+      return `<div class="pitch-chip pc2${mine?' pc-mine':''}" onclick="openPlayerModal('${encodeURIComponent(naam)}','${encodeURIComponent(d.club)}')" title="${naam} · ${d.club}${mine?' · zit in jouw team':''}">
         <span class="pc-pos" style="background:${color}">${POS_SHORT[d.pos]||''}</span>
         ${pitchAvatarHtml(naam, d.club, color)}
         ${pitchPtsHtml(d.points)}
@@ -6686,7 +6685,7 @@ function renderInjuryUpdatesSlider(){
         <div class="injupd-top"><span class="injupd-badge" style="background:${m.color};">${m.label}</span><span class="injupd-date">${dag(u.datum)}</span></div>
         <div class="injupd-player">${injAvatar(u.speler, 34)}<div><div class="injupd-name">${u.speler}</div><div class="injupd-club">${teamLogo(u.club)}${u.club}</div></div></div>
         <div class="injupd-detail">${u.detail||''}</div>
-        <div class="injupd-foot">${my?`<span class="slot-myteam-badge">${icon('star',9)} MIJN TEAM</span>`:''}<span>${u.bron==='fcupdate'?'fcupdate.nl':'blessure-index'}</span></div>
+        <div class="injupd-foot">${my?`<span class="slot-myteam-badge">${icon('star',9)} IN JOUW TEAM</span>`:''}<span>${u.bron==='fcupdate'?'fcupdate.nl':'blessure-index'}</span></div>
       </div>`; }).join('')}</div>`
     : `<div class="empty-state">Geen updates in de afgelopen 7 dagen${laatste?` (laatste update: ${dag(laatste)})`:''}.</div>`}
   </section>`;
@@ -6723,7 +6722,7 @@ function renderInjuriesTab(){
       <div class="inj-card-top">
         ${injAvatar(x.naam, 40)}
         <div class="inj-card-main">
-          <div class="inj-card-name">${x.naam}${mine?` <span class="slot-myteam-badge">${icon('star',9)} MIJN TEAM</span>`:''}</div>
+          <div class="inj-card-name">${x.naam}${mine?` <span class="slot-myteam-badge">${icon('star',9)} IN JOUW TEAM</span>`:''}</div>
           <div class="inj-card-sub">${teamLogo(x.club)}${x.club} · ${x.type||'Blessure'}</div>
           <div class="inj-card-sub">Verwacht terug: <b style="color:var(--text);">${x.terug||'niet bekend'}</b>${x.e?' · '+idxRiskChip(x.e.bgi.r, x.e.bgi.s, 'BGI'):''}</div>
         </div>
