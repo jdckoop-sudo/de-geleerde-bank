@@ -7310,12 +7310,27 @@ function rankListHtmlDual(items, countUnit, ptsPerUnit){
 }
 const CLUB_SORT_FIELDS = {
   punten:{label:'Punten', field:'Totaal'},
-  doelpunten:{label:'Doelpunten (punten)', field:'Goals'},
-  assists:{label:'Assists (punten)', field:'Assists'},
+  doelpunten:{label:'Doelpunten', field:'__goals'},
+  assists:{label:'Assists', field:'__assists'},
   kaarten:{label:'Kaarten (puntenverlies)', field:'Kaarten'},
   minuten:{label:'Minuten gespeeld', field:'Minuten'},
-  cleansheet:{label:'Clean sheet-punten', field:'CleanSheet'},
+  cleansheet:{label:'Clean sheets', field:'__cs'},
 };
+// Aantallen uit de seizoensdata. 2026/27 heeft echte aantallen (GoalsCount/AssistsCount); oudere seizoenen
+// bevatten alleen punten per categorie, daaruit terugrekenen met de puntentabel (alleen als dat precies uitkomt).
+function clubAantal(d, p, soort){
+  if(!d) return null; const pos = p.Positie;
+  if(soort==='goals'){ if(d.GoalsCount!=null) return d.GoalsCount; const per=GOAL_PTS_PER[pos]; if(d.Goals==null||!per) return null; const n=d.Goals/per, pen=(d.PenM||0)/(PENALTY_GOAL_PTS||4); return Number.isInteger(n)&&Number.isInteger(pen) ? n+pen : null; }
+  if(soort==='assists'){ if(d.AssistsCount!=null) return d.AssistsCount; const per=ASSIST_PTS_PER[pos]; if(d.Assists==null||!per) return null; const n=d.Assists/per; return Number.isInteger(n)?n:null; }
+  if(soort==='cs'){ const per=CLEANSHEET_PTS_PER[pos]; if(!per) return d.CleanSheet!=null ? 0 : null; if(d.CleanSheet==null) return null; const n=d.CleanSheet/per; return Number.isInteger(n)?n:null; }
+  return null;
+}
+function clubAantalCel(d, p, soort){
+  if(!d) return '—'; const n = clubAantal(d, p, soort);
+  const pnt = soort==='goals' ? (d.Goals||0)+(d.PenM||0) : soort==='assists' ? d.Assists : d.CleanSheet;
+  if(n==null) return pnt!=null ? `<span title="Alleen punten bekend">${pnt} pnt</span>` : '—';
+  return `${n}${pnt?` <small style="color:var(--text-dim)">${pnt} pnt</small>`:''}`;
+}
 function renderClubsTab(){
   if(!state.clubViewSelected){
     const clubs = DUTCH_TEAMS.filter(t=>t!=='Nederland').sort();
@@ -7451,7 +7466,7 @@ function renderClubSquadTab(club){
     if(!da && !db) return a.Speler.localeCompare(b.Speler);
     if(!da) return 1;
     if(!db) return -1;
-    const va = da[sortField], vb = db[sortField];
+    const va = sortField.startsWith('__') ? clubAantal(da, a, sortField.slice(2)) : da[sortField], vb = sortField.startsWith('__') ? clubAantal(db, b, sortField.slice(2)) : db[sortField];
     if(va==null && vb==null) return a.Speler.localeCompare(b.Speler);
     if(va==null) return 1;
     if(vb==null) return -1;
@@ -7476,7 +7491,7 @@ function renderClubSquadTab(club){
       </select>
     </div>
     ${season==='2026/27' && !anyClubData ? `<div class="news-note">Nog geen data voor 2026/27 bij deze club — zodra er ronde-data is, vult dit zich vanzelf.</div>` : ''}
-    ${season==='2026/27' && anyClubData ? `<div class="news-note">Doelp./Assists/Clean sheet/Kaarten zijn voor 2026/27 nog niet uitgesplitst per puntenwaarde (alleen het totaal per speler is live) — dat verschijnt hier zodra dat apart wordt bijgehouden.</div>` : ''}
+    ${anyClubData ? `<div class="news-note">${icon('info',11)} Doelpunten, assists en clean sheets zijn aantallen (doelpunten inclusief benutte penalty's); de punten die ze opleverden staan er klein achter. Kaarten = puntenverlies door gele en rode kaarten.</div>` : ''}
     <div style="overflow-x:auto;"><table class="stat-table">
       <thead><tr><th>Speler</th><th>Pos</th><th>Rating</th><th>Prijs</th><th>Punten</th><th>Minuten</th><th>Doelp.</th><th>Assists</th><th>Clean sheet</th><th>Kaarten</th></tr></thead>
       <tbody>
@@ -7490,9 +7505,9 @@ function renderClubSquadTab(club){
             <td>${fmtEuro(p.Prijs)}</td>
             <td>${d?d.Totaal:'—'}</td>
             <td>${d?d.Minuten:'—'}</td>
-            <td>${d&&d.Goals!=null?d.Goals:'—'}</td>
-            <td>${d&&d.Assists!=null?d.Assists:'—'}</td>
-            <td>${d&&d.CleanSheet!=null?d.CleanSheet:'—'}</td>
+            <td>${clubAantalCel(d, p, 'goals')}</td>
+            <td>${clubAantalCel(d, p, 'assists')}</td>
+            <td>${clubAantalCel(d, p, 'cs')}</td>
             <td style="color:${(d&&d.Kaarten<0)?'var(--danger)':'var(--text-dim)'}">${d&&d.Kaarten!=null?d.Kaarten:'—'}</td>
           </tr>`;
         }).join('')}
