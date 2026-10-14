@@ -1185,6 +1185,16 @@
   .dl-slot p{font-size:13px;color:var(--text-dim);margin:6px 0 14px;}
   .dl-slot input{flex:1;min-width:180px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:14px;}
   .dl-slot-fout{min-height:18px;margin-top:8px;font-size:12px;font-weight:600;color:var(--danger-text,var(--danger));}
+  .vo-blok{margin-bottom:16px;}
+  .vo-kop{font-size:13px;margin:-4px 0 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .vo-grid{display:grid;grid-template-columns:minmax(260px,380px) 1fr;gap:16px;align-items:start;}
+  @media (max-width:720px){ .vo-grid{grid-template-columns:1fr;} }
+  .vo-uitleg{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;line-height:1.5;}
+  .vo-sub{font-family:'Jost';font-weight:600;font-size:12px;color:var(--sec);margin-bottom:6px;}
+  .vo-w{padding:5px 0;border-top:1px solid var(--line);} .vo-w small{color:var(--text-dim);}
+  .vo-noot{margin-top:10px;font-size:11px;color:var(--text-dim);}
+  .pc-opp.vo-twijfel{background:var(--myteam);color:var(--on-myteam);border-radius:999px;padding:0 5px;}
+  .pc-opp.vo-nieuw{background:var(--accent);color:var(--on-accent);border-radius:999px;padding:0 5px;}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -7364,6 +7374,65 @@ function renderClubsTab(){
   `;
 }
 
+// ==================== VERWACHTE BASISOPSTELLING (clubpagina) ====================
+// Live berekend bij elke update: uitgangspunt is de laatste Eredivisie-opstelling (formatie + echte posities, Sofascore),
+// daarna wie er nu niet kan (blessure/schorsing uit fcupdate + blessure-index, rode kaart in de vorige wedstrijd).
+// Zo'n speler wordt vervangen door de speler die die positie de laatste 3 wedstrijden het vaakst speelde (basis of invaller).
+function verwachteOpstelling(club){
+  const ere = MATCHES.filter(m=>m.type==='Eredivisie' && (m.home===club||m.away===club));
+  const volgende = ere.filter(m=>m.homeScore==null).sort((a,b)=>String(a.date).localeCompare(String(b.date)))[0];
+  const gespeeld = ere.filter(m=>m.homeScore!=null && m.lineups && ((m.home===club?m.lineups.home:m.lineups.away)||[]).length>=11).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  if(!volgende || !gespeeld.length) return null;
+  const sideOf = m=>m.home===club?'home':'away';
+  const laatste = gespeeld[0], recent = gespeeld.slice(0,3);
+  const formatie = (laatste.formatie||{})[sideOf(laatste)] || '';
+  const rood = new Set((laatste.cards||[]).filter(c=>c.team===club && (c.type==='red'||c.type==='secondYellow')).map(c=>c.player));
+  const status = naam=>{ const inj = findInjury(naam, club); if(inj && (inj.Status==='Geblesseerd'||inj.Status==='Geschorst')) return {uit:true, reden: inj.Status.toLowerCase()+(inj.Type?` (${inj.Type})`:'')};
+    if(rood.has(naam)) return {uit:true, reden:'rode kaart vorige wedstrijd'}; if(inj && inj.Status==='Twijfelgeval') return {twijfel:true, kans:inj.Kans, reden:inj.Type||'twijfelgeval'}; return {}; };
+  // score per speler per positie uit de laatste 3 wedstrijden
+  const score = {};
+  recent.forEach((m,i)=>{ const w = 3-i; const sd=sideOf(m);
+    ((m.lineups||{})[sd]||[]).forEach(l=>{ (score[l.naam]=score[l.naam]||{})[l.pos]=(score[l.naam][l.pos]||0)+3*w; });
+    (m.subs||[]).filter(x=>x.team===club && x.in).forEach(x=>{ const pl=PLAYERS.find(p=>p.Speler===x.in && p.Team===club); const pos=pl?pl.Positie:null; if(pos) (score[x.in]=score[x.in]||{})[pos]=(score[x.in][pos]||0)+w; }); });
+  const elf = ((laatste.lineups||{})[sideOf(laatste)]||[]).map(l=>({naam:l.naam, pos:l.pos, ...status(l.naam)}));
+  const gekozen = new Set(elf.filter(x=>!x.uit).map(x=>x.naam)); const wijzigingen = [];
+  elf.forEach(x=>{ if(!x.uit) return;
+    const kand = PLAYERS.filter(p=>p.Team===club && !p.former && !gekozen.has(p.Speler) && !status(p.Speler).uit)
+      .map(p=>({p, sc:((score[p.Speler]||{})[x.pos]||0) + (p.Positie===x.pos?1:0) + Object.values(score[p.Speler]||{}).reduce((t,v)=>t+v,0)*0.1}))
+      .sort((a,b)=>b.sc-a.sc);
+    const v = kand[0]; wijzigingen.push({uit:x.naam, reden:x.reden, in: v? v.p.Speler : null, zeker: v && v.sc>=3});
+    if(v){ gekozen.add(v.p.Speler); x.vervanger = v.p.Speler; } });
+  const opstelling = elf.map(x=> x.uit ? (x.vervanger ? {naam:x.vervanger, pos:x.pos, nieuw:true, ...status(x.vervanger)} : null) : x).filter(Boolean);
+  return {volgende, ronde: matchRoundNumber(volgende.id), thuis: volgende.home===club, tegen: volgende.home===club?volgende.away:volgende.home,
+    formatie, laatste, opstelling, wijzigingen, twijfel: opstelling.filter(x=>x.twijfel)};
+}
+function renderVerwachteOpstelling(club){
+  const v = verwachteOpstelling(club); if(!v) return '';
+  const rows = ['Forward','Midfielder','Defender','Goalkeeper'].map(pos=>({pos, defs: v.opstelling.filter(d=>d.pos===pos)}));
+  const chip = d=>{ const pl = PLAYERS.find(p=>p.Speler===d.naam && p.Team===club); const mine = pl && isInMyTeam(pl); const color = POS_COLOR[d.pos]||'#888';
+    return `<div class="pitch-chip pc2${mine?' pc-mine':''}" onclick="openPlayerModal('${encodeURIComponent(d.naam)}','${encodeURIComponent(club)}')" title="${d.naam}${d.twijfel?' · twijfelgeval'+(d.kans!=null?' ('+d.kans+'%)':''):''}${d.nieuw?' · vervangt een afwezige speler':''}">
+      ${pitchAvatarHtml(d.naam, club, color)}
+      <div class="pc-name">${mine?`<span class="pc-star">★</span> `:''}${pitchSurname(d.naam)}</div>
+      ${d.twijfel ? `<div class="pc-opp vo-twijfel">${icon('warning',9)} ${d.kans!=null?d.kans+'%':'twijfel'}</div>` : d.nieuw ? `<div class="pc-opp vo-nieuw">nieuw</div>` : ''}
+    </div>`; };
+  const lm = v.laatste; const datum = v.volgende.date ? new Date(v.volgende.date+'T12:00:00').toLocaleDateString('nl-NL',{weekday:'short', day:'numeric', month:'short'}) : '';
+  return `<div class="vo-blok">
+    <div class="section-title" style="margin-top:0;"><span>Verwachte basisopstelling</span><span class="line"></span></div>
+    <div class="vo-kop">${icon('calendar',12)} Ronde ${v.ronde||'?'} · ${v.thuis?'thuis':'uit'} tegen ${teamLogo(v.tegen)}<b>${v.tegen}</b> · ${datum}${v.volgende.time?' '+v.volgende.time:''}${v.formatie?` · formatie ${v.formatie}`:''}</div>
+    <div class="vo-grid">
+      <div class="pitch-wrap"><div class="pitch pitch-mini">
+        <svg class="pitch-markings" viewBox="0 0 300 420" preserveAspectRatio="none"><rect x="4" y="4" width="292" height="412" fill="none" stroke="var(--pitch-line)" stroke-width="2"/><line x1="4" y1="210" x2="296" y2="210" stroke="var(--pitch-line)" stroke-width="2"/><circle cx="150" cy="210" r="42" fill="none" stroke="var(--pitch-line)" stroke-width="2"/><rect x="70" y="4" width="160" height="60" fill="none" stroke="var(--pitch-line)" stroke-width="2"/></svg>
+        ${rows.map(r=>r.defs.length?`<div class="pitch-row pr-${r.pos.toLowerCase()}${r.pos==='Goalkeeper'?' pitch-row-gk':''}">${r.defs.map(chip).join('')}</div>`:'').join('')}
+        <div class="pitch-goal"></div></div></div>
+      <div class="vo-uitleg">
+        <div class="vo-sub">Wijzigingen t.o.v. ${lm.home} ${lm.homeScore}-${lm.awayScore} ${lm.away}</div>
+        ${v.wijzigingen.length ? v.wijzigingen.map(w=>`<div class="vo-w">${icon('refresh',11)} <b>${w.uit}</b> <small>${w.reden}</small><br>→ ${w.in?`<b>${w.in}</b>${w.zeker?'':' <small>(onzeker: speelde de laatste weken weinig op deze plek)</small>'}`:'<i>geen vervanger gevonden</i>'}</div>`).join('') : `<div class="vo-w">Geen afwezigen bekend: dezelfde elf als de vorige wedstrijd.</div>`}
+        ${v.twijfel.length ? `<div class="vo-sub" style="margin-top:10px;">Twijfelgevallen</div>${v.twijfel.map(t=>`<div class="vo-w">${icon('warning',11)} <b>${t.naam}</b> <small>${t.reden}${t.kans!=null?' · '+t.kans+'% kans om te spelen':''}</small></div>`).join('')}` : ''}
+        <div class="vo-noot">${icon('info',10)} Verwachting, geen officiële opstelling. Uitgangspunt is de laatste opstelling (Sofascore); afwezigen volgen uit de blessure- en schorsingenlijst en rode kaarten. Een vervanger is de speler die die positie de laatste drie wedstrijden het vaakst speelde. Wordt bij elke update opnieuw berekend.</div>
+      </div>
+    </div>
+  </div>`;
+}
 function renderClubSquadTab(club){
   const season = state.clubViewSeason;
   const sortKey = state.clubSortBy;
@@ -7389,7 +7458,8 @@ function renderClubSquadTab(club){
     return sortKey==='kaarten' ? va-vb : vb-va;
   });
   return `
-    <div class="news-note">Staf-informatie (trainer, technische staf) heb ik niet in mijn brondata — hier zie je alleen de spelersselectie.</div>
+    ${season==='2026/27' ? renderVerwachteOpstelling(club) : ''}
+    ${(typeof CLUB_COACH!=='undefined' && CLUB_COACH[club]) ? `<div class="news-note">${icon('user',11)} Trainer: <b>${CLUB_COACH[club]}</b>. Overige staf staat niet in de brondata.</div>` : ''}
     <div class="toolbar">
       <select onchange="setClubSeason(this.value)" style="font-weight:600;">
         ${SEASON_ORDER.map(s=>`<option value="${s}" ${season===s?'selected':''}>Seizoen: ${s}</option>`).join('')}
