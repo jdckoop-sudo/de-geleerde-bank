@@ -120,7 +120,7 @@
   .cal-club-menu{position:absolute;top:100%;left:0;margin-top:6px;background:var(--bg-alt);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.4);z-index:40;min-width:220px;max-height:280px;overflow-y:auto;padding:8px;}
   .cal-club-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;font-size:12px;cursor:pointer;}
   .cal-club-item:hover{background:var(--surface);}
-  .cal-club-clear{width:100%;text-align:left;background:none;border:none;color:var(--accent);font-size:11px;padding:6px 8px;cursor:pointer;border-bottom:1px solid var(--line);margin-bottom:4px;}
+  .cal-club-clear{width:100%;text-align:left;background:none;border:none;color:var(--accent-text,var(--accent));font-size:11px;padding:6px 8px;cursor:pointer;border-bottom:1px solid var(--line);margin-bottom:4px;}
   .h2h-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
   .h2h-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;}
   .h2h-row:hover{border-color:var(--accent-dim);}
@@ -129,14 +129,14 @@
   .h2h-club{font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;}
   .h2h-side.right .h2h-club{justify-content:flex-end;}
   .h2h-players{font-size:11px;color:var(--text-dim);margin-top:3px;}
-  .h2h-players.none{color:var(--danger);}
+  .h2h-players.none{color:var(--danger-text,var(--danger));}
   .h2h-mid{flex-shrink:0;text-align:center;font-family:'Inter';padding:0 10px;}
   .h2h-date{font-size:11px;color:var(--text);}
   .h2h-time{font-size:10px;color:var(--text-dim);}
   .budget-pill{font-family:'Inter',monospace;font-size:13px;background:var(--surface);border:1px solid var(--line);padding:8px 14px;border-radius:999px;display:flex;gap:10px;align-items:center;}
-  .budget-pill b{color:var(--accent);}
+  .budget-pill b{color:var(--accent-text,var(--accent));}
   .budget-pill.over{border-color:var(--danger);}
-  .budget-pill.over b{color:var(--danger);}
+  .budget-pill.over b{color:var(--danger-text,var(--danger));}
   .mode-toggle{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:3px;}
   .mode-toggle button{background:none;border:none;color:var(--text-dim);font-family:'Jost';font-size:12px;text-transform:uppercase;letter-spacing:0.4px;padding:7px 16px;border-radius:999px;cursor:pointer;transition:background .12s,color .12s;}
   .mode-toggle button:not(.active):hover{background:color-mix(in srgb, var(--text) 12%, transparent);color:var(--text);}
@@ -150,7 +150,7 @@
     border-bottom:3px solid transparent;transition:color .15s, border-color .15s;
   }
   nav.tabs button:hover{color:var(--text);}
-  nav.tabs button.active{color:var(--accent);border-color:var(--accent);}
+  nav.tabs button.active{color:var(--accent-text,var(--accent));border-color:var(--accent);}
 
   .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px;}
   .toolbar input[type=text], .toolbar input[type=search]{flex:1;min-width:180px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Inter';font-size:14px;}
@@ -158,7 +158,7 @@
   .toolbar input::placeholder{color:var(--text-dim);}
 
   .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(230px,1fr));gap:14px;}
-  .tile{background:linear-gradient(160deg, var(--surface-2), var(--surface));border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;position:relative;cursor:pointer;transition:transform .12s, border-color .12s;}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 14px 12px;position:relative;cursor:pointer;transition:transform .12s, border-color .12s;}
   /* .tile zelf heeft GEEN overflow:hidden (meer) — anders werd elke hover-tooltip op een icoontje
      vlak bij de rand van de tegel afgekapt/onzichtbaar, zodra hij buiten de tegelgrenzen probeerde
      te renderen. De stripe/ribbon die wél geclipt moeten worden zitten nu in een eigen laag. */
@@ -187,14 +187,14 @@
   .gauge .num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Inter';font-size:11px;font-weight:600;}
   .tile .mini-stats{display:flex;gap:10px;margin-top:10px;font-family:'Inter';font-size:11px;color:var(--text-dim);flex-wrap:wrap;}
   .tile .mini-stats span b{color:var(--text);}
-  .new-badge{font-family:'Inter';font-size:10px;color:var(--accent);margin-top:8px;letter-spacing:0.5px;}
+  .new-badge{font-family:'Inter';font-size:10px;color:var(--accent-text,var(--accent));margin-top:8px;letter-spacing:0.5px;}
 
   .section-title{font-family:'Jost';text-transform:uppercase;letter-spacing:0.8px;font-size:13px;color:var(--text-dim);margin:26px 0 10px;display:flex;align-items:center;gap:10px;}
   .section-title .line{flex:1;height:1px;background:var(--line);}
 
   .formation-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
   .formation-row button{font-family:'Inter';font-size:13px;background:var(--surface);border:1px solid var(--line);color:var(--text-dim);padding:8px 14px;border-radius:8px;cursor:pointer;}
-  .formation-row button.active{border-color:var(--accent);color:var(--accent);background:color-mix(in srgb, var(--accent) 8%, transparent);}
+  .formation-row button.active{border-color:var(--accent);color:var(--accent-text,var(--accent));background:color-mix(in srgb, var(--accent) 8%, transparent);}
   .formation-row button:disabled{opacity:0.35;cursor:not-allowed;}
   .swap-failure-banner{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
   .swap-failure-item{display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(211,86,76,0.12);border:1px solid var(--danger);border-radius:10px;padding:10px 14px;font-size:13px;}
@@ -232,14 +232,14 @@
   .summary-card.grad-gold, .summary-card.grad-teal, .summary-card.grad-plum, .summary-card.grad-rose{background:var(--surface); border-color:var(--line);}
   .summary-card-icon{
     width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--accent); margin-bottom:10px; flex-shrink:0;
+    background:color-mix(in srgb, var(--accent) 12%, transparent); color:var(--accent-text,var(--accent)); margin-bottom:10px; flex-shrink:0;
   }
   .summary-card.grad-teal .summary-card-icon{background:rgba(47,158,126,0.14); color:#4FC3A1;}
   .summary-card.grad-plum .summary-card-icon{background:rgba(155,107,196,0.14); color:#B98FE0;}
   .summary-card.grad-rose .summary-card-icon{background:rgba(211,86,76,0.14); color:#E08278;}
   .summary-card .label{font-family:'Inter';font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;}
   .rank-label-click{cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:color 0.15s;}
-  .rank-label-click:hover{color:var(--accent);}
+  .rank-label-click:hover{color:var(--accent-text,var(--accent));}
   .rank-label-arrow{opacity:0;transition:opacity 0.15s;font-size:13px;}
   .rank-label-click:hover .rank-label-arrow{opacity:1;}
   .summary-card .value{font-family:'Jost';font-size:26px;font-weight:600;margin-top:4px;letter-spacing:0.3px;}
@@ -256,7 +256,7 @@
   .player-photo img{position:absolute;left:50%;bottom:0;transform:translateX(-50%);height:100%;width:auto;display:block;}
   .pp-tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin:4px 0 16px;scrollbar-width:none;}
   .pp-tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--text-dim);font-family:'Jost';font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:9px 12px;cursor:pointer;white-space:nowrap;}
-  .pp-tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .pp-tabs button.active{color:var(--accent-text,var(--accent));border-bottom-color:var(--accent);}
   .pp-tabs button:hover{color:var(--text);}
   .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
   .stat-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;}
@@ -264,12 +264,12 @@
   .opp-card{animation:oppCardIn 0.22s ease;}
   @keyframes oppCardIn{from{opacity:0;transform:translateX(6px);}to{opacity:1;transform:translateX(0);}}
   @keyframes statDetailIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
-  .stat-detail-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:color-mix(in srgb, var(--accent) 8%, transparent);border-bottom:1px solid var(--line);font-family:'Inter';font-size:11.5px;color:var(--accent);text-transform:uppercase;letter-spacing:0.4px;}
+  .stat-detail-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:color-mix(in srgb, var(--accent) 8%, transparent);border-bottom:1px solid var(--line);font-family:'Inter';font-size:11.5px;color:var(--accent-text,var(--accent));text-transform:uppercase;letter-spacing:0.4px;}
   .stat-detail-head span{display:flex;align-items:center;gap:7px;}
   .stat-detail-body{max-height:260px;overflow-y:auto;}
   .stat-detail-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);}
   .stat-detail-row:last-child{border-bottom:none;}
-  .stat-detail-icon{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb, var(--accent) 12%, transparent);display:flex;align-items:center;justify-content:center;color:var(--accent);}
+  .stat-detail-icon{width:26px;height:26px;flex-shrink:0;border-radius:50%;background:color-mix(in srgb, var(--accent) 12%, transparent);display:flex;align-items:center;justify-content:center;color:var(--accent-text,var(--accent));}
   .stat-detail-round{width:28px;flex-shrink:0;font-family:'Jost';font-weight:700;font-size:12px;color:var(--text-dim);text-align:center;}
   .stat-detail-info{flex:1;min-width:0;}
   .stat-detail-match{font-size:13px;color:var(--text);}
@@ -281,7 +281,7 @@
   .btn{font-family:'Jost';text-transform:uppercase;font-size:13px;letter-spacing:0.4px;border:none;border-radius:999px;padding:10px 18px;cursor:pointer;}
   .btn.primary{background:var(--accent);color:var(--on-accent);}
   .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);}
-  .btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger);}
+  .btn.danger{background:transparent;border:1px solid var(--danger);color:var(--danger-text,var(--danger));}
 
   /* matches tab */
   .match-filters{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
@@ -296,7 +296,7 @@
   .match-score{font-family:'Jost';font-size:16px;min-width:60px;text-align:center;}
   .match-comp{font-size:11px;color:var(--text-dim);width:100%;margin-top:2px;}
   .counts-flag{font-family:'Inter';font-size:10px;padding:3px 7px;border-radius:5px;}
-  .counts-flag.yes{background:color-mix(in srgb, var(--accent) 15%, transparent);color:var(--accent);}
+  .counts-flag.yes{background:color-mix(in srgb, var(--accent) 15%, transparent);color:var(--accent-text,var(--accent));}
   .counts-flag.no{background:rgba(169,193,175,0.1);color:var(--text-dim);}
 
   .event-list{list-style:none;padding:0;margin:0 0 16px;font-family:'Inter';font-size:13px;}
@@ -307,9 +307,9 @@
   .news-item{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px 16px;margin-bottom:8px;text-decoration:none;color:var(--text);gap:14px;}
   .news-item:hover{border-color:var(--accent-dim);}
   .news-item .t{font-size:14px;}
-  .news-item .s{font-family:'Inter';font-size:11px;color:var(--accent);margin-top:2px;letter-spacing:0.3px;}
+  .news-item .s{font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));margin-top:2px;letter-spacing:0.3px;}
   .news-item .r{font-size:12px;color:var(--text-dim);margin-top:5px;line-height:1.4;max-width:480px;}
-  .news-item .go{color:var(--accent);font-family:'Inter';font-size:12px;white-space:nowrap;align-self:flex-start;}
+  .news-item .go{color:var(--accent-text,var(--accent));font-family:'Inter';font-size:12px;white-space:nowrap;align-self:flex-start;}
   .news-note{background:color-mix(in srgb, var(--accent) 8%, transparent);border:1px solid var(--accent-dim);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text-dim);margin-bottom:20px;}
 
   ::-webkit-scrollbar{width:8px;}
@@ -332,7 +332,7 @@
   .cal-dot-ball{font-size:16px;}
   .cal-dot{display:inline-flex;align-items:center;justify-content:center;width:20px;height:16px;border-radius:5px;font-family:'Inter';font-size:8px;font-weight:700;color:#fff;letter-spacing:0.2px;}
   .cal-excl{position:absolute;top:-8px;right:0;font-size:12px;}
-  .cal-period-badge{position:absolute;top:2px;left:2px;color:var(--accent);opacity:0.9;}
+  .cal-period-badge{position:absolute;top:2px;left:2px;color:var(--accent-text,var(--accent));opacity:0.9;}
   .cal-wissel-badge{position:absolute;top:1px;right:2px;font-family:'Inter';font-size:9px;font-weight:700;color:#fff;background:var(--accent-dim);border-radius:5px;padding:1px 4px;letter-spacing:0.2px;}
   .cal-wissel-badge.period{background:var(--accent);}
   .cal-cell.zomerstop{background:repeating-linear-gradient(135deg, var(--surface) 0 8px, color-mix(in srgb, var(--accent) 6%, transparent) 8px 16px);}
@@ -347,7 +347,7 @@
   .picker-filters select, .picker-filters input{background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px 10px;font-family:'Inter';font-size:12px;}
   .picker-filters input[type=number]{width:118px;}
   .injury-x{font-size:12px;vertical-align:middle;}
-  .tm-link{display:inline-block;font-family:'Inter';font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--accent-dim);border-radius:8px;padding:7px 12px;margin-bottom:14px;}
+  .tm-link{display:inline-block;font-family:'Inter';font-size:12px;color:var(--accent-text,var(--accent));text-decoration:none;border:1px solid var(--accent-dim);border-radius:8px;padding:7px 12px;margin-bottom:14px;}
   .tm-link:hover{background:color-mix(in srgb, var(--accent) 8%, transparent);}
   .team-logo{width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-right:5px;background-size:contain;background-repeat:no-repeat;background-position:center;display:inline-block;}
   .logo-lg .team-logo{width:48px;height:48px;font-size:36px;margin-right:0;}
@@ -378,7 +378,7 @@
   .star-rating-sm{font-size:11px;}
   .star-rating-lg{font-size:18px;}
   .star-rating .sr-empty{color:var(--line);letter-spacing:1px;}
-  .star-rating .sr-filled{position:absolute;top:0;left:0;overflow:hidden;color:var(--accent);white-space:nowrap;letter-spacing:1px;}
+  .star-rating .sr-filled{position:absolute;top:0;left:0;overflow:hidden;color:var(--accent-text,var(--accent));white-space:nowrap;letter-spacing:1px;}
   .sr-num{font-family:'Inter';font-size:10px;color:var(--text-dim);margin-left:4px;vertical-align:middle;}
   .star-rating-na{font-family:'Inter';font-size:10px;color:var(--text-dim);}
   .sub-tabs{border-bottom:1px solid var(--line);margin-bottom:22px;padding-top:2px;}
@@ -448,7 +448,7 @@
     background:var(--surface); border:1px solid var(--line); color:var(--text-dim); cursor:not-allowed; opacity:0.35; transition:all .15s;
   }
   .pitch-history-btn.active{
-    color:var(--accent); border-color:var(--accent); cursor:pointer; opacity:1;
+    color:var(--accent-text,var(--accent)); border-color:var(--accent); cursor:pointer; opacity:1;
     box-shadow:0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent), 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
   }
   .pitch-history-btn.active:hover{ background:color-mix(in srgb, var(--accent) 10%, transparent); }
@@ -504,7 +504,7 @@
   .inj-status{flex-shrink:0;color:#fff;font-family:'Inter',monospace;font-weight:800;font-size:11px;padding:3px 7px;border-radius:6px;white-space:nowrap;}
   .inj-status.sm{font-size:9px;padding:1px 5px;border-radius:4px;vertical-align:middle;margin-left:4px;}
   .inj-latest{font-size:12px;line-height:1.45;margin-top:8px;color:var(--text);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-  .inj-more{background:none;border:none;color:var(--accent);font-size:11.5px;padding:6px 0 0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
+  .inj-more{background:none;border:none;color:var(--accent-text,var(--accent));font-size:11.5px;padding:6px 0 0;cursor:pointer;display:inline-flex;align-items:center;gap:4px;}
   .inj-msgs{margin-top:6px;display:flex;flex-direction:column;gap:6px;cursor:default;}
   .inj-msg{background:var(--surface-2);border-radius:8px;padding:8px 10px;}
   .inj-msg-head{font-size:10.5px;color:var(--text-dim);margin-bottom:3px;}
@@ -620,9 +620,9 @@
   .wrap{max-width:1240px;padding-left:calc(24px + 220px);padding-top:22px;}
   header.top{display:none !important;}
   .nav2{position:fixed;left:0;top:0;bottom:0;width:220px;background:var(--bg-alt);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:18px 12px;z-index:70;overflow-y:auto;}
-  .nav2-brand{display:flex;gap:10px;align-items:center;color:var(--accent);padding:4px 8px 18px;}
+  .nav2-brand{display:flex;gap:10px;align-items:center;color:var(--accent-text,var(--accent));padding:4px 8px 18px;}
   .nav2-title{font-family:'Jost';font-weight:700;font-size:16px;color:var(--text);letter-spacing:.3px;line-height:1.1;}
-  .nav2-sub{font-family:'Inter';font-size:10.5px;color:var(--accent);margin-top:2px;}
+  .nav2-sub{font-family:'Inter';font-size:10.5px;color:var(--accent-text,var(--accent));margin-top:2px;}
   .nav2-list{display:flex;flex-direction:column;gap:2px;}
   .nav2-btn{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;color:var(--text-dim);font-family:'Inter';font-size:14px;padding:10px 12px;border-radius:10px;cursor:pointer;text-align:left;position:relative;}
   .nav2-btn:hover{background:var(--surface);color:var(--text);}
@@ -700,7 +700,7 @@
 
   .rank-table td{vertical-align:middle;}
   .rank-table .rank-n{color:var(--text-dim);font-family:'Jost';width:32px;}
-  .rank-table tr:first-child .rank-n{color:var(--accent);}
+  .rank-table tr:first-child .rank-n{color:var(--accent-text,var(--accent));}
   .rank-table tr.rank-mine td{background:color-mix(in srgb, var(--myteam) 12%, transparent);}
   .rank-bar{position:relative;height:18px;background:var(--surface-2);border-radius:5px;overflow:hidden;}
   .rank-bar span{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb, var(--accent) 55%, transparent);border-radius:5px;}
@@ -753,9 +753,9 @@
   .nav2-sub{font-family:'Inter';font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-dim);}
   .nav2-btn{font-size:13.5px;letter-spacing:.01em;padding:9px 12px;gap:12px;}
   .nav2-btn.active{background:color-mix(in srgb, var(--accent) 14%, transparent);color:var(--text);}
-  .nav2-btn.active .icon-wrap{color:var(--accent);}
+  .nav2-btn.active .icon-wrap{color:var(--accent-text,var(--accent));}
   .nav2-btn.active::before{background:var(--accent);}
-  .mnav-btn.active{color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .mnav-btn.active{color:var(--accent-text,var(--accent));background:color-mix(in srgb, var(--accent) 12%, transparent);}
 
   /* Icoontjes: overal dezelfde lijndikte en ronde uiteinden */
   .icon-wrap svg{stroke-linecap:round;stroke-linejoin:round;}
@@ -767,11 +767,11 @@
   .news-note{border-left-color:var(--accent);}
   .rank-bar span{background:color-mix(in srgb, var(--accent) 60%, transparent);}
   .stat-table th{background:var(--bg);color:var(--text-dim);font-family:'Jost';letter-spacing:.1em;font-weight:600;}
-  .budget-pill b{color:var(--accent);}
+  .budget-pill b{color:var(--accent-text,var(--accent));}
 
   /* Kaarten: vlak, dunne lijn, geen schaduwgloed */
   .summary-card, .stat-box, .tile, .picker-item, .match-card{box-shadow:none;}
-  .summary-card-icon{background:color-mix(in srgb, var(--accent) 14%, transparent) !important;color:var(--accent) !important;}
+  .summary-card-icon{background:color-mix(in srgb, var(--accent) 14%, transparent) !important;color:var(--accent-text,var(--accent)) !important;}
 
   /* Themakiezer */
   .theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;}
@@ -851,7 +851,7 @@
   .side-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;}
   .side-card.side-total{text-align:left !important;margin-bottom:0 !important;}
   .side-kop{font-family:'Jost';font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
-  .side-big{font-family:'Jost';font-size:34px;font-weight:500;line-height:1;color:var(--accent);}
+  .side-big{font-family:'Jost';font-size:34px;font-weight:500;line-height:1;color:var(--accent-text,var(--accent));}
   .side-big span{font-family:'Inter';font-size:12px;color:var(--text-dim);margin-left:6px;}
   .side-sub{font-size:12px;color:var(--text-dim);margin-top:4px;}
   .side-sep{height:1px;background:var(--line);margin:12px 0;}
@@ -881,7 +881,7 @@
   .wx-head{text-align:center;margin-bottom:18px;}
   .wx-title{font-family:'Jost';font-weight:600;font-size:22px;letter-spacing:.24em;text-transform:uppercase;color:var(--text);}
   .wx-rule{width:46px;height:2px;background:var(--accent);margin:10px auto;}
-  .wx-sub{font-family:'Jost';font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);}
+  .wx-sub{font-family:'Jost';font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text,var(--accent));}
   .wx-meta{font-size:12px;color:var(--text-dim);margin-top:5px;}
   .wa-export .pitch.wx-pitch{max-width:none;width:100%;box-shadow:none;border:2px solid rgba(246,238,220,.35);}
   .wa-export .bench2.wx-bench{max-width:none;margin:0;background:var(--surface-2);border-radius:0 0 16px 16px;}
@@ -896,8 +896,8 @@
   .wx-table th{font-family:'Jost';font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:2px solid var(--accent);}
   .wx-table td{padding:7px 8px;border-bottom:1px solid var(--line);}
   .wx-table .r{text-align:right;} .wx-table .n{font-family:'Jost';color:var(--text-dim);width:28px;}
-  .wx-table .d{color:var(--text-dim);font-size:12px;} .wx-table .t{font-family:'Jost';font-weight:600;color:var(--accent);font-size:15px;}
-  .wx-table tr.mijn td{background:var(--surface-2);} .wx-table tr.mijn td.n{color:var(--accent);}
+  .wx-table .d{color:var(--text-dim);font-size:12px;} .wx-table .t{font-family:'Jost';font-weight:600;color:var(--accent-text,var(--accent));font-size:15px;}
+  .wx-table tr.mijn td{background:var(--surface-2);} .wx-table tr.mijn td.n{color:var(--accent-text,var(--accent));}
 
   /* html2canvas tekent geen repeating-linear-gradient: effen veld met losse stroken */
   .wa-export .pitch.wx-pitch{background:#3E7C59 !important;}
@@ -911,7 +911,7 @@
   .team-bar .budget-pill{padding:6px 12px;font-size:12.5px;}
   .team-bar .tb-right{display:flex;gap:6px;margin-left:auto;}
   .team-bar .btn{padding:7px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:4px;}
-  .team-bar .btn.tb-on{border-color:var(--accent);color:var(--accent);}
+  .team-bar .btn.tb-on{border-color:var(--accent);color:var(--accent-text,var(--accent));}
   .team-bar .view-toggle button{padding:6px 12px !important;}
   @media (max-width:760px){
     .team-bar{gap:6px;padding:6px;}
@@ -956,7 +956,7 @@
   .lrow-pts small{font-size:9.5px;color:var(--text-dim);margin-top:2px;}
   .lrow-btn{background:none;border:1px solid var(--line);color:var(--text-dim);border-radius:8px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
   .lrow-btn:hover{color:var(--text);border-color:var(--text-dim);}
-  .lrow-btn.active{color:var(--accent);border-color:var(--accent);}
+  .lrow-btn.active{color:var(--accent-text,var(--accent));border-color:var(--accent);}
   .lrow-locked{box-shadow:inset 3px 0 0 var(--accent);}
   .lrow-empty .pc-av{background:var(--surface-2);box-shadow:inset 0 0 0 2px var(--line);}
   .lrow-empty .lrow-name{color:var(--text-dim);}
@@ -980,7 +980,7 @@
   .st2-item:first-child{border-left:none;}
   .st2-item b{color:var(--text);font-weight:600;}
   .st2-btn{cursor:pointer;color:var(--text);font-weight:600;}
-  .st2-btn:hover{color:var(--accent);}
+  .st2-btn:hover{color:var(--accent-text,var(--accent));}
   .st2-dim{opacity:.8;}
   .top2{margin-bottom:10px;}
   .seg2{gap:4px;margin:0 0 22px;padding-bottom:0;border-bottom:1px solid var(--line);}
@@ -1023,7 +1023,7 @@
   .tow-forms button:hover{border-color:var(--accent-dim);}
   .tow-forms button.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);}
   .tow-forms button.active small{color:var(--text);}
-  .tow-forms button.is-best b::after{content:' ★';color:var(--accent);}
+  .tow-forms button.is-best b::after{content:' ★';color:var(--accent-text,var(--accent));}
   .tow-forms button:disabled{opacity:.45;cursor:not-allowed;}
   @media (max-width:760px){ .tow-forms{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-left:-14px;margin-right:-14px;padding:0 14px;} .tow-forms button{flex-shrink:0;} }
   .overig-ronde{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-family:'Inter';}
@@ -1052,9 +1052,9 @@
   .pw-check{display:flex;align-items:center;gap:6px;font-size:12px;white-space:nowrap;}
   .pw-check input{width:auto !important;min-width:0 !important;margin:0;flex:none;}
   .int-badge{display:inline-flex;align-items:center;gap:3px;font-family:'Inter';font-size:9.5px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:999px;border:1px solid var(--line);color:var(--text-dim);vertical-align:middle;white-space:nowrap;}
-  .int-badge.act{border-color:var(--accent);color:var(--accent);}
+  .int-badge.act{border-color:var(--accent);color:var(--accent-text,var(--accent));}
   .int-badge.jeugd{font-weight:600;}
-  .int-badge.sel{border-color:var(--accent);border-style:dashed;color:var(--accent);}
+  .int-badge.sel{border-color:var(--accent);border-style:dashed;color:var(--accent-text,var(--accent));}
   .int-badge.oud{opacity:.7;border-style:dashed;}
   .il-tabel{width:100%;border-collapse:collapse;font-size:12.5px;}
   .il-tabel th{font-size:10.5px;font-weight:600;color:var(--text-dim);text-align:right;padding:4px 6px;border-bottom:1px solid var(--line);}
@@ -1083,7 +1083,7 @@
   body.wa .section-title .line{background:color-mix(in srgb, var(--sec,var(--line)) 35%, transparent);}
   body.wa .side-kop{color:var(--sec,var(--text-dim));}
   .ws-swap{font-family:'Inter';font-size:12px;line-height:1.5;white-space:nowrap;}
-  .ws-swap .ws-uit{color:var(--danger);text-decoration:line-through;text-decoration-thickness:1px;}
+  .ws-swap .ws-uit{color:var(--danger-text,var(--danger));text-decoration:line-through;text-decoration-thickness:1px;}
   .ws-swap .ws-in{color:var(--def);}
   .ws-swap small{color:var(--text-dim);font-size:10.5px;}
   .ws-swap.plan{color:var(--text-dim);}
@@ -1095,19 +1095,19 @@
   @media (max-width:760px){ .rs-hint{display:none;} }
   body.wa .squad-side .side-card, body.wa .team-side .summary-card, body.wa .coach-season .summary-card{background:var(--card-bg,var(--surface)) !important;border-color:var(--card-line,var(--line)) !important;}
 
-  /* Thema's: uitsluitend kleuren uit de staal (gegenereerd 14-10-2026, tools/genereer_themas.py) */
-  body.wa-rushmore-donker, .wa-export.wa-rushmore-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#D9B25F;--accent-dim:rgba(217,178,95,.35);--on-accent:#161616;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--danger:#D33A2C;--myteam:#DEB08E;--c-gold:#D9B25F;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#D9B25F;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:#A6A6A6;--nav-bg:#2E6A4F;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#D9B25F;--nav-act-text:#161616;--zone-bg:#26213F;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#DEB08E;--card-bg:#26213F;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-rushmore-licht, .wa-export.wa-rushmore-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#2E6A4F;--accent-dim:rgba(46,106,79,.35);--on-accent:#FFFFFF;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--danger:#D33A2C;--myteam:#D33A2C;--c-gold:#2E6A4F;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#2E6A4F;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:#5A5A5A;--nav-bg:#26213F;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#2E6A4F;--nav-act-text:#FFFFFF;--zone-bg:#DEB08E;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#2E6A4F;--card-bg:#D9B25F;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-tenenbaums-donker, .wa-export.wa-tenenbaums-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#A7C9D7;--accent-dim:rgba(167,201,215,.35);--on-accent:#161616;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--danger:#C8321E;--myteam:#C8321E;--c-gold:#A7C9D7;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#C8321E;--c-blue:#A7C9D7;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#A7C9D7;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:#A6A6A6;--nav-bg:#575B80;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#A7C9D7;--nav-act-text:#161616;--zone-bg:#A55C21;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#E3D3D5;--card-bg:#575B80;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
-  body.wa-tenenbaums-licht, .wa-export.wa-tenenbaums-licht{--bg:#E3D3D5;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#C8321E;--accent-dim:rgba(200,50,30,.35);--on-accent:#FFFFFF;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--danger:#C8321E;--myteam:#575B80;--c-gold:#C8321E;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#C8321E;--c-blue:#A7C9D7;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#C8321E;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:#5A5A5A;--nav-bg:#575B80;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E3D3D5;--nav-act-text:#161616;--zone-bg:#A7C9D7;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#A55C21;--card-bg:#A55C21;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
-  body.wa-aquatic-donker, .wa-export.wa-aquatic-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#DDBE3A;--accent-dim:rgba(221,190,58,.35);--on-accent:#161616;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--danger:#D23511;--myteam:#D23511;--c-gold:#DDBE3A;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#D23511;--c-blue:#73A8B9;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#DDBE3A;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:#A6A6A6;--nav-bg:#4489A9;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#DDBE3A;--nav-act-text:#161616;--zone-bg:#D29A1E;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#73A8B9;--card-bg:#73A8B9;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-aquatic-licht, .wa-export.wa-aquatic-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#D23511;--accent-dim:rgba(210,53,17,.35);--on-accent:#FFFFFF;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--danger:#D23511;--myteam:#4489A9;--c-gold:#D23511;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#D23511;--c-blue:#73A8B9;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#D23511;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:#5A5A5A;--nav-bg:#4489A9;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#DDBE3A;--nav-act-text:#161616;--zone-bg:#DDBE3A;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#D23511;--card-bg:#73A8B9;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-darjeeling-donker, .wa-export.wa-darjeeling-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E59C25;--accent-dim:rgba(229,156,37,.35);--on-accent:#161616;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--danger:#E2102E;--myteam:#E2102E;--c-gold:#E59C25;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E2102E;--c-blue:#5FACCF;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E59C25;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:#A6A6A6;--nav-bg:#0E8B73;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#E59C25;--nav-act-text:#161616;--zone-bg:#5FACCF;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#5FACCF;--card-bg:#E57A25;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-darjeeling-licht, .wa-export.wa-darjeeling-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#E2102E;--accent-dim:rgba(226,16,46,.35);--on-accent:#FFFFFF;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--danger:#E2102E;--myteam:#E57A25;--c-gold:#E2102E;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E2102E;--c-blue:#5FACCF;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#E2102E;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:#5A5A5A;--nav-bg:#0E8B73;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#E59C25;--nav-act-text:#161616;--zone-bg:#5FACCF;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#0E8B73;--card-bg:#E59C25;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-mrfox-donker, .wa-export.wa-mrfox-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E0C31F;--accent-dim:rgba(224,195,31,.35);--on-accent:#161616;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--danger:#C77A2E;--myteam:#4F9AC4;--c-gold:#E0C31F;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#C77A2E;--c-blue:#E0C31F;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E0C31F;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:#A6A6A6;--nav-bg:#951D25;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E0C31F;--nav-act-text:#161616;--zone-bg:#4F9AC4;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#4F9AC4;--card-bg:#C77A2E;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-mrfox-licht, .wa-export.wa-mrfox-licht{--bg:#F3F3F3;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#C77A2E;--accent-dim:rgba(199,122,46,.35);--on-accent:#161616;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--danger:#951D25;--myteam:#4F9AC4;--c-gold:#C77A2E;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#951D25;--c-blue:#E0C31F;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#C77A2E;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:#5A5A5A;--nav-bg:#951D25;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#C77A2E;--nav-act-text:#161616;--zone-bg:#E0C31F;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#951D25;--card-bg:#4F9AC4;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#FFFFFF;}
-  body.wa-moonrise-donker, .wa-export.wa-moonrise-donker{--bg:#161616;--bg-alt:#1C1C1C;--surface:#222222;--surface-2:#2C2C2C;--line:rgba(242,242,242,.12);--text:#F2F2F2;--text-dim:#A6A6A6;--accent:#E4B21A;--accent-dim:rgba(228,178,26,.35);--on-accent:#161616;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--danger:#977431;--myteam:#E3D0B0;--c-gold:#E4B21A;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#977431;--c-blue:#87B1A5;--base-text:#F2F2F2;--base-dim:#A6A6A6;--type-ere:#E4B21A;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:#A6A6A6;--nav-bg:#8B1A1E;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.72);--nav-act:#E4B21A;--nav-act-text:#161616;--zone-bg:#977431;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.18);--sec:#87B1A5;--card-bg:#87B1A5;--card-text:#161616;--card-line:rgba(22,22,22,.18);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
-  body.wa-moonrise-licht, .wa-export.wa-moonrise-licht{--bg:#E3D0B0;--bg-alt:#F8F8F8;--surface:#FFFFFF;--surface-2:#EAEAEA;--line:rgba(22,22,22,.12);--text:#161616;--text-dim:#5A5A5A;--accent:#8B1A1E;--accent-dim:rgba(139,26,30,.35);--on-accent:#FFFFFF;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--danger:#8B1A1E;--myteam:#977431;--c-gold:#8B1A1E;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#8B1A1E;--c-blue:#87B1A5;--base-text:#161616;--base-dim:#5A5A5A;--type-ere:#8B1A1E;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:#5A5A5A;--nav-bg:#87B1A5;--nav-text:#161616;--nav-dim:rgba(22,22,22,.72);--nav-act:#8B1A1E;--nav-act-text:#FFFFFF;--zone-bg:#E4B21A;--zone-text:#161616;--zone-line:rgba(22,22,22,.18);--sec:#8B1A1E;--card-bg:#977431;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.18);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
+  /* Thema's: alle vlakken uit de staal, tekst alleen zwart/wit (gegenereerd 14-10-2026, tools/genereer_themas.py) */
+  body.wa-rushmore-licht, .wa-export.wa-rushmore-licht{--bg:#DEB08E;--bg-alt:#DEB08E;--surface:#D9B25F;--surface-2:#DEB08E;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#26213F;--accent-text:#26213F;--danger-text:#161616;--accent-dim:rgba(38,33,63,.35);--on-accent:#FFFFFF;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--gk-text:#161616;--def-text:#2E6A4F;--mid-text:#161616;--fwd-text:#161616;--danger:#D33A2C;--myteam:#2E6A4F;--c-gold:#26213F;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--type-ere:#26213F;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:rgba(22,22,22,.72);--nav-bg:#26213F;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#DEB08E;--nav-act-text:#161616;--zone-bg:#2E6A4F;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.2);--sec:#26213F;--card-bg:#26213F;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#DEB08E;}
+  body.wa-rushmore-donker, .wa-export.wa-rushmore-donker{--bg:#26213F;--bg-alt:#26213F;--surface:#2E6A4F;--surface-2:#D33A2C;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#DEB08E;--accent-text:#DEB08E;--danger-text:#FFFFFF;--accent-dim:rgba(222,176,142,.35);--on-accent:#161616;--gk:#DEB08E;--def:#2E6A4F;--mid:#D9B25F;--fwd:#D33A2C;--gk-text:#DEB08E;--def-text:#FFFFFF;--mid-text:#D9B25F;--fwd-text:#FFFFFF;--danger:#D33A2C;--myteam:#D9B25F;--c-gold:#DEB08E;--c-teal:#2E6A4F;--c-plum:#26213F;--c-rose:#D33A2C;--c-blue:#DEB08E;--type-ere:#DEB08E;--type-euro:#DEB08E;--type-int:#2E6A4F;--type-beker:#D9B25F;--type-friendly:rgba(255,255,255,.72);--nav-bg:#DEB08E;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#26213F;--nav-act-text:#FFFFFF;--zone-bg:#D9B25F;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#DEB08E;--card-bg:#DEB08E;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#2E6A4F;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#26213F;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#DEB08E;}
+  body.wa-tenenbaums-licht, .wa-export.wa-tenenbaums-licht{--bg:#E3D3D5;--bg-alt:#E3D3D5;--surface:#A7C9D7;--surface-2:#E3D3D5;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#575B80;--accent-text:#575B80;--danger-text:#C8321E;--accent-dim:rgba(87,91,128,.35);--on-accent:#FFFFFF;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--gk-text:#161616;--def-text:#575B80;--mid-text:#161616;--fwd-text:#C8321E;--danger:#C8321E;--myteam:#A55C21;--c-gold:#575B80;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#C8321E;--c-blue:#A7C9D7;--type-ere:#575B80;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:rgba(22,22,22,.72);--nav-bg:#575B80;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#E3D3D5;--nav-act-text:#161616;--zone-bg:#C8321E;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.2);--sec:#575B80;--card-bg:#575B80;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
+  body.wa-tenenbaums-donker, .wa-export.wa-tenenbaums-donker{--bg:#575B80;--bg-alt:#575B80;--surface:#C8321E;--surface-2:#A55C21;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#E3D3D5;--accent-text:#E3D3D5;--danger-text:#E3D3D5;--accent-dim:rgba(227,211,213,.35);--on-accent:#161616;--gk:#A7C9D7;--def:#575B80;--mid:#A55C21;--fwd:#C8321E;--gk-text:#A7C9D7;--def-text:#FFFFFF;--mid-text:#FFFFFF;--fwd-text:#FFFFFF;--danger:#E3D3D5;--myteam:#A7C9D7;--c-gold:#E3D3D5;--c-teal:#575B80;--c-plum:#A55C21;--c-rose:#E3D3D5;--c-blue:#A7C9D7;--type-ere:#E3D3D5;--type-euro:#A7C9D7;--type-int:#575B80;--type-beker:#A55C21;--type-friendly:rgba(255,255,255,.72);--nav-bg:#E3D3D5;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#575B80;--nav-act-text:#FFFFFF;--zone-bg:#A7C9D7;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#E3D3D5;--card-bg:#E3D3D5;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#575B80;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#A55C21;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D3D5;}
+  body.wa-aquatic-licht, .wa-export.wa-aquatic-licht{--bg:#DDBE3A;--bg-alt:#DDBE3A;--surface:#D29A1E;--surface-2:#73A8B9;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#D23511;--accent-text:#161616;--danger-text:#161616;--accent-dim:rgba(210,53,17,.35);--on-accent:#FFFFFF;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--gk-text:#161616;--def-text:#161616;--mid-text:#161616;--fwd-text:#161616;--danger:#D23511;--myteam:#4489A9;--c-gold:#D23511;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#D23511;--c-blue:#73A8B9;--type-ere:#D23511;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:rgba(22,22,22,.72);--nav-bg:#D23511;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#DDBE3A;--nav-act-text:#161616;--zone-bg:#4489A9;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#161616;--card-bg:#D23511;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#DDBE3A;}
+  body.wa-aquatic-donker, .wa-export.wa-aquatic-donker{--bg:#D23511;--bg-alt:#D23511;--surface:#D23511;--surface-2:#D23511;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#DDBE3A;--accent-text:#FFFFFF;--danger-text:#FFFFFF;--accent-dim:rgba(221,190,58,.35);--on-accent:#161616;--gk:#73A8B9;--def:#4489A9;--mid:#DDBE3A;--fwd:#D23511;--gk-text:#FFFFFF;--def-text:#FFFFFF;--mid-text:#FFFFFF;--fwd-text:#FFFFFF;--danger:#DDBE3A;--myteam:#D29A1E;--c-gold:#DDBE3A;--c-teal:#4489A9;--c-plum:#D29A1E;--c-rose:#DDBE3A;--c-blue:#73A8B9;--type-ere:#DDBE3A;--type-euro:#73A8B9;--type-int:#4489A9;--type-beker:#DDBE3A;--type-friendly:rgba(255,255,255,.72);--nav-bg:#DDBE3A;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#D23511;--nav-act-text:#FFFFFF;--zone-bg:#D29A1E;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#FFFFFF;--card-bg:#DDBE3A;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#4489A9;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#D29A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#DDBE3A;}
+  body.wa-darjeeling-licht, .wa-export.wa-darjeeling-licht{--bg:#E59C25;--bg-alt:#E59C25;--surface:#5FACCF;--surface-2:#E57A25;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#E2102E;--accent-text:#161616;--danger-text:#161616;--accent-dim:rgba(226,16,46,.35);--on-accent:#FFFFFF;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--gk-text:#161616;--def-text:#161616;--mid-text:#161616;--fwd-text:#161616;--danger:#E2102E;--myteam:#0E8B73;--c-gold:#E2102E;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E2102E;--c-blue:#5FACCF;--type-ere:#E2102E;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:rgba(22,22,22,.72);--nav-bg:#E2102E;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#E59C25;--nav-act-text:#161616;--zone-bg:#0E8B73;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#161616;--card-bg:#E2102E;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E59C25;}
+  body.wa-darjeeling-donker, .wa-export.wa-darjeeling-donker{--bg:#E2102E;--bg-alt:#E2102E;--surface:#0E8B73;--surface-2:#E2102E;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#E59C25;--accent-text:#FFFFFF;--danger-text:#FFFFFF;--accent-dim:rgba(229,156,37,.35);--on-accent:#161616;--gk:#5FACCF;--def:#0E8B73;--mid:#E59C25;--fwd:#E2102E;--gk-text:#FFFFFF;--def-text:#FFFFFF;--mid-text:#FFFFFF;--fwd-text:#FFFFFF;--danger:#E59C25;--myteam:#5FACCF;--c-gold:#E59C25;--c-teal:#0E8B73;--c-plum:#E57A25;--c-rose:#E59C25;--c-blue:#5FACCF;--type-ere:#E59C25;--type-euro:#5FACCF;--type-int:#0E8B73;--type-beker:#E59C25;--type-friendly:rgba(255,255,255,.72);--nav-bg:#E59C25;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#E2102E;--nav-act-text:#FFFFFF;--zone-bg:#5FACCF;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#FFFFFF;--card-bg:#E59C25;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#0E8B73;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#E57A25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E59C25;}
+  body.wa-mrfox-licht, .wa-export.wa-mrfox-licht{--bg:#E0C31F;--bg-alt:#E0C31F;--surface:#4F9AC4;--surface-2:#D47A26;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#951D25;--accent-text:#161616;--danger-text:#161616;--accent-dim:rgba(149,29,37,.35);--on-accent:#FFFFFF;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--gk-text:#161616;--def-text:#161616;--mid-text:#161616;--fwd-text:#161616;--danger:#951D25;--myteam:#C77A2E;--c-gold:#951D25;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#951D25;--c-blue:#E0C31F;--type-ere:#951D25;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:rgba(22,22,22,.72);--nav-bg:#951D25;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#E0C31F;--nav-act-text:#161616;--zone-bg:#C77A2E;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#951D25;--card-bg:#951D25;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E0C31F;}
+  body.wa-mrfox-donker, .wa-export.wa-mrfox-donker{--bg:#951D25;--bg-alt:#951D25;--surface:#951D25;--surface-2:#951D25;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#E0C31F;--accent-text:#E0C31F;--danger-text:#FFFFFF;--accent-dim:rgba(224,195,31,.35);--on-accent:#161616;--gk:#E0C31F;--def:#4F9AC4;--mid:#C77A2E;--fwd:#951D25;--gk-text:#E0C31F;--def-text:#FFFFFF;--mid-text:#FFFFFF;--fwd-text:#FFFFFF;--danger:#D47A26;--myteam:#4F9AC4;--c-gold:#E0C31F;--c-teal:#4F9AC4;--c-plum:#951D25;--c-rose:#D47A26;--c-blue:#E0C31F;--type-ere:#E0C31F;--type-euro:#E0C31F;--type-int:#4F9AC4;--type-beker:#C77A2E;--type-friendly:rgba(255,255,255,.72);--nav-bg:#E0C31F;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#951D25;--nav-act-text:#FFFFFF;--zone-bg:#4F9AC4;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#E0C31F;--card-bg:#E0C31F;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#4F9AC4;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#951D25;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E0C31F;}
+  body.wa-moonrise-licht, .wa-export.wa-moonrise-licht{--bg:#E3D0B0;--bg-alt:#E3D0B0;--surface:#E4B21A;--surface-2:#87B1A5;--line:rgba(22,22,22,.16);--text:#161616;--text-dim:rgba(22,22,22,.72);--base-text:#161616;--base-dim:rgba(22,22,22,.72);--accent:#8B1A1E;--accent-text:#8B1A1E;--danger-text:#8B1A1E;--accent-dim:rgba(139,26,30,.35);--on-accent:#FFFFFF;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--gk-text:#161616;--def-text:#161616;--mid-text:#161616;--fwd-text:#8B1A1E;--danger:#8B1A1E;--myteam:#977431;--c-gold:#8B1A1E;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#8B1A1E;--c-blue:#87B1A5;--type-ere:#8B1A1E;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:rgba(22,22,22,.72);--nav-bg:#8B1A1E;--nav-text:#FFFFFF;--nav-dim:rgba(255,255,255,.75);--nav-act:#E3D0B0;--nav-act-text:#161616;--zone-bg:#977431;--zone-text:#FFFFFF;--zone-line:rgba(255,255,255,.2);--sec:#8B1A1E;--card-bg:#8B1A1E;--card-text:#FFFFFF;--card-line:rgba(255,255,255,.2);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
+  body.wa-moonrise-donker, .wa-export.wa-moonrise-donker{--bg:#8B1A1E;--bg-alt:#8B1A1E;--surface:#977431;--surface-2:#8B1A1E;--line:rgba(255,255,255,.16);--text:#FFFFFF;--text-dim:rgba(255,255,255,.72);--base-text:#FFFFFF;--base-dim:rgba(255,255,255,.72);--accent:#E3D0B0;--accent-text:#FFFFFF;--danger-text:#FFFFFF;--accent-dim:rgba(227,208,176,.35);--on-accent:#161616;--gk:#87B1A5;--def:#977431;--mid:#E4B21A;--fwd:#8B1A1E;--gk-text:#FFFFFF;--def-text:#FFFFFF;--mid-text:#FFFFFF;--fwd-text:#FFFFFF;--danger:#E4B21A;--myteam:#87B1A5;--c-gold:#E3D0B0;--c-teal:#977431;--c-plum:#8B1A1E;--c-rose:#E4B21A;--c-blue:#87B1A5;--type-ere:#E3D0B0;--type-euro:#87B1A5;--type-int:#977431;--type-beker:#E4B21A;--type-friendly:rgba(255,255,255,.72);--nav-bg:#E3D0B0;--nav-text:#161616;--nav-dim:rgba(22,22,22,.75);--nav-act:#8B1A1E;--nav-act-text:#FFFFFF;--zone-bg:#E4B21A;--zone-text:#161616;--zone-line:rgba(22,22,22,.2);--sec:#E3D0B0;--card-bg:#E3D0B0;--card-text:#161616;--card-line:rgba(22,22,22,.2);--pitch-a:#87B1A5;--pitch-b:rgba(0,0,0,.08);--pitch-alt-a:#8B1A1E;--pitch-alt-b:rgba(0,0,0,.08);--pitch-line:#E3D0B0;}
   body.wa main > .toolbar > :is(span,label,small), body.wa .team-bar > :is(span,label,small), body.wa .tow-forms-box > :is(span,label,div:not([class])), body.wa .pw-check{color:var(--zone-text) !important;}
   body.wa .overig-ronde label, body.wa .overig-ronde span{color:var(--zone-text) !important;opacity:.85;}
   body.wa .squad-side .side-card, body.wa .team-side .summary-card, body.wa .coach-season .summary-card{color:var(--card-text);--text:var(--card-text);--text-dim:var(--card-text);--line:var(--card-line);--surface-2:var(--card-line);--sec:var(--card-text);}
@@ -1946,6 +1946,8 @@ function teamLogo(name){
 }
 
 const POS_COLOR = {Goalkeeper:'var(--gk)', Defender:'var(--def)', Midfielder:'var(--mid)', Forward:'var(--fwd)'};
+// Tekst in positiekleur: valt terug op zwart/wit als de staal te weinig contrast heeft met de vlakken (--gk-text enz.).
+function posTxt(c){ const m = /^var\(--(gk|def|mid|fwd)\)$/.exec(String(c)); return m ? `var(--${m[1]}-text,var(--${m[1]}))` : c; }
 const POS_LABEL = {Goalkeeper:'Keeper', Defender:'Verdediger', Midfielder:'Middenvelder', Forward:'Aanvaller'};
 const POS_SHORT = {Goalkeeper:'GK', Defender:'DEF', Midfielder:'MID', Forward:'FWD'};
 const POS_ORDER = ['Goalkeeper','Defender','Midfielder','Forward'];
@@ -2390,7 +2392,7 @@ function findInjury(speler, team){
 }
 function injuryBadge(inj){
   if(!inj) return '';
-  if(inj.Status==='Geblesseerd') return `<span class="injury-x" style="color:var(--danger)" data-tip="Geblesseerd: ${String(inj.Type).replace(/"/g,'&quot;')}">${icon('x',13)}</span>`;
+  if(inj.Status==='Geblesseerd') return `<span class="injury-x" style="color:var(--danger-text,var(--danger))" data-tip="Geblesseerd: ${String(inj.Type).replace(/"/g,'&quot;')}">${icon('x',13)}</span>`;
   if(inj.Status==='Geschorst') return `<span class="injury-x" style="color:#8E4A2E" data-tip="Geschorst: ${String(inj.Type).replace(/"/g,'&quot;')}">${icon('x',12)}</span>`;
   return `<span class="injury-x" style="color:#E0A526" data-tip="Twijfelgeval: ${String(inj.Type).replace(/"/g,'&quot;')}">${icon('warning',12)}</span>`;
 }
@@ -2543,7 +2545,7 @@ function trySpendWissel(slotId){
   const allowance = windowAllowanceForRound(r);
   const used = state.wisselsUsed[key] || 0;
   if(used >= allowance){
-    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.<br><br>Lijkt dit niet te kloppen (bijv. je hebt zelf nog niets gewisseld)? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — dat kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het écht niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent);text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
+    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.<br><br>Lijkt dit niet te kloppen (bijv. je hebt zelf nog niets gewisseld)? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — dat kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het écht niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return false;
   }
   state.wisselsUsed[key] = used + 1;
@@ -2888,10 +2890,10 @@ async function loadSquad(){
 // Oude thema's (standaard, licht, donker, egirl, darren, clubthema's) en taalvarianten zijn weg.
 // Veldkleuren per thema, uit de kleurenstaal (herziening 13-10-2026): a/b = stroken eigen veld,
 // altA/altB = veld van een ander team (Team v/d week, coaches), line = veldlijnen.
-// Alle themakleuren komen uit de staal (WA_THEMES[].swatch); neutrale grijzen alleen voor achtergrond en tekst.
+// Alle vlakken komen uit de staal (WA_THEMES[].swatch); alleen tekst is zwart of wit (leesbaarheid).
 // Gegenereerd met tools/genereer_themas.py (14-10-2026). b/altB = schaduw voor de veldstrepen, geen eigen kleur.
-const WA_PITCH = {"rushmore": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#26213F", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "tenenbaums": {"a": "#575B80", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#E3D3D5"}, "aquatic": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "darjeeling": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "mrfox": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#951D25", "altB": "rgba(0,0,0,.08)", "line": "#FFFFFF"}, "moonrise": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#8B1A1E", "altB": "rgba(0,0,0,.08)", "line": "#E3D0B0"}};
-const WA_ZONES = {"rushmore-donker": {"nav": "#2E6A4F", "navText": "#FFFFFF", "act": "#D9B25F", "actText": "#161616", "zone": "#26213F", "zoneText": "#FFFFFF", "sec": "#DEB08E", "card": "#26213F", "cardText": "#FFFFFF"}, "rushmore-licht": {"nav": "#26213F", "navText": "#FFFFFF", "act": "#2E6A4F", "actText": "#FFFFFF", "zone": "#DEB08E", "zoneText": "#161616", "sec": "#2E6A4F", "card": "#D9B25F", "cardText": "#161616"}, "tenenbaums-donker": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#A7C9D7", "actText": "#161616", "zone": "#A55C21", "zoneText": "#FFFFFF", "sec": "#E3D3D5", "card": "#575B80", "cardText": "#FFFFFF"}, "tenenbaums-licht": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#E3D3D5", "actText": "#161616", "zone": "#A7C9D7", "zoneText": "#161616", "sec": "#A55C21", "card": "#A55C21", "cardText": "#FFFFFF"}, "aquatic-donker": {"nav": "#4489A9", "navText": "#161616", "act": "#DDBE3A", "actText": "#161616", "zone": "#D29A1E", "zoneText": "#161616", "sec": "#73A8B9", "card": "#73A8B9", "cardText": "#161616"}, "aquatic-licht": {"nav": "#4489A9", "navText": "#161616", "act": "#DDBE3A", "actText": "#161616", "zone": "#DDBE3A", "zoneText": "#161616", "sec": "#D23511", "card": "#73A8B9", "cardText": "#161616"}, "darjeeling-donker": {"nav": "#0E8B73", "navText": "#161616", "act": "#E59C25", "actText": "#161616", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#5FACCF", "card": "#E57A25", "cardText": "#161616"}, "darjeeling-licht": {"nav": "#0E8B73", "navText": "#161616", "act": "#E59C25", "actText": "#161616", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#0E8B73", "card": "#E59C25", "cardText": "#161616"}, "mrfox-donker": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#E0C31F", "actText": "#161616", "zone": "#4F9AC4", "zoneText": "#161616", "sec": "#4F9AC4", "card": "#C77A2E", "cardText": "#161616"}, "mrfox-licht": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#C77A2E", "actText": "#161616", "zone": "#E0C31F", "zoneText": "#161616", "sec": "#951D25", "card": "#4F9AC4", "cardText": "#161616"}, "moonrise-donker": {"nav": "#8B1A1E", "navText": "#FFFFFF", "act": "#E4B21A", "actText": "#161616", "zone": "#977431", "zoneText": "#FFFFFF", "sec": "#87B1A5", "card": "#87B1A5", "cardText": "#161616"}, "moonrise-licht": {"nav": "#87B1A5", "navText": "#161616", "act": "#8B1A1E", "actText": "#FFFFFF", "zone": "#E4B21A", "zoneText": "#161616", "sec": "#8B1A1E", "card": "#977431", "cardText": "#FFFFFF"}};
+const WA_PITCH = {"rushmore": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#26213F", "altB": "rgba(0,0,0,.08)", "line": "#DEB08E"}, "tenenbaums": {"a": "#575B80", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#E3D3D5"}, "aquatic": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#DDBE3A"}, "darjeeling": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#E59C25"}, "mrfox": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#951D25", "altB": "rgba(0,0,0,.08)", "line": "#E0C31F"}, "moonrise": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#8B1A1E", "altB": "rgba(0,0,0,.08)", "line": "#E3D0B0"}};
+const WA_ZONES = {"rushmore-licht": {"nav": "#26213F", "navText": "#FFFFFF", "act": "#DEB08E", "actText": "#161616", "zone": "#2E6A4F", "zoneText": "#FFFFFF", "sec": "#26213F", "card": "#26213F", "cardText": "#FFFFFF"}, "rushmore-donker": {"nav": "#DEB08E", "navText": "#161616", "act": "#26213F", "actText": "#FFFFFF", "zone": "#D9B25F", "zoneText": "#161616", "sec": "#DEB08E", "card": "#DEB08E", "cardText": "#161616"}, "tenenbaums-licht": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#E3D3D5", "actText": "#161616", "zone": "#C8321E", "zoneText": "#FFFFFF", "sec": "#575B80", "card": "#575B80", "cardText": "#FFFFFF"}, "tenenbaums-donker": {"nav": "#E3D3D5", "navText": "#161616", "act": "#575B80", "actText": "#FFFFFF", "zone": "#A7C9D7", "zoneText": "#161616", "sec": "#E3D3D5", "card": "#E3D3D5", "cardText": "#161616"}, "aquatic-licht": {"nav": "#D23511", "navText": "#FFFFFF", "act": "#DDBE3A", "actText": "#161616", "zone": "#4489A9", "zoneText": "#161616", "sec": "#D23511", "card": "#D23511", "cardText": "#FFFFFF"}, "aquatic-donker": {"nav": "#DDBE3A", "navText": "#161616", "act": "#D23511", "actText": "#FFFFFF", "zone": "#D29A1E", "zoneText": "#161616", "sec": "#DDBE3A", "card": "#DDBE3A", "cardText": "#161616"}, "darjeeling-licht": {"nav": "#E2102E", "navText": "#FFFFFF", "act": "#E59C25", "actText": "#161616", "zone": "#0E8B73", "zoneText": "#161616", "sec": "#E2102E", "card": "#E2102E", "cardText": "#FFFFFF"}, "darjeeling-donker": {"nav": "#E59C25", "navText": "#161616", "act": "#E2102E", "actText": "#FFFFFF", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#E59C25", "card": "#E59C25", "cardText": "#161616"}, "mrfox-licht": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#E0C31F", "actText": "#161616", "zone": "#C77A2E", "zoneText": "#161616", "sec": "#951D25", "card": "#951D25", "cardText": "#FFFFFF"}, "mrfox-donker": {"nav": "#E0C31F", "navText": "#161616", "act": "#951D25", "actText": "#FFFFFF", "zone": "#4F9AC4", "zoneText": "#161616", "sec": "#E0C31F", "card": "#E0C31F", "cardText": "#161616"}, "moonrise-licht": {"nav": "#8B1A1E", "navText": "#FFFFFF", "act": "#E3D0B0", "actText": "#161616", "zone": "#977431", "zoneText": "#FFFFFF", "sec": "#8B1A1E", "card": "#8B1A1E", "cardText": "#FFFFFF"}, "moonrise-donker": {"nav": "#E3D0B0", "navText": "#161616", "act": "#8B1A1E", "actText": "#FFFFFF", "zone": "#E4B21A", "zoneText": "#161616", "sec": "#E3D0B0", "card": "#E3D0B0", "cardText": "#161616"}};
 const WA_THEMES = [
   {id:'rushmore', label:'Rushmore', mode:'donker', swatch:['#D9B25F','#DEB08E','#2E6A4F','#26213F','#D33A2C']},
   {id:'tenenbaums', label:'The Royal Tenenbaums', mode:'licht', swatch:['#C8321E','#A55C21','#A7C9D7','#575B80','#E3D3D5']},
@@ -3343,7 +3345,7 @@ function renderTile(p){
     <div class="tile-clip">${inTeam ? `<div class="myteam-ribbon">JOUW TEAM</div>` : ''}<div class="stripe" style="background:${color}"></div></div>
     <div class="top-row">
       ${(()=>{ const ph = playerPhoto(p.Speler); return ph
-        ? `<div class="tile-photo" style="--pos-color:${color};"><img src="${ph}" alt="" loading="lazy"><span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span></div>`
+        ? `<div class="tile-photo" style="--pos-color:${posTxt(color)};"><img src="${ph}" alt="" loading="lazy"><span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span></div>`
         : `<span class="pos-badge" style="background:${color}">${POS_SHORT[p.Positie]}</span>`; })()}
       ${gaugeSvg(strength, color)}
     </div>
@@ -3351,7 +3353,7 @@ function renderTile(p){
     <button class="compare-toggle ${isScouted(p)?'active':''}" onclick="event.stopPropagation();toggleScouted('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" title="${isScouted(p)?'Markering voor scouting verwijderen':'Markeer voor scouting'}">${icon('bookmark',14)}</button>
     ${inTeam ? `<div style="display:inline-flex;align-items:center;gap:3px;color:var(--on-accent);font-family:'Inter';font-size:9.5px;font-weight:800;background:var(--myteam);padding:2px 6px;border-radius:4px;margin-bottom:4px;">${icon('star',11)} IN JOUW TEAM</div>` : ''}
     <h3>${p.Speler} ${intBadge(p)} ${injuryBadge(inj)} ${goalsIconHtml(p, 13)}${assistsIconHtml(p, 13)}${savesIconHtml(p, 13)}${penScoredIconHtml(p, 13)}${winDrawIconHtml(p, 13)}${penaltyIconHtml(p.Speler, p.Team, 13)}${cornerIconHtml(p.Speler, p.Team, 13)}${freekickIconHtml(p.Speler, p.Team, 13)}${cardsIconHtml(p, 13)}</h3>
-    ${sortStat ? `<div style="margin:2px 0 4px 0;padding:2px 8px;background:${color}22;border:1px solid ${color}66;border-radius:6px;font-size:11px;font-weight:700;color:${color};display:inline-block;">${sortStat.label} <b>${sortStat.value}</b></div>` : ''}
+    ${sortStat ? `<div style="margin:2px 0 4px 0;padding:2px 8px;background:transparent;border:1px solid ${color};border-left:4px solid ${color};border-radius:6px;font-size:11px;font-weight:700;color:var(--text);display:inline-block;">${sortStat.label} <b>${sortStat.value}</b></div>` : ''}
     <div class="club">${jerseySvg(clubThen,15)}${teamLogo(clubThen)}${clubThen}${clubThen!==p.Team?` <span style="color:var(--text-dim);font-size:10px;">(nu: ${p.Team})</span>`:''}</div>
     ${p.former ? `<div style="font-family:'Inter';font-size:10px;color:var(--text-dim);margin-top:2px;">${icon('clock',14)} Niet meer actief in 2026/27</div>` : ''}
     <div style="margin:6px 0;">${starRatingHtml(p)}</div>
@@ -3642,7 +3644,7 @@ function renderScoutTab(){
               <td onclick="event.stopPropagation();toggleScouted('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')"><span class="compare-toggle-inline ${isScouted(p)?'active':''}">${icon('bookmark',14)}</span></td>
               <td>${inTeam?`<span title="Zit in jouw team" style="display:inline-flex;align-items:center;gap:3px;color:var(--on-accent);font-family:'Inter';font-size:10px;font-weight:800;background:var(--myteam);padding:2px 6px;border-radius:4px;margin-right:5px;">${icon('star',11)} JOUW TEAM</span>`:''}${p.Speler} ${injuryBadge(inj)} ${goalsIconHtml(p, 12)}${assistsIconHtml(p, 12)}${savesIconHtml(p, 12)}${penScoredIconHtml(p, 12)}${winDrawIconHtml(p, 12)}${penaltyIconHtml(p.Speler, p.Team, 12)}${cornerIconHtml(p.Speler, p.Team, 12)}${freekickIconHtml(p.Speler, p.Team, 12)}${cardsIconHtml(p, 12)}${p.former ? `<span style="font-family:'Inter';font-size:10px;color:var(--text-dim);margin-left:4px;">${icon('clock',12)} niet actief</span>` : ''} ${intBadge(p)}</td>
               <td>${teamLogo(clubThen)}${clubThen}</td>
-              <td style="color:${color}">${POS_SHORT[p.Positie]}</td>
+              <td style="color:${posTxt(color)}">${POS_SHORT[p.Positie]}</td>
               <td>${starRatingHtml(p)}</td>
               <td>${strength!=null ? gaugeSvg(strength, color) : '—'}</td>
               <td>${fmtEuro(p.Prijs)}</td>
@@ -3650,7 +3652,7 @@ function renderScoutTab(){
               <td>${d?d.Goals:'—'}</td>
               <td>${d?d.Assists:'—'}</td>
               <td>${d?d.Minuten:'—'}</td>
-              ${state.sortBy!=='prijs'?`<td>${sortStat?`<b style="color:${color}">${sortStat.value}</b>`:'—'}</td>`:''}
+              ${state.sortBy!=='prijs'?`<td>${sortStat?`<b style="color:${posTxt(color)}">${sortStat.value}</b>`:'—'}</td>`:''}
             </tr>`;
           }).join('')}</tbody>
         </table></div>`
@@ -3754,7 +3756,7 @@ function renderQuickFutureSwapModal(){
           ${pitchAvatarHtml(p.Speler, p.Team, POS_COLOR[p.Positie])}
           <div><b>${p.Speler}</b><div style="font-size:11.5px;color:var(--text-dim);">${p.Team}${e&&e.opponent?` · ${e.thuis?'thuis':'uit'} ${e.opponent}`:''}</div></div>
           <span style="font-size:12.5px;">${fmtEuro(p.Prijs)}</span>
-          <span style="font-family:'Jost';color:var(--accent);min-width:34px;text-align:right;" title="Verwachte punten">${e?(Math.round(e.score*10)/10).toString().replace('.',','):'–'}</span>
+          <span style="font-family:'Jost';color:var(--accent-text,var(--accent));min-width:34px;text-align:right;" title="Verwachte punten">${e?(Math.round(e.score*10)/10).toString().replace('.',','):'–'}</span>
         </div>`).join('') : `<div class="empty-state">Geen spelers die passen.</div>`}
         `}
         ${gepland.length ? `<div class="section-title"><span>Al gepland</span><span class="line"></span></div>
@@ -4270,7 +4272,7 @@ function renderTeamTab(){
     <div class="lcard"><div class="lcard-head">Basis <small>${state.formation}</small></div>${basis.map(slotHtml).join('')}</div>
     <div class="lcard"><div class="lcard-head">Bank <small>telt mee als een basisspeler op die linie niet speelt</small></div>${reserve.map(slotHtml).join('')}</div>
     `}
-    ${over ? `<div style="margin-top:16px;color:var(--danger);font-family:'Inter';font-size:13px;">${icon('warning',13)} Je zit boven het budget van €${BUDGET_CAP}M — pas je selectie aan.</div>` : ''}
+    ${over ? `<div style="margin-top:16px;color:var(--danger-text,var(--danger));font-family:'Inter';font-size:13px;">${icon('warning',13)} Je zit boven het budget van €${BUDGET_CAP}M — pas je selectie aan.</div>` : ''}
     </div><aside class="team-side">
       ${renderUncoveredMatchesNote()}
       ${renderPointsStatsCards()}
@@ -4534,7 +4536,7 @@ function renderSpelersZoekerTab(){
         <td style="text-align:right;">${r.prijs!=null?fmtEuro(r.prijs):''}</td>
         <td><a href="#" style="color:var(--text);" onclick="event.stopPropagation();viewCoachTeam('${r.coach.replace(/'/g,"\\'")}');return false;">${r.coach}</a> <span style="color:var(--text-dim);font-size:11.5px;">${r.coachTeam}</span></td>
         <td style="color:var(--text-dim);">${r.reserve?'bank':'basis'}</td>
-        <td style="text-align:right;color:var(--accent);font-weight:600;">${r.rondesInTeam}/${totalRoundsInRange}</td></tr>`).join('')}</tbody>
+        <td style="text-align:right;color:var(--accent-text,var(--accent));font-weight:600;">${r.rondesInTeam}/${totalRoundsInRange}</td></tr>`).join('')}</tbody>
     </table></div>
     ${filtered.length > (state.zoekerToon||60) ? `<button class="btn ghost" style="margin-top:12px;" onclick="state.zoekerToon=(state.zoekerToon||60)+100;render()">Toon meer (${filtered.length-(state.zoekerToon||60)} over)</button>` : ''}`}
   `;
@@ -4620,7 +4622,7 @@ function renderWisselsTab(){
         ${suspicious ? `<div style="font-size:11px;color:#E0A526;margin-bottom:8px;">${icon('warning',12)} ${changes} spelers tegelijk gewisseld — meer dan het toegestane maximum (1, of 3 bij een periodewissel). Dit is vermoedelijk een verschil tussen twee scrapes i.p.v. een echte transfer.</div>` : ''}
         <div style="display:flex;flex-wrap:wrap;gap:16px;">
           ${t.uit.length ? `<div>
-            <div style="font-size:10px;color:var(--danger);font-family:'Inter';margin-bottom:4px;">ERUIT</div>
+            <div style="font-size:10px;color:var(--danger-text,var(--danger));font-family:'Inter';margin-bottom:4px;">ERUIT</div>
             ${t.uit.map(s=>`<div style="font-size:13px;cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(s.naam)}','${encodeURIComponent(s.club)}')">${teamLogo(s.club)}${s.naam} <span style="color:var(--text-dim);font-size:11px;">(${POS_LABEL[s.pos]||s.pos}${s.reserve?', bank':''})</span>${s.pts!=null?` <span style="font-family:'Inter';color:var(--text-dim);">— ${s.pts} pnt die ronde</span>`:''}</div>`).join('')}
           </div>` : ''}
           ${t.erin.length ? `<div>
@@ -4775,7 +4777,7 @@ function renderInterlandsCard(p){
   else body = `
     ${il.caps||il.ss ? `<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <div style="flex:1;min-width:90px;text-align:center;padding:8px 6px;background:var(--surface-2);border-radius:10px;"><div style="font-family:'Jost';font-size:22px;line-height:1.1;">${il.caps}</div><div style="font-size:10.5px;color:var(--text-dim);">interlands totaal</div></div>
-      <div style="flex:1;min-width:90px;text-align:center;padding:8px 6px;border-radius:10px;${il.sc?'background:color-mix(in srgb, var(--accent) 22%, var(--surface));':'background:var(--surface-2);'}"><div style="font-family:'Jost';font-size:22px;line-height:1.1;${il.sc?'color:var(--accent);':'color:var(--text-dim);'}">${il.sc}</div><div style="font-size:10.5px;color:var(--text-dim);">dit seizoen${il.ss?` · +${il.ss}× bank`:''}</div></div>
+      <div style="flex:1;min-width:90px;text-align:center;padding:8px 6px;border-radius:10px;${il.sc?'background:color-mix(in srgb, var(--accent) 22%, var(--surface));':'background:var(--surface-2);'}"><div style="font-family:'Jost';font-size:22px;line-height:1.1;${il.sc?'color:var(--accent-text,var(--accent));':'color:var(--text-dim);'}">${il.sc}</div><div style="font-size:10.5px;color:var(--text-dim);">dit seizoen${il.ss?` · +${il.ss}× bank`:''}</div></div>
       <div style="flex:1;min-width:90px;text-align:center;padding:8px 6px;background:var(--surface-2);border-radius:10px;"><div style="font-family:'Jost';font-size:22px;line-height:1.1;">${il.goals}</div><div style="font-size:10.5px;color:var(--text-dim);">doelpunten</div></div>
     </div>` : ''}
     <table class="il-tabel"><thead><tr><th>Ploeg</th><th>Totaal</th><th>Goals</th><th>Dit seizoen</th><th title="Laatste interland waarbij transfermarkt de speler noemt: gespeeld, op de bank, of in de selectie maar afwezig/geblesseerd">Laatst vermeld</th></tr></thead><tbody>
@@ -5503,9 +5505,9 @@ function renderLeagueStatsTab(){
   function tile(id, label, value, sub, icon_, rankInfo){
     const isOpen = state.leagueStatDetailKey===id;
     return `<div class="stat-box" onclick="toggleLeagueStat('${id}')" style="cursor:pointer;${isOpen?'box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb, var(--accent) 6%, transparent);':''}">
-      <div class="n" style="font-size:15px;${typeof value==='number'&&value<0?'color:var(--danger);':''}">${sub}</div>
+      <div class="n" style="font-size:15px;${typeof value==='number'&&value<0?'color:var(--danger-text,var(--danger));':''}">${sub}</div>
       <div class="l">${label}</div>
-      ${rankInfo ? `<div style="font-size:10.5px;color:var(--accent);margin-top:4px;font-weight:600;">${rankInfo}</div>` : ''}
+      ${rankInfo ? `<div style="font-size:10.5px;color:var(--accent-text,var(--accent));margin-top:4px;font-weight:600;">${rankInfo}</div>` : ''}
     </div>`;
   }
   function rankTekst(gesorteerdeLijst, coachNaam, eenheid){
@@ -5820,7 +5822,7 @@ function renderTeamStatDetailPanel(coach){
       <div class="stat-detail-body" style="max-height:400px;">
         ${rounds.map(r=>{
           const d = breakdown[r];
-          return `<div style="padding:8px 14px 4px;font-family:'Inter';font-size:11px;color:var(--accent);background:var(--surface);">Ronde ${r} — ${d.total} pnt totaal</div>
+          return `<div style="padding:8px 14px 4px;font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));background:var(--surface);">Ronde ${r} — ${d.total} pnt totaal</div>
           ${d.perPlayer.filter(x=>x.pts!==0).map(x=>`
             <div class="stat-detail-row" style="cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(x.naam)}','${encodeURIComponent(x.club)}')">
               <div class="stat-detail-info">
@@ -6041,7 +6043,7 @@ function renderStatsTab(){
     const csCount = d ? deriveCleanSheetCount(p, teamSeason) : null;
     const cardBd = getCardBreakdown(p, teamSeason);
     return `<tr onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">
-      <td>${p.Speler}</td><td style="color:${POS_COLOR[p.Positie]}">${POS_SHORT[p.Positie]}</td><td>${p.Team}</td>
+      <td>${p.Speler}</td><td style="color:${posTxt(POS_COLOR[p.Positie])}">${POS_SHORT[p.Positie]}</td><td>${p.Team}</td>
       <td>${fmtEuro(p.Prijs)}</td><td>${d?d.Totaal:'—'}</td><td>${d?d.Minuten:'—'}</td>
       <td>${d?d.Goals:'—'}</td><td>${d?d.Assists:'—'}</td>
       <td>${csCount!=null ? csCount : (p.Positie==='Midfielder'||p.Positie==='Forward' ? 'n.v.t.' : '—')}</td>
@@ -6076,7 +6078,7 @@ function renderStatsTab(){
         if(total===0) return '';
         const isOpen = state.teamStatDetailKey===k;
         return `<div class="stat-box" onclick="toggleTeamStatDetail('${k}')" style="cursor:pointer;${isOpen?'box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb, var(--accent) 6%, transparent);':''}">
-          <div class="n" style="${total<0?'color:var(--danger);':''}">${total}</div><div class="l">${TEAM_CARD_LABELS[k]}</div>
+          <div class="n" style="${total<0?'color:var(--danger-text,var(--danger));':''}">${total}</div><div class="l">${TEAM_CARD_LABELS[k]}</div>
         </div>`;
       }).join('')}
       ${useWeekly ? (()=>{
@@ -6093,7 +6095,7 @@ function renderStatsTab(){
             <div class="n" style="color:var(--def);">${best[1].total}</div><div class="l">Beste ronde (R${best[0]})</div>
           </div>
           <div class="stat-box" onclick="toggleTeamRoundDetail('worst')" style="cursor:pointer;${worstOpen?'box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb, var(--accent) 6%, transparent);':''}">
-            <div class="n" style="${worst[1].total<0?'color:var(--danger);':''}">${worst[1].total}</div><div class="l">Slechtste ronde (R${worst[0]})</div>
+            <div class="n" style="${worst[1].total<0?'color:var(--danger-text,var(--danger));':''}">${worst[1].total}</div><div class="l">Slechtste ronde (R${worst[0]})</div>
           </div>
         `;
       })() : ''}
@@ -6105,7 +6107,7 @@ function renderStatsTab(){
       const longest = rows0.filter(r=>(r.d.Weken||0)===maxWeken && maxWeken>0);
       if(!longest.length) return '';
       return `<div class="news-note" style="margin-top:-6px;margin-bottom:14px;border-color:var(--accent);">
-        ${icon('clock',12)} <b>Langst in het team</b> (${maxWeken} ${maxWeken===1?'week':'weken'}): ${longest.map(r=>`<a href="#" onclick="event.preventDefault();openPlayerModal('${encodeURIComponent(r.p.Speler)}','${encodeURIComponent(r.p.Team)}')" style="color:var(--accent);text-decoration:none;cursor:pointer;">${teamLogo(r.p.Team)}${r.p.Speler}</a>`).join(', ')}
+        ${icon('clock',12)} <b>Langst in het team</b> (${maxWeken} ${maxWeken===1?'week':'weken'}): ${longest.map(r=>`<a href="#" onclick="event.preventDefault();openPlayerModal('${encodeURIComponent(r.p.Speler)}','${encodeURIComponent(r.p.Team)}')" style="color:var(--accent-text,var(--accent));text-decoration:none;cursor:pointer;">${teamLogo(r.p.Team)}${r.p.Speler}</a>`).join(', ')}
       </div>`;
     })() : ''}
     ${useWeekly && statsCoach!=='__ALL__' ? (()=>{
@@ -6125,7 +6127,7 @@ function renderStatsTab(){
       const best = impacts.reduce((a,b)=>b.verschil>a.verschil?b:a);
       const worst = impacts.reduce((a,b)=>b.verschil<a.verschil?b:a);
       function wisselLine(t, label, color){
-        return `<b style="color:${color};">${label}</b> (R${t.round}): ${teamLogo(t.erinClub)}${t.erin} (+${t.erinPts}) in voor ${teamLogo(t.uitClub)}${t.uit} (+${t.uitPts}) — ${t.verschil>0?'+':''}${t.verschil} verschil`;
+        return `<b style="color:${posTxt(color)};">${label}</b> (R${t.round}): ${teamLogo(t.erinClub)}${t.erin} (+${t.erinPts}) in voor ${teamLogo(t.uitClub)}${t.uit} (+${t.uitPts}) — ${t.verschil>0?'+':''}${t.verschil} verschil`;
       }
       return `<div class="news-note" style="margin-top:-6px;margin-bottom:14px;">
         ${icon('refresh',12)} ${wisselLine(best, 'Beste wissel', 'var(--def)')}${impacts.length>1?` · ${wisselLine(worst, 'Slechtste wissel', 'var(--danger)')}`:''}
@@ -6177,7 +6179,7 @@ function renderStatsTab(){
       const tiles = POS_ORDER.map(pos=>{
         const isOpen = openPos===pos;
         return `<div class="stat-box" onclick="toggleTeamLinieDetail('${pos}')" style="cursor:pointer;${isOpen?'box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb, var(--accent) 6%, transparent);':''}">
-          <div class="n" style="${byPos[pos]<0?'color:var(--danger);':''}">${byPos[pos]}</div><div class="l">${POS_LABEL[pos]}</div>
+          <div class="n" style="${byPos[pos]<0?'color:var(--danger-text,var(--danger));':''}">${byPos[pos]}</div><div class="l">${POS_LABEL[pos]}</div>
         </div>`;
       }).join('');
       const chart = barChartSvg(POS_ORDER.map(pos=>({name:POS_LABEL[pos], pts:byPos[pos]})), 'name', 'pts', 'var(--c-blue)');
@@ -6487,9 +6489,9 @@ function renderWisselschemaTab(){
             <td>${row.firstDate?fmtDate(row.firstDate):'—'}</td>
             <td>${row.lastDate && row.lastDate!==row.firstDate?fmtDate(row.lastDate):'—'}</td>
             <td>${row.nMatches||'—'}</td>
-            <td>${row.unlimited ? `<b style="color:var(--accent);">onbeperkt</b>` : `<b style="color:${row.isPeriod?'var(--accent)':'var(--text)'};">${row.allowance}</b>${row.isPeriod?' <span style="font-size:10px;color:var(--text-dim);">(periodewissel)</span>':''}`}</td>
+            <td>${row.unlimited ? `<b style="color:var(--accent-text,var(--accent));">onbeperkt</b>` : `<b style="color:${row.isPeriod?'var(--accent)':'var(--text)'};">${row.allowance}</b>${row.isPeriod?' <span style="font-size:10px;color:var(--text-dim);">(periodewissel)</span>':''}`}</td>
             <td>${wisselCel(row.r)}</td>
-            <td style="font-size:11px;color:var(--text-dim);">${row.isCurrent?'<b style="color:var(--accent);">huidige ronde</b>':row.isPast?'gespeeld':'nog te spelen'}</td>
+            <td style="font-size:11px;color:var(--text-dim);">${row.isCurrent?'<b style="color:var(--accent-text,var(--accent));">huidige ronde</b>':row.isPast?'gespeeld':'nog te spelen'}</td>
           </tr>
         `).join('')}
       </tbody>
@@ -6629,9 +6631,9 @@ function renderInjuriesTab(){
   };
   return `
     ${renderInjuryUpdatesSlider()}
-    <div class="news-note" style="margin-bottom:12px;">${icon('info',11)} Status = kans om te spelen: <b>OUT</b>, <b>25%</b>, <b>50%</b> of <b>75%</b>. Bronnen: blessure-index met clubwatcher-berichten (stand ${fmtIndexDate(INJURY_INDEX_UPDATED)}) aangevuld met <a href="https://www.fcupdate.nl/voetbalcompetities/nederland/eredivisie/schorsingen-blessures" target="_blank" rel="noopener" style="color:var(--accent);">fcupdate.nl</a> (${INJURIES_UPDATED}) voor spelers die in de index geen actuele status hebben. Bij dubbele meldingen wint de recentere index.</div>
+    <div class="news-note" style="margin-bottom:12px;">${icon('info',11)} Status = kans om te spelen: <b>OUT</b>, <b>25%</b>, <b>50%</b> of <b>75%</b>. Bronnen: blessure-index met clubwatcher-berichten (stand ${fmtIndexDate(INJURY_INDEX_UPDATED)}) aangevuld met <a href="https://www.fcupdate.nl/voetbalcompetities/nederland/eredivisie/schorsingen-blessures" target="_blank" rel="noopener" style="color:var(--accent-text,var(--accent));">fcupdate.nl</a> (${INJURIES_UPDATED}) voor spelers die in de index geen actuele status hebben. Bij dubbele meldingen wint de recentere index.</div>
     <div class="summary-cards" style="margin-bottom:14px;">
-      <div class="summary-card" style="cursor:pointer;border-color:var(--danger);" onclick="setInjStatus('OUT')"><div class="label">Out</div><div class="value" style="color:var(--danger);">${cnt.out}</div></div>
+      <div class="summary-card" style="cursor:pointer;border-color:var(--danger);" onclick="setInjStatus('OUT')"><div class="label">Out</div><div class="value" style="color:var(--danger-text,var(--danger));">${cnt.out}</div></div>
       <div class="summary-card" style="cursor:pointer;border-color:#E0A526;" onclick="setInjStatus('TWIJFEL')"><div class="label">Twijfel (25-50%)</div><div class="value" style="color:#E0A526;">${cnt.twijfel}</div></div>
       <div class="summary-card" style="cursor:pointer;border-color:#9CC04A;" onclick="setInjStatus('BIJNA')"><div class="label">Bijna fit (75%)</div><div class="value" style="color:#9CC04A;">${cnt.bijna}</div></div>
       <div class="summary-card" style="cursor:pointer;border-color:var(--myteam);" onclick="setInjTeam('MINE')"><div class="label">In Mijn Team</div><div class="value" style="color:var(--myteam);">${mineAll.length}</div></div>
@@ -6870,13 +6872,13 @@ function renderPlayerCastingCouchSection(p){
   return `
     <div onclick="togglePlayerCCDetail()" style="cursor:pointer;width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-radius:12px;margin-top:2px;margin-bottom:${open?'0':'12px'};background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, transparent), color-mix(in srgb, var(--accent) 2%, transparent));border:1px solid ${open?'var(--accent)':'var(--accent-dim, var(--line))'};">
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:34px;height:34px;border-radius:50%;background:color-mix(in srgb, var(--accent) 18%, transparent);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0;">${icon('trophy',17)}</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:color-mix(in srgb, var(--accent) 18%, transparent);display:flex;align-items:center;justify-content:center;color:var(--accent-text,var(--accent));flex-shrink:0;">${icon('trophy',17)}</div>
         <div>
           <div style="font-family:'Jost';font-weight:700;font-size:13px;color:var(--text);">Casting Couch — coaches nu</div>
           <div style="font-size:11px;color:var(--text-dim);margin-top:1px;">${everCount}/${cur.total} ooit gehad</div>
         </div>
       </div>
-      <div style="font-family:'Inter';font-size:22px;font-weight:700;color:var(--accent);flex-shrink:0;">${cur.count}/${cur.total}</div>
+      <div style="font-family:'Inter';font-size:22px;font-weight:700;color:var(--accent-text,var(--accent));flex-shrink:0;">${cur.count}/${cur.total}</div>
     </div>
     ${detail}
   `;
@@ -7157,9 +7159,9 @@ function rankListHtml(items, unit){
       <li onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" style="display:flex;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${rowStyle}">
         <span style="font-family:'Jost';color:var(--text-dim);width:18px;">${i+1}</span>
         <span style="width:22px;">${teamLogo(p.Team)}</span>
-        <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent);':(inTeam?'font-weight:600;color:var(--def);':'')}">${p.Speler}</span>
+        <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent-text,var(--accent));':(inTeam?'font-weight:600;color:var(--def);':'')}">${p.Speler}</span>
         ${playerRankMeta(p)}
-        <span style="font-family:'Inter';font-size:13px;color:var(--accent);width:56px;text-align:right;">${val}${unit||''}</span>
+        <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));width:56px;text-align:right;">${val}${unit||''}</span>
       </li>`;}).join('')}
   </ol>`;
 }
@@ -7180,10 +7182,10 @@ function rankListHtmlDual(items, countUnit, ptsPerUnit){
       <li onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" style="display:flex;align-items:center;gap:8px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${rowStyle}">
         <span style="font-family:'Jost';color:var(--text-dim);width:18px;">${i+1}</span>
         <span style="width:22px;">${teamLogo(p.Team)}</span>
-        <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent);':(inTeam?'font-weight:600;color:var(--def);':'')}">${p.Speler}</span>
+        <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent-text,var(--accent));':(inTeam?'font-weight:600;color:var(--def);':'')}">${p.Speler}</span>
         ${playerRankMeta(p)}
         <span style="font-family:'Inter';font-size:12px;color:var(--text-dim);white-space:nowrap;">${count}${countUnit||''}</span>
-        <span style="font-family:'Inter';font-size:13px;color:var(--accent);width:56px;text-align:right;">${val}${ptsPerUnit||' pnt'}</span>
+        <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));width:56px;text-align:right;">${val}${ptsPerUnit||' pnt'}</span>
       </li>`;}).join('')}
   </ol>`;
 }
@@ -7304,7 +7306,7 @@ function renderClubSquadTab(club){
           const inj = findInjury(p.Speler, p.Team);
           return `<tr onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">
             <td>${p.Speler} ${intBadge(p)} ${injuryBadge(inj)}</td>
-            <td style="color:${POS_COLOR[p.Positie]}">${POS_SHORT[p.Positie]}</td>
+            <td style="color:${posTxt(POS_COLOR[p.Positie])}">${POS_SHORT[p.Positie]}</td>
             <td>${starRatingHtml(p)}</td>
             <td>${fmtEuro(p.Prijs)}</td>
             <td>${d?d.Totaal:'—'}</td>
@@ -7408,7 +7410,7 @@ function renderClubStatsTab(club){
       <div class="summary-card"><div class="label">Doelpuntpunten (som selectie)</div><div class="value">${totalGoals}</div></div>
       <div class="summary-card"><div class="label">Assistpunten (som selectie)</div><div class="value">${totalAssists}</div></div>
       <div class="summary-card"><div class="label">Clean sheets (aantal, keeper+verdedigers)</div><div class="value">${totalCleanSheetCount}</div><div style="font-size:10px;color:var(--text-dim);margin-top:2px;">${totalCleanSheetPts} punten totaal</div></div>
-      <div class="summary-card"><div class="label">Kaartenpunten (verlies)</div><div class="value" style="color:var(--danger);">${totalCards}</div><div style="font-size:10px;color:var(--text-dim);margin-top:2px;">${cardBreakdownHtml}</div></div>
+      <div class="summary-card"><div class="label">Kaartenpunten (verlies)</div><div class="value" style="color:var(--danger-text,var(--danger));">${totalCards}</div><div style="font-size:10px;color:var(--text-dim);margin-top:2px;">${cardBreakdownHtml}</div></div>
       <div class="summary-card"><div class="label">Spelers met speeltijd</div><div class="value">${usedPlayers} / ${players.length}</div><div style="font-size:10px;color:var(--text-dim);margin-top:2px;">selectie die minuten maakte</div></div>
       <div class="summary-card"><div class="label">Gem. spelersprijs</div><div class="value">${fmtEuro(avgPrice)}</div></div>
       <div class="summary-card"><div class="label">Meeste punten</div><div class="value" style="font-size:16px;">${top.Speler}</div></div>
@@ -7479,7 +7481,7 @@ function renderParelsTab(){
               <li onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;">
                 ${teamLogo(p.Team)}<span style="flex:1;font-size:13px;">${p.Speler}</span>
                 <span style="font-family:'Inter';font-size:11px;color:var(--text-dim);">${fmtEuro(p.Prijs)}</span>
-                <span style="font-family:'Inter';font-size:11px;color:var(--accent);">${strengthForSeason(p,season)}%</span>
+                <span style="font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));">${strengthForSeason(p,season)}%</span>
               </li>
             `).join('')}
           </ol>` : `<div style="color:var(--text-dim);font-size:13px;">Onvoldoende data voor deze positie.</div>`}
@@ -7653,7 +7655,7 @@ function renderRankingsTab(){
   if(!state.rankGroup){
     return `
       ${filterBar}
-      <div class="section-title" style="font-size:15px;color:var(--text);"><span style="display:inline-flex;align-items:center;gap:8px;"><span style="color:var(--accent);display:inline-flex;">${icon('trophy',16)}</span> Kies een categorie</span><span class="line"></span></div>
+      <div class="section-title" style="font-size:15px;color:var(--text);"><span style="display:inline-flex;align-items:center;gap:8px;"><span style="color:var(--accent-text,var(--accent));display:inline-flex;">${icon('trophy',16)}</span> Kies een categorie</span><span class="line"></span></div>
       <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
         ${RANK_GROUPS.map(g=>`
           <div class="summary-card" style="text-align:center;cursor:pointer;padding:28px 14px;" onclick="setRankGroup('${g.key}')">
@@ -7729,8 +7731,8 @@ function renderCoachRankContent(){
           return `<li onclick="openCoachProfileModal('${r.coach.replace(/'/g,"\\'")}');event.stopPropagation();" style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${isHit?'background:color-mix(in srgb, var(--accent) 18%, transparent);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);':''}">
             <span style="font-family:'Jost';color:var(--text-dim);width:18px;">${i+1}</span>
             <span style="width:22px;">${teamLogo(r.club)}</span>
-            <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent);':''}">${r.coach}</span>
-            <span style="font-family:'Inter';font-size:13px;color:var(--accent);">${r[field]}</span>
+            <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent-text,var(--accent));':''}">${r.coach}</span>
+            <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));">${r[field]}</span>
           </li>`;
         }).join('')}
       </ol>
@@ -7803,9 +7805,9 @@ function renderRefRankContent(){
           const isHit = q && normSearch(r.naam).includes(q);
           return `<li onclick="openRefProfileModal('${r.naam.replace(/'/g,"\\'")}');event.stopPropagation();" style="display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--line);cursor:pointer;${isHit?'background:color-mix(in srgb, var(--accent) 18%, transparent);border-radius:6px;box-shadow:inset 0 0 0 1px var(--accent);':''}">
             <span style="font-family:'Jost';color:var(--text-dim);width:18px;">${i+1}</span>
-            <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent);':''}">${r.naam}</span>
+            <span style="flex:1;font-family:'Inter';font-size:13px;${isHit?'font-weight:700;color:var(--accent-text,var(--accent));':''}">${r.naam}</span>
             <span style="font-family:'Inter';font-size:11px;color:var(--text-dim);white-space:nowrap;">${r.wedstrijden} wedstr.</span>
-            <span style="font-family:'Inter';font-size:13px;color:var(--accent);width:36px;text-align:right;">${r[field]}</span>
+            <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));width:36px;text-align:right;">${r[field]}</span>
           </li>`;
         }).join('')}
       </ol>
@@ -7854,7 +7856,7 @@ function findPlayerForTransfer(rec, direction, club){
 function transferRowHtml(rec, direction, club){
   const p = findPlayerForTransfer(rec, direction, club);
   const naam = p
-    ? `<span style="cursor:pointer;color:var(--accent);font-weight:600;" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${rec.speler}</span>`
+    ? `<span style="cursor:pointer;color:var(--accent-text,var(--accent));font-weight:600;" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${rec.speler}</span>`
     : `<span>${rec.speler}</span>`;
   const tegenLogo = rec.tegenClubNL ? teamLogo(rec.tegenClubNL) : '';
   const pijl = direction==='in' ? '←' : '→';
@@ -8272,7 +8274,7 @@ function renderPickerModal(){
   const teams = [...new Set(PLAYERS.filter(p=>p.Positie===def.pos && !p.former).map(p=>p.Team))].sort();
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
     <div class="box" style="max-width:720px;">
-      <div class="head"><h4 style="color:${color}">${def.label} kiezen</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="head"><h4 style="color:${posTxt(color)}">${def.label} kiezen</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
       <div class="search-bar"><input type="text" id="input-picker-search" placeholder="Zoek..." value="${f.search||''}" oninput="setModalSearch(this.value)"></div>
       <div class="picker-filters">
         <select onchange="setPickerFilter('teamFilter', this.value)">
@@ -9139,7 +9141,7 @@ function renderPointsDonut(p){
         <svg width="180" height="180" viewBox="0 0 180 180">${arcs}</svg>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
           <div style="font-family:'Inter';font-size:10px;color:var(--text-dim);text-transform:uppercase;">Totaal</div>
-          <div style="font-family:'Jost';font-size:26px;font-weight:700;color:var(--accent);">${raw.points}</div>
+          <div style="font-family:'Jost';font-size:26px;font-weight:700;color:var(--accent-text,var(--accent));">${raw.points}</div>
         </div>
       </div>
       <div style="flex:1;min-width:200px;">
@@ -9467,7 +9469,7 @@ function renderPlayerModal(){
         ${p.former ? `<div class="news-note" style="border-color:#9B6BC4;">${icon('clock',14)} Deze speler zit niet meer in de huidige Eredivisie-spelerspool (2026/27) — hij komt hier alleen naar voren bij het bekijken van 2025/26 of 2024/25, en kan niet aan je team worden toegevoegd.</div>` : ''}
         ${p.transferHistory && p.transferHistory.length ? `<div class="news-note">${icon('refresh',12)} Transfer: ${p.transferHistory.map(t=>`${teamLogo(t.from)}${t.from} → ${teamLogo(t.to)}${t.to} (sinds seizoen ${t.season})`).join(' · ')}</div>` : ''}
         <div class="pp-tabs" role="tablist">
-          ${PP_TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?'active':''}" onclick="setPlayerTab('${k}')">${l}${k==='blessures'&&inj?' <span style="color:var(--danger);">●</span>':''}</button>`).join('')}
+          ${PP_TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" class="${tab===k?'active':''}" onclick="setPlayerTab('${k}')">${l}${k==='blessures'&&inj?' <span style="color:var(--danger-text,var(--danger));">●</span>':''}</button>`).join('')}
         </div>
         ${inhoud}
       </div>
@@ -9548,23 +9550,23 @@ function renderPlayerHero(p){
   const chips = [];
   chips.push(`<span style="background:${color};color:#0B2E1F;font-family:'Inter';font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;">${POS_LABEL&&POS_LABEL[p.Positie]?POS_LABEL[p.Positie]:p.Positie}</span>`);
   if(inMijnTeam) chips.push(`<span style="border:1px solid var(--myteam);color:var(--myteam);font-size:11px;padding:2px 8px;border-radius:999px;">In mijn team</span>`);
-  if(inj) chips.push(`<span style="border:1px solid var(--danger);color:var(--danger);font-size:11px;padding:2px 8px;border-radius:999px;">${inj.Status}${inj.Terugkeer?' · '+inj.Terugkeer:''}</span>`);
+  if(inj) chips.push(`<span style="border:1px solid var(--danger);color:var(--danger-text,var(--danger));font-size:11px;padding:2px 8px;border-radius:999px;">${inj.Status}${inj.Terugkeer?' · '+inj.Terugkeer:''}</span>`);
   if(cc && cc.total) chips.push(`<span style="border:1px solid var(--line);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:999px;">Casting Couch ${cc.count}/${cc.total}</span>`);
   { const ii = internationalInfo(p), il = interlandInfo(p);
     if(il && (il.caps || il.ss)){
       chips.push(`<span style="border:1px solid var(--line);color:var(--text);font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;" title="${intTooltip(ii, il)}">${landVlag(il.hoofd.t)} ${il.hoofd.t} · ${ilMv(il.caps,'interland','interlands')}${il.goals?' · '+ilMv(il.goals,'goal','goals'):''}</span>`);
       chips.push(il.sc ? `<span style="background:var(--accent);color:var(--bg);font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;white-space:nowrap;">${ilSeizoenTekst(il).replace(/^d/,'D')}</span>`
                        : `<span style="border:1px dashed var(--line);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;">${ilSeizoenTekst(il).replace(/^d/,'D')}</span>`);
-    } else if(ii && ii.A) chips.push(`<span style="border:1px solid var(--accent);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;" title="${intTooltip(ii, il)}">${landVlag(ii.A.land)} International · ${ii.A.caps} interlands${ii.A.actueel?' · in selectie':''}</span>`);
+    } else if(ii && ii.A) chips.push(`<span style="border:1px solid var(--accent);color:var(--accent-text,var(--accent));font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap;" title="${intTooltip(ii, il)}">${landVlag(ii.A.land)} International · ${ii.A.caps} interlands${ii.A.actueel?' · in selectie':''}</span>`);
     if(il && il.js.some(x=>x.sc||x.ss)) il.js.filter(x=>x.sc||x.ss).forEach(x=>chips.push(`<span style="border:1px solid var(--line);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:999px;">${landVlag(x.t)} ${x.t} · ${x.sc} wedstr. dit seizoen</span>`));
     else if(!(il && il.caps)) (ii && ii.J || []).filter(j=>j.actueel || !(ii && ii.A)).forEach(j=>chips.push(`<span style="border:1px solid var(--line);color:var(--text-dim);font-size:11px;padding:2px 8px;border-radius:999px;" title="${intTooltip(ii, il)}">${landVlag(j.land)} ${j.land} · ${j.caps} wedstr.${j.actueel?' · actueel':''}</span>`)); }
   const kpi = (v,l,accent)=>`<div style="min-width:74px;text-align:center;padding:8px 6px;background:var(--surface-2);border-radius:10px;">
-      <div style="font-family:'Jost';font-size:22px;line-height:1.1;${accent?'color:var(--accent);':''}">${v}</div>
+      <div style="font-family:'Jost';font-size:22px;line-height:1.1;${accent?'color:var(--accent-text,var(--accent));':''}">${v}</div>
       <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px;">${l}</div></div>`;
-  return `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:linear-gradient(135deg, ${color}26, transparent 60%), var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
+  return `<div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;background:var(--surface);border-top:4px solid ${color} !important;border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
     <div style="display:flex;gap:14px;align-items:center;flex:1;min-width:260px;">
-      ${ph ? `<div class="player-photo" style="--pos-color:${color};width:104px;height:110px;"><img src="${ph}" alt="${p.Speler.replace(/"/g,'&quot;')}"></div>`
-           : `<div style="width:84px;height:84px;border-radius:50%;background:var(--surface-2);border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-family:'Jost';font-size:28px;color:${color};flex-shrink:0;">${(p.Speler.split(' ').map(w=>w[0]).join('').slice(0,2)).toUpperCase()}</div>`}
+      ${ph ? `<div class="player-photo" style="--pos-color:${posTxt(color)};width:104px;height:110px;"><img src="${ph}" alt="${p.Speler.replace(/"/g,'&quot;')}"></div>`
+           : `<div style="width:84px;height:84px;border-radius:50%;background:var(--surface-2);border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-family:'Jost';font-size:28px;color:${posTxt(color)};flex-shrink:0;">${(p.Speler.split(' ').map(w=>w[0]).join('').slice(0,2)).toUpperCase()}</div>`}
       <div style="min-width:0;">
         <div style="font-family:'Jost';font-size:24px;line-height:1.15;">${p.Speler} ${penaltyIconHtml(p.Speler, p.Team, 15)}${cornerIconHtml(p.Speler, p.Team, 15)}${freekickIconHtml(p.Speler, p.Team, 15)}</div>
         <div style="font-size:13px;margin:3px 0;">${teamLogo(p.Team)}${p.Team}${bits.length?` <span style="color:var(--text-dim);">· ${bits.join(' · ')}</span>`:''}</div>
@@ -9616,7 +9618,7 @@ function renderPlayerOverviewTab(p){
             return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;">
               <span style="font-family:'Inter';color:var(--text-dim);width:30px;">R${k.r}</span>
               <span style="flex:1;">${teamLogo(opp)}${opp} <span style="color:var(--text-dim);font-size:11.5px;">${thuis?'thuis':'uit'}${k.mt.date?' · '+fmtDate(k.mt.date):''}</span></span>
-              <span style="font-family:'Inter';color:var(--accent);" title="Verwachte punten volgens het model van het potentiële team">${k.e?ppNum(k.e.score,1):'–'}</span>
+              <span style="font-family:'Inter';color:var(--accent-text,var(--accent));" title="Verwachte punten volgens het model van het potentiële team">${k.e?ppNum(k.e.score,1):'–'}</span>
             </div>`; }).join('')}
           <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Rechts: verwachte punten (model v${POTENTIAL_MODEL_VERSION}).</div>
         </div>
@@ -9658,7 +9660,7 @@ function renderPlayerRoundTable(p){
           <td>${x.r}</td><td style="white-space:nowrap;">${opp}</td>
           <td style="font-family:'Inter';color:${wdl||'inherit'};">${uitslag}</td>
           <td style="font-family:'Inter';">${x.min==null?'–':x.min}</td>
-          <td style="font-family:'Inter';color:var(--accent);">${x.pts==null?'–':x.pts}</td></tr>`; }).join('')}</tbody>
+          <td style="font-family:'Inter';color:var(--accent-text,var(--accent));">${x.pts==null?'–':x.pts}</td></tr>`; }).join('')}</tbody>
     </table></div>`;
 }
 function renderPlayerPointsTab(p, sel, d, isGK){
@@ -9737,7 +9739,7 @@ function renderMatchModal(){
           <div class="stat-box" style="flex:1;"><div class="n">${m.odds.draw}</div><div class="l">Gelijkspel</div></div>
           <div class="stat-box" style="flex:1;${m.odds.home<m.odds.away?'border-color:var(--accent);':''}"><div class="n">${m.odds.away}</div><div class="l">${m.away}</div></div>
         </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">Laagste quotering = grootste favoriet. Bron: <a href="${m.odds.source}" target="_blank" rel="noopener" style="color:var(--accent);">${m.odds.bron_naam}</a></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">Laagste quotering = grootste favoriet. Bron: <a href="${m.odds.source}" target="_blank" rel="noopener" style="color:var(--accent-text,var(--accent));">${m.odds.bron_naam}</a></div>
         ` : ''}
         ${m.note ? `<div class="news-note">${m.note}</div>` : ''}
 
@@ -9829,7 +9831,7 @@ function renderSwapSuggestionsModal(){
   function wisselRow(d){
     return `<div style="display:flex;align-items:center;gap:10px;">
       <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${d.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.uit.Team)}${d.uit.Team} · vorm ${d.uitVorm}${d.uitVerw!=null?` · verwacht ${d.uitVerw}`:''}${d.bank?' · bank (50%)':''}</div></div>
-      <span style="color:var(--accent);">→</span>
+      <span style="color:var(--accent-text,var(--accent));">→</span>
       <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${d.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(d.in.Team)}${d.in.Team} · vorm ${d.inVorm}${d.inVerw!=null?` · verwacht ${d.inVerw}`:''} · ${fmtEuro(d.in.Prijs)}</div></div>
       <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="event.stopPropagation();applySwapSuggestion('${d.slotId}','${encodeURIComponent(d.in.Speler)}','${encodeURIComponent(d.in.Team)}')">Toepassen</button>
     </div>`;
@@ -9848,7 +9850,7 @@ function renderSwapSuggestionsModal(){
         <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <span style="font-family:'Jost';font-weight:600;font-size:13px;">Hoeveel wissels mag je deze ronde doen?</span>
-            <span style="font-family:'Inter';font-size:13px;color:var(--accent);font-weight:700;">${wisselLimiet}</span>
+            <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));font-weight:700;">${wisselLimiet}</span>
           </div>
           <input type="range" id="input-wissellimiet" min="1" max="5" step="1" value="${wisselLimiet}" oninput="setWisselLimiet(this.value)" style="width:100%;accent-color:var(--accent);">
           <div style="font-size:10.5px;color:var(--text-dim);margin-top:4px;">Zet dit op wat de spelregels je deze ronde toestaan (meestal 1) — combinatie-suggesties met meerdere wissels tegelijk verschijnen pas als je dit hoger zet.</div>
@@ -9862,7 +9864,7 @@ function renderSwapSuggestionsModal(){
           <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:8px;flex-direction:column;align-items:stretch;gap:8px;cursor:pointer;${open?'box-shadow:inset 0 0 0 1px var(--accent);':''}" onclick="toggleSuggestieUitleg('${id}')">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-family:'Inter';font-size:10px;color:var(--text-dim);">#${i+1} · ${s.type}</span>
-              <span style="font-family:'Inter';font-size:11px;color:var(--accent);">+${s.winst.toFixed(1)} pnt/ronde ${s.kostendelta!=null ? `· ${s.kostendelta>=0?'+':''}${s.kostendelta.toFixed(2)}M` : ''}</span>
+              <span style="font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));">+${s.winst.toFixed(1)} pnt/ronde ${s.kostendelta!=null ? `· ${s.kostendelta>=0?'+':''}${s.kostendelta.toFixed(2)}M` : ''}</span>
             </div>
             ${s.details.map(wisselRow).join('<div style="height:2px;"></div>')}
             ${s.toelichting ? `<div style="font-size:11px;color:var(--text-dim);font-style:italic;">${s.toelichting}</div>` : ''}
@@ -9880,11 +9882,11 @@ function renderSwapSuggestionsModal(){
           <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:8px;flex-direction:column;align-items:stretch;gap:8px;cursor:pointer;${open?'box-shadow:inset 0 0 0 1px var(--accent);':''}" onclick="toggleSuggestieUitleg('${id}')">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-family:'Inter';font-size:10px;color:var(--text-dim);">${s.linie}</span>
-              <span style="font-family:'Inter';font-size:11px;color:var(--accent);">+${s.winst.toFixed(1)} pnt/ronde</span>
+              <span style="font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));">+${s.winst.toFixed(1)} pnt/ronde</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="flex:1;"><div style="font-size:11px;color:var(--text-dim);">Naar basis:</div><div style="font-size:13px;font-weight:600;">${s.naarBasis.speler.Speler} <span style="color:var(--text-dim);font-weight:400;">(vorm ${s.naarBasis.vorm})</span></div></div>
-              <span style="color:var(--accent);">⇄</span>
+              <span style="color:var(--accent-text,var(--accent));">⇄</span>
               <div style="flex:1;"><div style="font-size:11px;color:var(--text-dim);">Naar bank:</div><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${s.naarBank.speler.Speler} <span style="font-weight:400;">(vorm ${s.naarBank.vorm})</span></div></div>
               <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="event.stopPropagation();applyBenchSuggestion('${s.naarBasis.slotId}','${s.naarBank.slotId}')">Toepassen</button>
             </div>
@@ -9933,7 +9935,7 @@ function renderCompareModal(){
       {label:'Prijs', get:p=>fmtEuro(p.Prijs)},
       {label:'Rating', get:p=>starRatingHtml(p)},
       {label:'Prijs/punt-ratio', get:p=>p._strength!=null?p._strength+'%':'—'},
-      {label:'Blessure', get:p=>{ const i=findInjury(p.Speler,p.Team); return i ? `<span style="color:var(--danger);">${i.Status} (${i.Type})</span>` : '<span style="color:var(--def);">Fit</span>'; }},
+      {label:'Blessure', get:p=>{ const i=findInjury(p.Speler,p.Team); return i ? `<span style="color:var(--danger-text,var(--danger));">${i.Status} (${i.Type})</span>` : '<span style="color:var(--def);">Fit</span>'; }},
     ]},
     {id:'speeltijd', label:'Speeltijd', rows:[
       {label:'Punten totaal', get:p=>{ const d=seasonDataForSeason(p,season); return d?d.Totaal:'—'; }},
@@ -9956,7 +9958,7 @@ function renderCompareModal(){
     ]},
     {id:'discipline', label:'Discipline & penalty\'s', rows:[
       {label:'Punten pen. gescoord', get:p=>{ const d=seasonDataForSeason(p,season); return d && d.PenM!=null?d.PenM:'n.b.'; }},
-      {label:'Punten pen. gemist', get:p=>{ const d=seasonDataForSeason(p,season); return d && d.PenMis!=null?`<span style="color:var(--danger);">${d.PenMis}</span>`:'n.b.'; }},
+      {label:'Punten pen. gemist', get:p=>{ const d=seasonDataForSeason(p,season); return d && d.PenMis!=null?`<span style="color:var(--danger-text,var(--danger));">${d.PenMis}</span>`:'n.b.'; }},
       {label:'Puntenverlies kaarten', get:p=>{ const d=seasonDataForSeason(p,season); return d && d.Kaarten!=null?`<span style="color:${d.Kaarten<0?'var(--danger)':'inherit'};">${d.Kaarten}</span>`:'—'; }},
     ]},
   ].filter(g=>!g.hidden);
@@ -9977,7 +9979,7 @@ function renderCompareModal(){
           <thead><tr><th></th>${players.map(p=>`<th style="cursor:pointer;" onclick="closeModal();openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">${p.Speler}</th>`).join('')}</tr></thead>
           <tbody>
             ${groups.filter(g=>activeFilters[g.id]!==false).map(g=>`
-              <tr><td colspan="${players.length+1}" style="background:var(--surface);font-family:'Inter';font-size:10.5px;color:var(--accent);text-transform:uppercase;letter-spacing:0.4px;padding:6px 8px;">${g.label}</td></tr>
+              <tr><td colspan="${players.length+1}" style="background:var(--surface);font-family:'Inter';font-size:10.5px;color:var(--accent-text,var(--accent));text-transform:uppercase;letter-spacing:0.4px;padding:6px 8px;">${g.label}</td></tr>
               ${g.rows.map(r=>`<tr><td style="color:var(--text-dim);">${r.label}</td>${players.map(p=>`<td>${r.get(p)}</td>`).join('')}</tr>`).join('')}
             `).join('')}
           </tbody>
@@ -10786,13 +10788,13 @@ function renderHallOfFameTab(){
       ${yr==='ALLE' ? Object.entries(HISTORIC_HIGHEST_ROUND).map(([season, recs])=>recs.map(r=>`
         <div class="picker-item" style="background:var(--surface);border-radius:10px;">
           <div><div class="pname">${season} — Ronde ${r.round}</div><div class="pclub">${r.team}</div></div>
-          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent);">${r.points} pnt</div>
+          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent-text,var(--accent));">${r.points} pnt</div>
         </div>
       `).join('')).join('')
       : (HISTORIC_HIGHEST_ROUND[yr] ? HISTORIC_HIGHEST_ROUND[yr].map(r=>`
         <div class="picker-item" style="background:var(--surface);border-radius:10px;">
           <div><div class="pname">Ronde ${r.round}</div><div class="pclub">${r.team}</div></div>
-          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent);">${r.points} pnt</div>
+          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent-text,var(--accent));">${r.points} pnt</div>
         </div>
       `).join('') : `<div class="news-note">Geen rondegegevens beschikbaar voor ${yr}.</div>`)
       }
@@ -10916,8 +10918,8 @@ function coachTransferSideCard(transfer){
     transferHtml = `<div class="side-card">
       <div class="side-kop">Wissel t.o.v. ronde ${transfer.prevRound}</div>
       ${transfer.uit.length || transfer.erin.length ? `
-        ${n>3 ? `<div class="side-sub" style="color:var(--danger);">${icon('warning',12)} ${n} spelers tegelijk gewisseld — meer dan het maximum (1, of 3 bij een periodewissel). Vermoedelijk een verschil tussen twee scrapes, geen echte transfer.</div>` : ''}
-        ${transfer.uit.length ? `<div class="side-row"><span style="color:var(--danger);">Eruit</span><b>${transfer.uit.map(s=>pitchSurname(s.naam)).join(', ')}</b></div>` : ''}
+        ${n>3 ? `<div class="side-sub" style="color:var(--danger-text,var(--danger));">${icon('warning',12)} ${n} spelers tegelijk gewisseld — meer dan het maximum (1, of 3 bij een periodewissel). Vermoedelijk een verschil tussen twee scrapes, geen echte transfer.</div>` : ''}
+        ${transfer.uit.length ? `<div class="side-row"><span style="color:var(--danger-text,var(--danger));">Eruit</span><b>${transfer.uit.map(s=>pitchSurname(s.naam)).join(', ')}</b></div>` : ''}
         ${transfer.erin.length ? `<div class="side-row"><span style="color:var(--def);">Erin</span><b>${transfer.erin.map(s=>pitchSurname(s.naam)).join(', ')}</b></div>` : ''}
       ` : `<div class="side-sub">Geen wissel — zelfde team aangehouden.</div>`}
       ${transfer.clubChanged && transfer.clubChanged.length ? `<div class="side-sub">${transfer.clubChanged.map(c=>`${c.naam}: in het echt ${c.van} → ${c.naar}`).join(' · ')}</div>` : ''}
@@ -11500,7 +11502,7 @@ function renderPlayerBadgeList(list){
   return list.map(x=>`
     <div class="picker-item" style="background:var(--surface);border-radius:8px;margin-bottom:6px;cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(x.p.Speler)}','${encodeURIComponent(x.p.Team)}')">
       <div><div class="pname">${teamLogo(x.p.Team)}${x.p.Speler}</div><div class="pclub">${POS_LABEL[x.p.Positie]} · ${x.p.Team} · ${fmtEuro(x.p.Prijs)}</div></div>
-      <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent);">${x.points} pnt</div>
+      <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent-text,var(--accent));">${x.points} pnt</div>
     </div>
   `).join('');
 }
@@ -11668,7 +11670,7 @@ function refTop5Card(titel, uitleg, lijst, waardeFn, eenheid){
         <span style="font-family:'Jost';color:var(--text-dim);width:16px;">${i+1}</span>
         <span style="flex:1;font-size:13px;">${p.naam}</span>
         <span style="font-family:'Inter';font-size:11px;color:var(--text-dim);white-space:nowrap;">${p.wedstrijden} w.</span>
-        <span style="font-family:'Inter';font-size:13px;color:var(--accent);min-width:42px;text-align:right;">${waardeFn(p)}${eenheid||''}</span>
+        <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));min-width:42px;text-align:right;">${waardeFn(p)}${eenheid||''}</span>
       </li>`).join('') || `<li style="color:var(--text-dim);font-size:13px;padding:8px 0;">Nog niet genoeg data.</li>`}
     </ol>
   </div>`;
@@ -11699,7 +11701,7 @@ function renderRefSeasonOverview(){
     const x = (va==null?-Infinity:va), y=(vb==null?-Infinity:vb);
     return sortDesc ? (y-x) : (x-y);
   });
-  const kop = (k,l)=>`<th style="cursor:pointer;white-space:nowrap;${sortKey===k?'color:var(--accent);':''}" onclick="setRefSortKey('${k}')">${l}${sortKey===k?(sortDesc?' ▾':' ▴'):''}</th>`;
+  const kop = (k,l)=>`<th style="cursor:pointer;white-space:nowrap;${sortKey===k?'color:var(--accent-text,var(--accent));':''}" onclick="setRefSortKey('${k}')">${l}${sortKey===k?(sortDesc?' ▾':' ▴'):''}</th>`;
   return `
     <div class="section-title"><span>Competitiegemiddelde per wedstrijd</span><span class="line"></span></div>
     <div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
@@ -11801,14 +11803,14 @@ function renderRefProfile(naam, inModal){
   return `
     ${inModal?'':`<button class="btn ghost" style="margin-bottom:12px;" onclick="setRefDetail(null)">${icon('back',13)} Terug naar het overzicht</button>`}
     <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;">
-      <div style="width:64px;height:64px;border-radius:50%;background:var(--surface-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Jost';font-size:24px;color:var(--accent);flex-shrink:0;">${refInitialen(naam)}</div>
+      <div style="width:64px;height:64px;border-radius:50%;background:var(--surface-2);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Jost';font-size:24px;color:var(--accent-text,var(--accent));flex-shrink:0;">${refInitialen(naam)}</div>
       <div style="flex:1;min-width:200px;">
         <div style="font-family:'Jost';font-size:22px;line-height:1.1;">${naam}</div>
         <div style="font-size:12.5px;color:var(--text-dim);margin:3px 0 7px;">Scheidsrechter · ${p.wedstrijden} wedstrijd${p.wedstrijden===1?'':'en'} · ${p.rondes.length?'ronde '+p.rondes.join(', '):''}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">${p.typering.map(t=>`<span title="${t.uitleg}" style="font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid ${t.kleur};color:${t.kleur};">${t.label}</span>`).join('')}</div>
       </div>
       <div style="display:flex;gap:18px;">
-        <div style="text-align:center;"><div style="font-family:'Jost';font-size:26px;color:var(--accent);">${refFmt(p.puntenPW,1)}</div><div style="font-size:11px;color:var(--text-dim);">pnt/wedstrijd</div></div>
+        <div style="text-align:center;"><div style="font-family:'Jost';font-size:26px;color:var(--accent-text,var(--accent));">${refFmt(p.puntenPW,1)}</div><div style="font-size:11px;color:var(--text-dim);">pnt/wedstrijd</div></div>
         <div style="text-align:center;"><div style="font-family:'Jost';font-size:26px;">${refFmt(p.punten,1)}</div><div style="font-size:11px;color:var(--text-dim);">pnt totaal</div></div>
       </div>
     </div>
@@ -11872,7 +11874,7 @@ function renderRefProfile(naam, inModal){
         <div class="label" style="margin-bottom:8px;">Vaker geboekt door ${naam.split(' ')[0]}</div>
         ${spelers.length ? spelers.map(([k,n])=>{ const [sp,cl]=k.split('|'); return `<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;padding:4px 0;">
           <span style="flex:1;">${sp} <span style="color:var(--text-dim);">${cl}</span></span>
-          <span style="font-family:'Inter';color:var(--accent);">${n}×</span></div>`; }).join('') : `<div style="font-size:12.5px;color:var(--text-dim);">${Object.keys(p.spelers).length ? 'Nog geen speler kreeg meer dan één kaart van hem ('+Object.keys(p.spelers).length+' verschillende spelers geboekt).' : 'Nog geen kaarten bekend.'}</div>`}
+          <span style="font-family:'Inter';color:var(--accent-text,var(--accent));">${n}×</span></div>`; }).join('') : `<div style="font-size:12.5px;color:var(--text-dim);">${Object.keys(p.spelers).length ? 'Nog geen speler kreeg meer dan één kaart van hem ('+Object.keys(p.spelers).length+' verschillende spelers geboekt).' : 'Nog geen kaarten bekend.'}</div>`}
       </div>
     </div>
     <div class="section-title"><span>Gefloten wedstrijden</span><span class="line"></span></div>
@@ -11886,7 +11888,7 @@ function renderRefProfile(naam, inModal){
         <td style="font-family:'Inter';">${x.rood}</td>
         <td style="font-family:'Inter';">${x.overtredingen==null?'onbekend':x.overtredingen}</td>
         <td style="font-family:'Inter';">${x.penaltys}</td>
-        <td style="font-family:'Inter';color:var(--accent);">${refFmt(x.punten,1)}</td>
+        <td style="font-family:'Inter';color:var(--accent-text,var(--accent));">${refFmt(x.punten,1)}</td>
       </tr>`; }).join('')}</tbody>
     </table></div>
     ${ontbrekend>0?`<div class="news-note" style="margin-top:10px;">Van ${ontbrekend} wedstrijd${ontbrekend===1?'':'en'} is niet bekend welk team welke kaart kreeg. Die tellen niet mee voor thuis/uit, de kaarttiming, de clubs en de spelers.</div>`:''}
@@ -11933,7 +11935,7 @@ function renderRefRoundOverview(round){
         <td style="font-family:'Inter';">${x.rood}</td>
         <td style="font-family:'Inter';">${x.overtredingen==null?'onbekend':x.overtredingen}</td>
         <td style="font-family:'Inter';">${x.penaltys}</td>
-        <td style="font-family:'Inter';color:var(--accent);">${refFmt(x.punten,1)}</td>
+        <td style="font-family:'Inter';color:var(--accent-text,var(--accent));">${refFmt(x.punten,1)}</td>
         <td style="font-family:'Inter';color:var(--text-dim);">${p?refFmt(p.puntenPW,1):'–'}</td>
       </tr>`; }).join('')}</tbody>
     </table></div>
@@ -12258,7 +12260,7 @@ function renderPerfectTeamTab(){
     <details class="uitleg"><summary>Hoe werkt dit?</summary><div>Het best haalbare team tot nu toe, achteraf berekend: bij elke ronde-overgang worden ALLE combinaties van wélke plekken je zou wisselen doorgerekend (niet blind "de zwakste plek"), en dat twee kanten op — van ronde 1 vooruit én van de laatste ronde terug — waarna het beste van de twee wordt getoond. Geen wiskundig bewezen absoluut optimum (dat zou alle mogelijke combinaties van 500+ spelers moeten doorrekenen, onhaalbaar), maar wel de sterkste haalbare benadering.</div></details>
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:11px;color:var(--text-dim);">Cumulatief maximaal haalbaar t/m ronde ${Math.max(...rondes)}</div>
-      <div style="font-family:'Jost';font-size:28px;font-weight:700;color:var(--accent);">${data.totaal} pnt</div>
+      <div style="font-family:'Jost';font-size:28px;font-weight:700;color:var(--accent-text,var(--accent));">${data.totaal} pnt</div>
       <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Berekend ${data.methode==='achteruit'?'van ronde ' + Math.max(...rondes) + ' terug naar ronde 1':'van ronde 1 vooruit naar ronde ' + Math.max(...rondes)} (beste van de twee) — vooruit gaf ${data.vooruitTotaal} pnt, achteruit gaf ${data.achteruitTotaal} pnt.</div>
     </div>
     ${!huidige ? '' : `
@@ -12273,7 +12275,7 @@ function renderPerfectTeamTab(){
       </div>
       <div style="flex:1;background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
         <div style="font-size:10px;color:var(--text-dim);">Cumulatief t/m nu</div>
-        <div style="font-family:'Inter';font-size:16px;font-weight:700;color:var(--accent);">${huidige.cumulatief} pnt</div>
+        <div style="font-family:'Inter';font-size:16px;font-weight:700;color:var(--accent-text,var(--accent));">${huidige.cumulatief} pnt</div>
       </div>
     </div>
     <div class="section-title"><span>Gemaakte wissels deze ronde</span><span class="line"></span></div>
@@ -12281,7 +12283,7 @@ function renderPerfectTeamTab(){
       huidige.wissels.map(w=>`
         <div class="picker-item" style="margin-bottom:6px;">
           <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${w.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(w.uit.Team)}${w.uit.Team} · ${w.gratis?'niet meer beschikbaar':w.uitPts+' pnt'}</div></div>
-          <span style="color:var(--accent);">→</span>
+          <span style="color:var(--accent-text,var(--accent));">→</span>
           <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${w.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(w.in.Team)}${w.in.Team} · ${w.inPts} pnt</div></div>
           ${w.gratis ? `<span style="font-family:'Inter';font-size:10px;background:rgba(47,191,143,0.15);color:var(--def);padding:3px 8px;border-radius:999px;flex-shrink:0;">gratis</span>` : ''}
         </div>
@@ -12395,7 +12397,7 @@ function renderPotentialTeamFixtureList(entry){
             <span style="font-size:13px;font-weight:700;">${teamLogo(g.home)}${g.home} <span style="color:var(--text-dim);font-weight:500;">vs</span> ${g.away}${teamLogo(g.away)}</span>
             <span style="text-align:right;">
               <div style="font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.4px;line-height:1.4;">Gok</div>
-              <div style="font-size:13px;color:var(--accent);font-weight:700;font-family:'Inter',monospace;line-height:1.1;">${scoreLabel}</div>
+              <div style="font-size:13px;color:var(--accent-text,var(--accent));font-weight:700;font-family:'Inter',monospace;line-height:1.1;">${scoreLabel}</div>
             </span>
           </div>
           ${score ? `<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;font-style:italic;">Geen voorspelling van de uitslag zelf — louter een indicatie o.b.v. seizoenscijfers: gemiddeld ${score.expHome} - ${score.expAway} doelpunten. Kan flink afwijken.</div>` : `<div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;">Nog te weinig seizoensdata voor een indicatie</div>`}
@@ -12480,7 +12482,7 @@ function renderPotentialBestTeamTab(){
               <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Ronde ${histEntry.round} (${histEntry.formation})</th>
               <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Voorspeld</th>
               <th></th>
-              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Werkelijk</th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent-text,var(--accent));text-transform:uppercase;">Werkelijk</th>
             </tr></thead>
             <tbody>${renderPotentialCompareRow('Totaal punten (basis-11)', histEntry.estTotal, histEntry.actualTotal)}</tbody>
           </table>
@@ -12504,7 +12506,7 @@ function renderPotentialBestTeamTab(){
               <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Speler</th>
               <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;">Voorspeld</th>
               <th></th>
-              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Werkelijk</th>
+              <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent-text,var(--accent));text-transform:uppercase;">Werkelijk</th>
             </tr></thead>
             <tbody>
               ${histEntry.players.map(x=>{
@@ -12555,7 +12557,7 @@ function renderWeekTab(){
       <div class="side-card">
         <div class="side-kop">${fSel?`Deze opstelling (${fSel})`:`Hoogste opstelling (${tow.formation})`}</div>
         <div class="side-row"><span>Kosten</span><b>€${tow.cost.toFixed(2).replace('.',',')}M <small style="font-weight:400;color:var(--text-dim);">/ ${BUDGET_CAP}M</small></b></div>
-        ${fSel && fSel!==towBest.formation ? `<div class="side-row"><span>Verschil met hoogste</span><b style="color:var(--danger);">−${fmtP(towBest.total-tow.total)} pnt</b></div>` : `<div class="side-sub">Dit is de best scorende formatie van deze ronde.</div>`}
+        ${fSel && fSel!==towBest.formation ? `<div class="side-row"><span>Verschil met hoogste</span><b style="color:var(--danger-text,var(--danger));">−${fmtP(towBest.total-tow.total)} pnt</b></div>` : `<div class="side-sub">Dit is de best scorende formatie van deze ronde.</div>`}
       </div>
 `)}
     `;
@@ -12611,7 +12613,7 @@ function renderWeekTab(){
           const mijn = isCouch && r.coach===state.followedCoach;
           return `<tr class="${mijn?'rank-mine':''}" onclick="openWeekCoachSquad(${round},${isCouch},'${r.coach.replace(/'/g,"\\'")}')">
             <td class="rank-n">${r.coach==='__PERFECTTEAM__'?'★':i+(rows.slice(0,i).some(x=>x.coach==='__PERFECTTEAM__')?0:1)}</td><td><b>${r.coach==='__PERFECTTEAM__'?'<i>Perfect team</i>':r.coach}</b></td><td style="color:var(--text-dim);">${r.coach==='__PERFECTTEAM__'?'referentie':r.team}</td>
-            <td style="text-align:right;color:var(--accent);font-weight:600;">${r.total}</td>
+            <td style="text-align:right;color:var(--accent-text,var(--accent));font-weight:600;">${r.total}</td>
             <td>${r.pctOfPerfect!=null?`<div class="rank-bar"><span style="width:${Math.min(100,r.pctOfPerfect)}%"></span><em>${r.pctOfPerfect}%</em></div>`:'–'}</td></tr>`;}).join('')}</tbody>
       </table></div>
       <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Klik op een rij om het team van die ronde te zien.</div>
@@ -12635,7 +12637,7 @@ function renderWeekTab(){
       <thead><tr><th>#</th><th>Coach</th><th>Team</th><th>Plaats</th><th style="text-align:right;">Ronde ${round}</th><th style="text-align:right;">Gem./ronde</th><th style="text-align:right;">Totaal</th></tr></thead>
       <tbody>${standings.slice().sort((a,b)=> algemeenSort==='gemiddelde' ? (b.totaal/round)-(a.totaal/round) : b.totaal-a.totaal).map((r,i)=>`<tr onclick="openAlgemeenSquad(${round},'${r.coach.replace(/'/g,"\\'")}','${r.team.replace(/'/g,"\\'")}')">
         <td class="rank-n">${i+1}</td><td><b>${r.coach}</b></td><td style="color:var(--text-dim);">${r.team}</td><td style="color:var(--text-dim);">${r.plaats&&r.plaats!=='None'?r.plaats:''}</td>
-        <td style="text-align:right;">${r.ronde}</td><td style="text-align:right;">${(r.totaal/round).toFixed(1).replace('.',',')}</td><td style="text-align:right;color:var(--accent);font-weight:600;">${r.totaal}</td></tr>`).join('')}</tbody>
+        <td style="text-align:right;">${r.ronde}</td><td style="text-align:right;">${(r.totaal/round).toFixed(1).replace('.',',')}</td><td style="text-align:right;color:var(--accent-text,var(--accent));font-weight:600;">${r.totaal}</td></tr>`).join('')}</tbody>
     </table></div>
     <div style="font-size:12px;color:var(--text-dim);margin-top:8px;">Landelijke top 20. Klik op een rij om het team van die ronde te zien.</div>
     `;
@@ -12670,7 +12672,7 @@ function renderScoutingWatchlist(){
   }).filter(Boolean);
   return `
     <div class="section-title" style="margin-top:0;"><span>${icon('bookmark',16)} Scouting-lijst</span><span class="line"></span></div>
-    ${players.length===0 ? `<div class="news-note">Nog geen spelers gemarkeerd. Ga naar <a href="#" onclick="setTab('scout');return false;" style="color:var(--accent);">Scout</a> en klik op het bladwijzer-icoontje op een tegel om 'm hier te laten terugkomen — handig om spelers in de gaten te houden zonder ze meteen aan je team toe te voegen.</div>` : `
+    ${players.length===0 ? `<div class="news-note">Nog geen spelers gemarkeerd. Ga naar <a href="#" onclick="setTab('scout');return false;" style="color:var(--accent-text,var(--accent));">Scout</a> en klik op het bladwijzer-icoontje op een tegel om 'm hier te laten terugkomen — handig om spelers in de gaten te houden zonder ze meteen aan je team toe te voegen.</div>` : `
     <div style="display:flex;flex-direction:column;gap:8px;">
       ${players.map(p=>{
         const inSquad = Object.values(state.squad).some(sp=>sp && sp.Speler===p.Speler && sp.Team===p.Team);
@@ -12704,7 +12706,7 @@ function renderHeadToHead(){
     </div>
     ${fixtures.length===0 ? (()=>{
       const next = nextFixtureForType(compId);
-      return `<div class="news-note">Geen aankomende ${compLabel}-wedstrijden gevonden.${next?` De eerstvolgende is op <a href="#" onclick="goToCalendarForDate('${next.date}');return false;" style="color:var(--accent);">${fmtDate(next.date)}</a> — klik om die dag in de kalender te bekijken.`:''}</div>`;
+      return `<div class="news-note">Geen aankomende ${compLabel}-wedstrijden gevonden.${next?` De eerstvolgende is op <a href="#" onclick="goToCalendarForDate('${next.date}');return false;" style="color:var(--accent-text,var(--accent));">${fmtDate(next.date)}</a> — klik om die dag in de kalender te bekijken.`:''}</div>`;
     })() : `
     <div class="h2h-list">
       ${fixtures.map(m=>{
@@ -12735,7 +12737,7 @@ function renderMijnInternationals(){
     .filter(x=>(x.il && (x.il.caps||x.il.ss||x.il.jsc)) || x.ii)
     .sort((x,y)=>((y.il&&y.il.sc)||0)-((x.il&&x.il.sc)||0) || ((y.il&&y.il.caps)||0)-((x.il&&x.il.caps)||0));
   const tekst = ({ii,il})=>{
-    if(il && (il.caps||il.ss)) return `${il.hoofd.t} · ${il.caps} totaal · <span style="${il.sc?'color:var(--accent);font-weight:600;':'color:var(--text-dim);'}">${ilSeizoenTekst(il)}</span>`;
+    if(il && (il.caps||il.ss)) return `${il.hoofd.t} · ${il.caps} totaal · <span style="${il.sc?'color:var(--accent-text,var(--accent));font-weight:600;':'color:var(--text-dim);'}">${ilSeizoenTekst(il)}</span>`;
     if(il && il.jsc) return il.js.filter(x=>x.sc).map(x=>`${x.t} · ${x.sc} dit seizoen`).join(', ');
     return ii.A ? `${ii.A.land} · ${ii.A.caps} interlands` : (ii.J||[]).map(j=>j.land+(j.actueel?' (actueel)':'')).join(', ');
   };
@@ -12815,7 +12817,7 @@ function renderBenchToBasisPickerModal(){
         ${basisOpties.map(o=>`
           <div class="picker-item" style="cursor:pointer;margin-bottom:6px;" onclick="chooseBenchToBasisTarget('${m.slotId}','${o.id}')">
             <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${o.speler.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(o.speler.Team)}${o.speler.Team} · vorm ${computePlayerForm(o.speler)}</div></div>
-            <span style="color:var(--accent);">→ bank</span>
+            <span style="color:var(--accent-text,var(--accent));">→ bank</span>
           </div>
         `).join('')}
       </div>
@@ -12862,7 +12864,7 @@ function renderEmptySlotActionsModal(){
   const suggesties = computeFillSuggestionsForSlot(slotId);
   return `<div class="overlay" onclick="if(event.target===this) closeModal()">
     <div class="box" style="max-width:420px;">
-      <div class="head"><h4 style="color:${color}">${def.label} invullen</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
+      <div class="head"><h4 style="color:${posTxt(color)}">${def.label} invullen</h4><button class="close" onclick="closeModal()">${icon('x',13)}</button></div>
       <div class="body-scroll">
         ${suggesties.length ? `
         <div class="section-title"><span>Wisselsuggesties</span><span class="line"></span></div>
@@ -13095,11 +13097,11 @@ function renderBudgetOptimizerModal(){
           <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:8px;flex-direction:column;align-items:stretch;gap:8px;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-family:'Inter';font-size:10px;color:var(--text-dim);">${u.label}</span>
-              <span style="font-family:'Inter';font-size:11px;color:var(--accent);">+${u.winst.toFixed(1)} pnt/ronde · +${fmtEuro(u.kostendelta)}</span>
+              <span style="font-family:'Inter';font-size:11px;color:var(--accent-text,var(--accent));">+${u.winst.toFixed(1)} pnt/ronde · +${fmtEuro(u.kostendelta)}</span>
             </div>
             <div style="display:flex;align-items:center;gap:10px;">
               <div style="flex:1;"><div style="font-size:13px;text-decoration:line-through;color:var(--text-dim);">${u.uit.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(u.uit.Team)}${u.uit.Team} · vorm ${u.uitVorm} · ${fmtEuro(u.uit.Prijs)}</div></div>
-              <span style="color:var(--accent);">→</span>
+              <span style="color:var(--accent-text,var(--accent));">→</span>
               <div style="flex:1;"><div style="font-size:13px;font-weight:600;">${u.in.Speler}</div><div style="font-size:11px;color:var(--text-dim);">${teamLogo(u.in.Team)}${u.in.Team} · vorm ${u.inVorm} · ${fmtEuro(u.in.Prijs)}</div></div>
               <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="applySwapSuggestion('${u.slotId}','${encodeURIComponent(u.in.Speler)}','${encodeURIComponent(u.in.Team)}')">Toepassen</button>
             </div>
@@ -13360,7 +13362,7 @@ function renderTeamCompareStatsSection(mineEntries, oppEntries, round, oppLabel)
   const periodeLabel = scope==='totaal' ? `totaal t/m ronde ${round}` : `ronde ${round}`;
   const head = `<tr>
       <th style="text-align:left;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.05em;">Categorie</th>
-      <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent);text-transform:uppercase;">Jij</th>
+      <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--accent-text,var(--accent));text-transform:uppercase;">Jij</th>
       <th></th>
       <th style="text-align:center;padding:4px 6px;font-size:10px;color:var(--text-dim);text-transform:uppercase;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${kortLabel}</th>
     </tr>`;
@@ -13488,7 +13490,7 @@ function renderInjuryCheckModal(){
             ${pr.kandidaten.length===0 ? `<div style="font-size:12px;color:var(--text-dim);">Geen betaalbare vervanger gevonden binnen budget/clublimiet — pas eventueel handmatig aan.</div>` : pr.kandidaten.map(k=>`
               <div style="display:flex;align-items:center;gap:10px;">
                 <div style="flex:1;">
-                  <div style="font-size:13px;font-weight:600;">${teamLogo(k.p.Team)}${k.p.Speler}${k.p.Team===pr.speler.Team?` <span style="font-size:10px;color:var(--accent);">(clubgenoot)</span>`:''}</div>
+                  <div style="font-size:13px;font-weight:600;">${teamLogo(k.p.Team)}${k.p.Speler}${k.p.Team===pr.speler.Team?` <span style="font-size:10px;color:var(--accent-text,var(--accent));">(clubgenoot)</span>`:''}</div>
                   <div style="font-size:11px;color:var(--text-dim);">${k.p.Team} · ${fmtEuro(k.p.Prijs)} · vorm ${k.vorm}${k.minuten!=null?` · gem. ${k.minuten}' laatste 3 rondes${k.minuten>=60?' (basisspeler)':' (wisselvallige speeltijd)'}` : ' · nog geen speeltijddata'}</div>
                 </div>
                 <button class="btn primary" style="padding:7px 12px;font-size:11px;" onclick="applySwapSuggestion('${pr.slotId}','${encodeURIComponent(k.p.Speler)}','${encodeURIComponent(k.p.Team)}')">Toepassen</button>
@@ -13750,7 +13752,7 @@ function renderWeekPlanView(){
       <div class="picker-item" style="background:var(--surface);border-radius:10px;margin-bottom:10px;flex-direction:column;align-items:stretch;gap:8px;${i===0?'box-shadow:inset 0 0 0 1px var(--accent);':''}">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-family:'Jost';font-weight:600;font-size:13px;">Optie ${i+1}${i===0?' ⭐':''}${plan.formatieWissel?` · ${plan.formatieWissel}`:''}</span>
-          <span style="font-family:'Inter';font-size:12px;color:var(--accent);">eindteam-waarde ${plan.eindteamWaarde}</span>
+          <span style="font-family:'Inter';font-size:12px;color:var(--accent-text,var(--accent));">eindteam-waarde ${plan.eindteamWaarde}</span>
         </div>
         <div style="font-size:10.5px;color:var(--text-dim);">+${plan.totaalWinstPerRonde} pnt/ronde onderweg · ~${plan.totaalOverAlleWeken} pnt totaal over ${instellingen.weken} weken</div>
         ${plan.voorkeursreden ? `<div style="font-size:10.5px;color:var(--text-dim);font-style:italic;border-left:2px solid var(--accent);padding-left:8px;">${plan.voorkeursreden}</div>` : ''}
@@ -13764,7 +13766,7 @@ function renderWeekPlanView(){
               <div style="cursor:pointer;margin-bottom:4px;" onclick="toggleWeekWisselDetail('${detailKey}')">
                 <div style="display:flex;align-items:center;gap:8px;">
                   <div style="flex:1;font-size:12px;text-decoration:line-through;color:var(--text-dim);">${w.uit.Speler}</div>
-                  <span style="color:var(--accent);">→</span>
+                  <span style="color:var(--accent-text,var(--accent));">→</span>
                   <div style="flex:1;font-size:12px;font-weight:600;">${w.in.Speler}</div>
                   <span style="font-family:'Inter';font-size:11px;color:var(--text-dim);">+${w.winst}</span>
                 </div>
@@ -14415,7 +14417,7 @@ function renderStatListModal(){
               ${r.club ? `<span style="width:22px;">${teamLogo(r.club)}</span>` : ''}
               <span style="flex:1;font-family:'Inter';font-size:13px;">${r.naam}${r.club?` <span style="color:var(--text-dim);font-size:11px;">(${r.club})</span>`:''}</span>
               ${r.sub ? `<span style="font-family:'Inter';font-size:11px;color:var(--text-dim);white-space:nowrap;">${r.sub}</span>` : ''}
-              <span style="font-family:'Inter';font-size:13px;color:var(--accent);">${r.val}${unit||''}</span>
+              <span style="font-family:'Inter';font-size:13px;color:var(--accent-text,var(--accent));">${r.val}${unit||''}</span>
             </li>
           `).join('')}
         </ol>
@@ -14835,7 +14837,7 @@ function renderOverigeStatCategorie(sheet){
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:13px;font-weight:600;">${i<3?icon('medal',13)+' ':''}${teamLogo(r.club)}${r.naam} <span style="color:var(--text-dim);font-weight:400;font-size:11px;">(${r.club})</span>${inTeam?` <span style="background:var(--myteam);color:var(--on-accent);font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;">IN JOUW TEAM</span>`:''}</div>
             <div style="text-align:right;">
-              <div style="font-family:'Inter';font-size:12px;color:var(--accent);">${r[cfg.metric]}/${clubTotaal} ${cfg.metricLabel} <span style="color:var(--text-dim);">(${aandeel}% v/d club)</span></div>
+              <div style="font-family:'Inter';font-size:12px;color:var(--accent-text,var(--accent));">${r[cfg.metric]}/${clubTotaal} ${cfg.metricLabel} <span style="color:var(--text-dim);">(${aandeel}% v/d club)</span></div>
               <div style="font-family:'Inter';font-size:10px;color:var(--text-dim);">${punten} CVHJ-pnt</div>
             </div>
           </div>
@@ -14843,7 +14845,7 @@ function renderOverigeStatCategorie(sheet){
             Wedstrijden: <b>${r['Wedstrijden']}</b>${(cfg.extra||[]).map(veld=>` · ${veld}: <b>${r[veld]}</b>`).join('')}
             <br>Dat is <b>${r[cfg.metric]} van de ${clubTotaal}</b> ${cfg.metricLabel} van ${r.club} ${periode} (<b>${aandeel}%</b>).
             <br>${rnd?`In ronde ${rnd}`:'Dit seizoen (2026/27)'} leverde ${r.naam} <b>${punten} CVHJ-punten</b> op.
-            <br><span style="color:var(--accent);cursor:pointer;" onclick="event.stopPropagation();closeModal();openPlayerModal('${encodeURIComponent(r.naam)}','${encodeURIComponent(r.club)}')">Bekijk volledig spelersprofiel →</span>
+            <br><span style="color:var(--accent-text,var(--accent));cursor:pointer;" onclick="event.stopPropagation();closeModal();openPlayerModal('${encodeURIComponent(r.naam)}','${encodeURIComponent(r.club)}')">Bekijk volledig spelersprofiel →</span>
           </div>` : ''}
         </div>
       `;}).join('')}
@@ -14858,7 +14860,7 @@ function renderOverigeStatCategorie(sheet){
         <div class="picker-item" style="background:var(--surface);border-radius:10px;flex-direction:column;align-items:stretch;gap:6px;cursor:pointer;${open?'box-shadow:inset 0 0 0 1px var(--accent);':''}" onclick="toggleOverigDetail('${clubKey.replace(/'/g,"\\'")}')">
           <div style="display:flex;justify-content:space-between;align-items:center;">
             <div style="font-size:13px;font-weight:600;">${teamLogo(c.club)}${c.club}</div>
-            <div style="font-family:'Inter';font-size:12px;color:var(--accent);">${c.totaal} ${cfg.metricLabel} · ${c.spelers} spelers</div>
+            <div style="font-family:'Inter';font-size:12px;color:var(--accent-text,var(--accent));">${c.totaal} ${cfg.metricLabel} · ${c.spelers} spelers</div>
           </div>
           ${open ? `<div style="font-size:12px;color:var(--text-dim);line-height:1.6;border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:5px;">
             ${spelersVanClub.map(r=>{
@@ -14936,7 +14938,7 @@ function renderPenaltyCategorie(){
               ${weergave==='club' ? teamLogo(item.club)+item.club : weergave==='scheidsrechter' ? item.scheidsrechter : `${teamLogo(item.club)}${item.naam} <span style="color:var(--text-dim);font-weight:400;font-size:11px;">(${item.club})</span>`}${inTeam?` <span style="background:var(--myteam);color:var(--on-accent);font-size:9px;font-weight:800;padding:2px 6px;border-radius:999px;">IN JOUW TEAM</span>`:''}
             </div>
             <div style="text-align:right;">
-              <div style="font-family:'Inter';font-size:12px;color:var(--accent);">
+              <div style="font-family:'Inter';font-size:12px;color:var(--accent-text,var(--accent));">
                 ${weergave==='genomen' ? `${item.scored}/${item.taken} geraakt (${item.conversie}%) <span style="color:var(--text-dim);">(${item.aandeelClub}% v/d club)</span>` :
                   weergave==='club' ? `${item.scored}/${item.taken} geraakt (${item.conversie}%) · ${item.aantalNemers} nemers` :
                   `${item.gescoord}/${item.toegekend} geraakt (${item.toegekend?Math.round((item.gescoord/item.toegekend)*1000)/10:0}%)`}
@@ -14949,7 +14951,7 @@ function renderPenaltyCategorie(){
               weergave==='scheidsrechter' ? `${item.scheidsrechter} kende dit seizoen <b>${item.toegekend}</b> penalty's toe (${item.gescoord} gescoord, ${item.gemist} gemist).` :
               `<b>${item.naam}</b> (${item.club}) nam <b>${item.taken}</b> penalty's dit seizoen: ${item.scored} gescoord, ${item.missed} gemist — conversie <b>${item.conversie}%</b>. Dat is <b>${item.aandeelClub}%</b> van alle penalty's van ${item.club}.
                 <br>Dit seizoen (2026/27) leverde ${item.naam} in totaal <b>${playerSeasonPoints2627(item.naam, item.club)} CVHJ-punten</b> op.
-                <br><span style="color:var(--accent);cursor:pointer;" onclick="event.stopPropagation();closeModal();openPlayerModal('${encodeURIComponent(item.naam)}','${encodeURIComponent(item.club)}')">Bekijk volledig spelersprofiel →</span>`}
+                <br><span style="color:var(--accent-text,var(--accent));cursor:pointer;" onclick="event.stopPropagation();closeModal();openPlayerModal('${encodeURIComponent(item.naam)}','${encodeURIComponent(item.club)}')">Bekijk volledig spelersprofiel →</span>`}
           </div>` : ''}
         </div>
       `;}).join('')}
@@ -15289,7 +15291,7 @@ function removeFromSlot(slotId){
   // sowieso nog wisseltegoed is — anders zou je een plek leeg kunnen maken zonder 'm ooit weer te
   // kunnen aanvullen deze ronde.
   if(state.mode==='real' && seasonStarted() && wisselsRemaining()<=0){
-    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.<br><br>Nog geen wissel bewust gedaan deze ronde? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — die kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het echt niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent);text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
+    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.<br><br>Nog geen wissel bewust gedaan deze ronde? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — die kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het echt niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return;
   }
   delete state.squad[slotId]; saveSquad(); render();
