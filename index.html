@@ -4487,7 +4487,9 @@ function renderFantasySquadPitch(perPlayer, round, pitchVariant, label, sideHtml
   window.__pitchSquadData = window.__pitchSquadData || {};
   window.__pitchSquadData[pitchId] = perPlayer;
   const basis = perPlayer.filter(x=>!x.reserve);
-  const reserve = perPlayer.filter(x=>x.reserve);
+  // Bank altijd in vaste volgorde keeper – verdediger – middenvelder – aanvaller, ongeacht de volgorde van de bron.
+  const BANKVOLGORDE = {Goalkeeper:0, Defender:1, Midfielder:2, Forward:3};
+  const reserve = perPlayer.filter(x=>x.reserve).sort((a,b)=>(BANKVOLGORDE[a.pos]??9)-(BANKVOLGORDE[b.pos]??9));
   const rows = [
     {pos:'Forward', defs: basis.filter(d=>d.pos==='Forward')},
     {pos:'Midfielder', defs: basis.filter(d=>d.pos==='Midfielder')},
