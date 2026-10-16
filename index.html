@@ -830,7 +830,7 @@
   .bench2 .pitch-chip.pc2{color:var(--text);position:relative;}
   .bench2 .pc-name{background:var(--surface-2);color:var(--text);}
   .bench2 .pc-av{width:44px;height:44px;}
-  .pc-pos{position:absolute;top:-6px;left:4px;z-index:3;font-family:'Jost';font-weight:600;font-size:9px;letter-spacing:.06em;color:var(--pc-on,#161616);padding:1px 5px;border-radius:999px;}
+  .pc-pos{position:relative;align-self:center;margin:0 0 4px;z-index:3;font-family:'Jost';font-weight:600;font-size:9px;letter-spacing:.06em;color:var(--pc-on,#161616);padding:1px 5px;border-radius:999px;}
   .pc-pts sup{font-size:8px;margin-left:1px;}
   @media (max-width:760px){ .bench2{max-width:calc(100% - 64px);} .bench2 .pc-av{width:38px;height:38px;} .bench2-head small{display:none;} }
 
@@ -883,9 +883,9 @@
   .wx-sub{font-family:'Jost';font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text,var(--accent));}
   .wx-meta{font-size:12px;color:var(--text-dim);margin-top:5px;}
   .wa-export .pitch.wx-pitch{max-width:none;width:100%;box-shadow:none;border:2px solid rgba(246,238,220,.35);}
-  .wa-export .bench2.wx-bench{max-width:none;margin:0;background:var(--surface-2);border-radius:0 0 16px 16px;}
+  .wa-export .bench2.wx-bench{max-width:none;margin:12px 0 0;background:var(--surface);border:2px solid rgba(246,238,220,.35);border-radius:16px;}
   .wa-export .pc-img{width:100%;height:100%;border-radius:50%;background-size:cover;background-position:center top;}
-  .wa-export .pc-av{box-shadow:0 0 0 2.5px var(--pc);}
+  .wa-export .pc-av{box-shadow:none;border:3px solid var(--pc);box-sizing:border-box;}
   .wa-export .pc-club{box-shadow:none;border:1px solid rgba(0,0,0,.15);}
   .wa-export .pc-pts{box-shadow:none;}
   .wa-export .pc-opp{text-shadow:none;}
