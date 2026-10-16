@@ -12821,6 +12821,42 @@ function renderRefRoundOverview(round){
     <div class="news-note" style="margin-top:10px;">Klik op een rij voor het profiel van de scheidsrechter. "Seizoen gem." = zijn punten per wedstrijd over het hele seizoen.</div>`;
 }
 // ==================== PERFECT TEAM (hindsight-optimale seizoensopbouw) ====================
+// Bewezen optimum, buiten het dashboard berekend met tools/perfect_team_ilp.py (ILP-solver, alle
+// spelregels: vrije formatie, 1 per club, €32 mln, 1 of 3 transfers per ronde, gratis wissels voor
+// inactieve spelers, bank 50% / invallen 100%). Wordt bij elke rondeupdate opnieuw berekend. Klopt
+// rondesTot niet met de beschikbare rondes, dan valt het dashboard terug op de oude benadering.
+const PERFECT_TEAM_OPTIMAAL = {"bijgewerkt":"2026-10-16","methode":"ILP (HiGHS), bewezen optimum","rondesTot":8,"totaal":742,"totaal343":730,"rondes":[{"ronde":1,"formatie":"3-4-3","squad":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Kaj Sierhuis|N.E.C.","Mateo Chávez|AZ","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Nick Viergever|PEC Zwolle","Rafik El Arguioui|SC Cambuur","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente","Ryan Flamingo|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Milan Zonneveld|Sparta Rotterdam","Rafik El Arguioui|SC Cambuur","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente"]},{"ronde":2,"formatie":"3-4-3","squad":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Kaj Sierhuis|N.E.C.","Mateo Chávez|AZ","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Nick Viergever|PEC Zwolle","Rafik El Arguioui|SC Cambuur","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente","Sergiño Dest|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Bernt Klaverboer|sc Heerenveen","Julian Brandt|Ajax","Milan Zonneveld|Sparta Rotterdam","Nick Viergever|PEC Zwolle"]},{"ronde":3,"formatie":"4-4-2","squad":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Nick Viergever|PEC Zwolle","Rafik El Arguioui|SC Cambuur","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente","Sergiño Dest|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Mohamed Ihattaren|Fortuna Sittard","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente","Thom van Bergen|FC Groningen"]},{"ronde":4,"formatie":"4-4-2","squad":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Rafik El Arguioui|SC Cambuur","Ronald Koeman|Telstar","Ruud Nijstad|FC Twente","Sergiño Dest|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Matisse Didden|FC Utrecht","Søren Tengstedt|Go Ahead Eagles"]},{"ronde":5,"formatie":"3-4-3","squad":["Bernt Klaverboer|sc Heerenveen","Gjivai Zechiël|Feyenoord","Ilyes Hamache|SC Cambuur","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Robin Pröpper|FC Twente","Ronald Koeman|Telstar","Sven Mijnans|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Bernt Klaverboer|sc Heerenveen","Ilyes Hamache|SC Cambuur","Julian Brandt|Ajax","Mateo Chávez|AZ"]},{"ronde":6,"formatie":"4-3-3","squad":["Bernt Klaverboer|sc Heerenveen","Givairo Read|Feyenoord","Ilyes Hamache|SC Cambuur","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Robin Pröpper|FC Twente","Ronald Koeman|Telstar","Sven Mijnans|PSV","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Bernt Klaverboer|sc Heerenveen","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Thom van Bergen|FC Groningen"]},{"ronde":7,"formatie":"4-3-3","squad":["Bernt Klaverboer|sc Heerenveen","Givairo Read|Feyenoord","Guus Til|PSV","Ilyes Hamache|SC Cambuur","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Robin Pröpper|FC Twente","Ronald Koeman|Telstar","Søren Tengstedt|Go Ahead Eagles","Thom van Bergen|FC Groningen"],"bank":["Irakli Yegoian|Excelsior","Matisse Didden|FC Utrecht","Ronald Koeman|Telstar","Søren Tengstedt|Go Ahead Eagles"]},{"ronde":8,"formatie":"5-3-2","squad":["Bernt Klaverboer|sc Heerenveen","Givairo Read|Feyenoord","Guus Til|PSV","Ilyes Hamache|SC Cambuur","Irakli Yegoian|Excelsior","Julian Brandt|Ajax","Marco Rente|FC Groningen","Mateo Chávez|AZ","Matisse Didden|FC Utrecht","Milan Zonneveld|Sparta Rotterdam","Mohamed Ihattaren|Fortuna Sittard","Perr Schuurs|N.E.C.","Robin Pröpper|FC Twente","Ronald Koeman|Telstar","Søren Tengstedt|Go Ahead Eagles"],"bank":["Bernt Klaverboer|sc Heerenveen","Ilyes Hamache|SC Cambuur","Julian Brandt|Ajax","Mateo Chávez|AZ"]}]};
+function perfectTeamUitOptimum(opt, rondes){
+  const byKey = {}; PLAYERS.forEach(p=>{ byKey[p.Speler+'|'+p.Team] = p; });
+  if(opt.rondes.some(g=>g.squad.some(k=>!byKey[k]))) return null;
+  const geschiedenis = []; let cumulatief = 0, vorige = null;
+  for(const g of opt.rondes){
+    const snap = SEASON_2627_SNAPSHOTS[g.ronde]||{}; const pr = snap.playerRoundPoints||{}, mn = snap.playerRoundMinutes||{};
+    const bank = new Set(g.bank);
+    const zekerNiet = k => (pr[k]||0)===0 && (k in mn) && mn[k]===0;
+    const squad = g.squad.map(k=>({p:byKey[k], key:k, pts:pr[k]??0, basis:!bank.has(k)}));
+    let rondeTotaal = 0;
+    ['Goalkeeper','Defender','Midfielder','Forward'].forEach(pos=>{
+      const lijn = squad.filter(x=>x.p.Positie===pos);
+      const invallen = lijn.some(x=>x.basis && zekerNiet(x.key));
+      lijn.forEach(x=>{ x.telt = x.basis ? x.pts : (invallen ? x.pts : Math.floor(x.pts*0.5)); x.invaller = !x.basis && invallen && x.pts!==0; rondeTotaal += x.telt; });
+    });
+    cumulatief += rondeTotaal;
+    const wissels = [];
+    if(vorige){
+      const nu = new Set(g.squad), toen = new Set(vorige);
+      const uit = vorige.filter(k=>!nu.has(k)).sort((a,b)=>(a in pr)-(b in pr)); // inactieve (gratis) eerst
+      const inn = g.squad.filter(k=>!toen.has(k));
+      for(let i=0;i<Math.max(uit.length,inn.length);i++){
+        const u = uit[i], n = inn[i];
+        wissels.push({uit:u?byKey[u]:{Speler:'—',Team:''}, uitPts:u?(pr[u]??0):0, in:n?byKey[n]:{Speler:'—',Team:''}, inPts:n?(pr[n]??0):0, gratis: !!u && !(u in pr)});
+      }
+    }
+    geschiedenis.push({ronde:g.ronde, formatie:g.formatie, toegestaan:windowAllowanceForRound(g.ronde), wissels, squad, rondeTotaal, cumulatief});
+    vorige = g.squad;
+  }
+  return {geschiedenis, totaal:cumulatief, methode:'optimum', optimum:opt};
+}
 // Berekent met terugwerkende kracht welke opeenvolging van teams het hoogst mogelijke totaal
 // had opgeleverd, gegeven de daadwerkelijke rondepunten EN de daadwerkelijke wissellimieten
 // per ronde (incl. periodewissel-bonusrondes). Puur gulzig: elke ronde worden de toegestane
@@ -12839,7 +12875,7 @@ function ensurePerfectTeamInjected(){
   data.geschiedenis.forEach(g=>{
     if(!CASTING_COUCH_TEAM_SQUADS[g.ronde]) return;
     CASTING_COUCH_TEAM_SQUADS[g.ronde]['__PERFECTTEAM__'] = {
-      team: 'Perfect Team', formatie: '3-4-3',
+      team: 'Perfect Team', formatie: g.formatie || '3-4-3',
       squad: g.squad.map(s=>({key: s.p.Speler+'|'+s.p.Team, naam: s.p.Speler, club: s.p.Team, pos: s.p.Positie, reserve: !s.basis})),
     };
   });
@@ -12849,6 +12885,10 @@ function computePerfectTeamHistory(){
   if(__perfectTeamCache) return __perfectTeamCache;
   const rondes = availableSnapshotRounds();
   if(!rondes.length) return null;
+  if(typeof PERFECT_TEAM_OPTIMAAL!=='undefined' && PERFECT_TEAM_OPTIMAAL && PERFECT_TEAM_OPTIMAAL.rondesTot===Math.max(...rondes) && PERFECT_TEAM_OPTIMAAL.rondes.length===rondes.length){
+    const res = perfectTeamUitOptimum(PERFECT_TEAM_OPTIMAAL, rondes);
+    if(res){ __perfectTeamCache = res; return res; }
+  }
   const FORMATIE = {Goalkeeper:1, Defender:3, Midfielder:4, Forward:3};
   const BANK = {Goalkeeper:1, Defender:1, Midfielder:1, Forward:1};
   const BUDGET = 32;
@@ -12915,7 +12955,7 @@ function computePerfectTeamHistory(){
         lijst.forEach((g,i)=>{
           const basis = i<FORMATIE[pos];
           rondeTotaal += basis ? g.pts : Math.floor(g.pts*0.5);
-          indeling.push({p:g.p, pts:g.pts, basis});
+          indeling.push({p:g.p, pts:g.pts, basis, telt: basis ? g.pts : Math.floor(g.pts*0.5)});
         });
       });
       cumulatief += rondeTotaal;
@@ -13118,6 +13158,7 @@ function computePerfectTeamHistory(){
   beste.methode = besteAchteruit.totaal > besteVooruit.totaal ? 'achteruit' : 'vooruit';
   beste.vooruitTotaal = besteVooruit.totaal;
   beste.achteruitTotaal = besteAchteruit.totaal;
+  beste.verouderd = typeof PERFECT_TEAM_OPTIMAAL!=='undefined' && !!PERFECT_TEAM_OPTIMAAL;
 
   __perfectTeamCache = beste;
   return __perfectTeamCache;
@@ -13136,16 +13177,20 @@ function renderPerfectTeamTab(){
         ${rondes.map(rr=>`<option value="${rr}" ${r===rr?'selected':''}>Ronde ${rr}</option>`).join('')}
       </select>
     </div>
-    <details class="uitleg"><summary>Hoe werkt dit?</summary><div>Het best haalbare team tot nu toe, achteraf berekend: bij elke ronde-overgang worden ALLE combinaties van wélke plekken je zou wisselen doorgerekend (niet blind "de zwakste plek"), en dat twee kanten op — van ronde 1 vooruit én van de laatste ronde terug — waarna het beste van de twee wordt getoond. Geen wiskundig bewezen absoluut optimum (dat zou alle mogelijke combinaties van 500+ spelers moeten doorrekenen, onhaalbaar), maar wel de sterkste haalbare benadering.</div></details>
+    <details class="uitleg"><summary>Hoe werkt dit?</summary><div>${data.methode==='optimum'
+      ? `Het best mogelijke seizoen tot nu toe, achteraf exact uitgerekend met een rekenmodel (ILP-solver) dat alle spelregels meeneemt: 15 spelers in een geldige formatie (die mag per ronde wisselen, zolang de selectie via transfers klopt), max. 1 speler per club, max. €32 mln, 1 transfer per ronde en 3 aan het begin van een periode, gratis wissels voor spelers die uit het spel verdwijnen, bankspelers voor de helft (naar beneden afgerond) en voor 100% als ze invallen voor een speler die niet speelde. Dit is een <b>bewezen maximum</b>: geen enkele reeks teams kon meer punten halen. Er kunnen wel andere teams bestaan met precies hetzelfde totaal.`
+      : `Benadering: bij elke ronde-overgang worden alle combinaties van wissels doorgerekend, vooruit én achteruit, en het beste van de twee wordt getoond. Dit is <b>geen</b> bewezen maximum${data.verouderd?' — het exacte optimum is nog niet herberekend voor de laatste ronde':''}.`}</div></details>
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;">
       <div style="font-size:11px;color:var(--text-dim);">Cumulatief maximaal haalbaar t/m ronde ${Math.max(...rondes)}</div>
       <div style="font-family:'Jost';font-size:28px;font-weight:700;color:var(--accent-text,var(--accent));">${data.totaal} pnt</div>
-      <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">Berekend ${data.methode==='achteruit'?'van ronde ' + Math.max(...rondes) + ' terug naar ronde 1':'van ronde 1 vooruit naar ronde ' + Math.max(...rondes)} (beste van de twee) — vooruit gaf ${data.vooruitTotaal} pnt, achteruit gaf ${data.achteruitTotaal} pnt.</div>
+      <div style="font-size:10px;color:var(--text-dim);margin-top:6px;">${data.methode==='optimum'
+        ? `Bewezen optimum (berekend ${data.optimum.bijgewerkt}). Met alleen 3-4-3 was het maximum ${data.optimum.totaal343} pnt.`
+        : `Benadering, berekend ${data.methode==='achteruit'?'van ronde ' + Math.max(...rondes) + ' terug naar ronde 1':'van ronde 1 vooruit naar ronde ' + Math.max(...rondes)} — vooruit ${data.vooruitTotaal} pnt, achteruit ${data.achteruitTotaal} pnt.`}</div>
     </div>
     ${!huidige ? '' : `
     <div style="display:flex;gap:10px;margin-bottom:14px;">
       <div style="flex:1;background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
-        <div style="font-size:10px;color:var(--text-dim);">Deze ronde</div>
+        <div style="font-size:10px;color:var(--text-dim);">Deze ronde${huidige.formatie?` · ${huidige.formatie}`:''}</div>
         <div style="font-family:'Inter';font-size:16px;font-weight:700;">${huidige.rondeTotaal} pnt</div>
       </div>
       <div style="flex:1;background:var(--surface);border-radius:10px;padding:10px;text-align:center;">
@@ -13168,7 +13213,7 @@ function renderPerfectTeamTab(){
         </div>
       `).join('')}
     <div class="section-title" style="margin-top:14px;"><span>Team deze ronde</span><span class="line"></span></div>
-    ${renderFantasySquadPitch(huidige.squad.map(g=>({speler:g.p.Speler, naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.basis?g.pts:Math.floor(g.pts*0.5), reserve:!g.basis})), huidige.ronde, 'blauw', 'Perfect Team')}
+    ${renderFantasySquadPitch(huidige.squad.map(g=>({speler:g.p.Speler, naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.telt, reserve:!g.basis})), huidige.ronde, 'blauw', 'Perfect Team'+(huidige.formatie?' · '+huidige.formatie:''))}
     <div class="section-title" style="margin-top:14px;"><span>Detailoverzicht per speler</span><span class="line"></span></div>
     <div class="summary-cards" style="margin-bottom:12px;">
       <div class="summary-card grad-gold"><div class="summary-card-icon">${icon('save',18)}</div><div class="label">Teamwaarde</div><div class="value">${fmtEuro(huidige.squad.reduce((s,g)=>s+g.p.Prijs,0))}</div></div>
@@ -13181,7 +13226,7 @@ function renderPerfectTeamTab(){
           <div style="cursor:pointer;padding:7px 8px;background:${g.basis?'var(--surface)':'transparent'};border-radius:6px;margin-bottom:2px;" onclick="openPlayerModal('${encodeURIComponent(g.p.Speler)}','${encodeURIComponent(g.p.Team)}')">
             <div style="display:flex;justify-content:space-between;align-items:center;">
               <span style="font-size:12px;${g.basis?'':'color:var(--text-dim);'}">${teamLogo(g.p.Team)}${g.p.Speler}${!g.basis?' (bank)':''}</span>
-              <span style="font-family:'Inter';font-size:12px;">${g.basis?g.pts:Math.floor(g.pts*0.5)+' (½ van '+g.pts+', afgerond naar beneden)'} pnt</span>
+              <span style="font-family:'Inter';font-size:12px;">${g.basis?g.pts:g.invaller?g.telt+' (ingevallen, 100%)':g.telt+' (½ van '+g.pts+', afgerond naar beneden)'} pnt</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
               <span style="font-size:10px;color:var(--text-dim);">${g.p.Team} · ${fmtEuro(g.p.Prijs)}</span>
@@ -14070,7 +14115,7 @@ function computeTeamCompareOpponent(){
   const useRound = rondes.includes(round) ? round : rondes[rondes.length-1];
   const huidige = data.geschiedenis.find(g=>g.ronde===useRound);
   if(!huidige) return null;
-  const perPlayer = huidige.squad.map(g=>({naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.basis?g.pts:Math.floor(g.pts*0.5), reserve:!g.basis}));
+  const perPlayer = huidige.squad.map(g=>({naam:g.p.Speler, club:g.p.Team, pos:g.p.Positie, points:g.telt, reserve:!g.basis}));
   return { label: `Perfect Team t/m ronde ${useRound} (${huidige.cumulatief} pnt cumulatief)`, round: useRound, perPlayer };
 }
 function renderTeamOverlapSection(opponentPerPlayer){
