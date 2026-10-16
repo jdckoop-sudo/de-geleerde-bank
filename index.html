@@ -16151,17 +16151,16 @@ function cardsIconHtml(p, size){
   if(!raw) return '';
   const yellow = raw.yellow||0, red = raw.red||0;
   if(!yellow && !red) return '';
-  const sz = size||13, w = Math.round(sz*0.72), MAX = 6;
-  let shown = 0, chips = '';
-  for(let i=0; i<yellow && shown<MAX; i++, shown++){
-    chips += `<span style="display:inline-block;width:${w}px;height:${sz}px;background:#E8C547;border-radius:1px;margin-right:1px;"></span>`;
-  }
-  for(let i=0; i<red && shown<MAX; i++, shown++){
-    chips += `<span style="display:inline-block;width:${w}px;height:${sz}px;background:#D2122E;border-radius:1px;margin-right:1px;"></span>`;
-  }
-  const overflow = (yellow+red) - shown;
+  // Per kleur maximaal 3 kaartjes, schuin over elkaar heen gestapeld; het exacte aantal staat in de mouse-over.
+  const sz = size||13, w = Math.round(sz*0.72), stap = Math.max(3, Math.round(w*0.45));
+  const stapel = (n, kleur) => {
+    const k = Math.min(n, 3); if(!k) return '';
+    let h = '';
+    for(let i=0;i<k;i++) h += `<span style="position:absolute;left:${i*stap}px;top:${(k-1-i)*1}px;width:${w}px;height:${sz-2}px;background:${kleur};border-radius:1.5px;box-shadow:-1px 0 0 rgba(0,0,0,.55);transform:rotate(${(i-(k-1)/2)*6}deg);"></span>`;
+    return `<span style="position:relative;display:inline-block;width:${w+(k-1)*stap+1}px;height:${sz}px;">${h}</span>`;
+  };
   const tooltip = `${yellow} gele kaart${yellow===1?'':'en'} · ${red} rode kaart${red===1?'':'en'} dit seizoen`;
-  return `<span class="icon-wrap" style="display:inline-flex;align-items:center;cursor:help;" data-tip="${tooltip.replace(/"/g,'&quot;')}">${chips}${overflow>0?`<span style="font-size:9px;color:var(--text-dim);">+${overflow}</span>`:''}</span>`;
+  return `<span class="icon-wrap" style="display:inline-flex;align-items:center;gap:3px;cursor:help;width:auto;" data-tip="${tooltip.replace(/"/g,'&quot;')}">${stapel(yellow,'#E8C547')}${stapel(red,'#D2122E')}</span>`;
 }
 function openPlayerModal(nameEnc, teamEnc, fromSlot){
   state.modal={type:'player', name:decodeURIComponent(nameEnc), team:decodeURIComponent(teamEnc), fromSlot:fromSlot||null, season:null};
