@@ -822,13 +822,13 @@
 
   /* Bankstrook direct onder het veld */
   .bench2{max-width:460px;margin:-8px auto 22px;background:color-mix(in srgb, var(--text) 8%, var(--surface));border:1px solid var(--line);border-radius:0 0 16px 16px;padding:10px 10px 14px;}
-  .pitch-wrap + .bench2{margin-top:-20px;}
+  .pitch-wrap + .bench2{margin-top:12px;}
   .bench2-head{display:flex;align-items:baseline;gap:10px;margin:0 4px 10px;}
   .bench2-head span{font-family:'Jost';font-weight:600;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--text);}
   .bench2-head small{font-size:11px;color:var(--text-dim);}
   .bench2-row{display:flex;justify-content:space-evenly;gap:4px;}
   /* 16-10-2026: bank als dug-out — overkapping (kop), zijpalen, rugleuning en zitplank achter de spelers */
-  .bench2{--bav:44px;position:relative;border-left:6px solid var(--nav-bg);border-right:6px solid var(--nav-bg);padding-top:0;overflow:hidden;}
+  .bench2{--bav:44px;position:relative;border-radius:16px;border-left:6px solid var(--nav-bg);border-right:6px solid var(--nav-bg);padding-top:0;overflow:hidden;}
   .bench2-head{margin:0 -10px 12px;padding:9px 16px 8px;background:var(--nav-bg);border-bottom:4px solid rgba(0,0,0,.28);border-radius:0 0 22px 22px;}
   .bench2-head span{color:var(--nav-text);}
   .bench2-head small{color:var(--nav-text);opacity:.75;}
@@ -892,6 +892,10 @@
   /* Exportkaarten (team- en ranglijstafbeelding) */
   .wa-export{width:560px;padding:30px 28px 22px;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;box-sizing:border-box;}
   .wx-head{text-align:center;margin-bottom:18px;}
+  .bank-ico{display:inline-block;width:1.55em;height:1.05em;margin-left:.45em;vertical-align:-0.12em;color:var(--accent-text,var(--accent));}
+  .wx-title{display:flex;justify-content:center;align-items:center;}
+  .wx-title .bank-ico{width:34px;height:23px;flex:none;margin-left:6px;}
+  body.wa .nav2-title .bank-ico{color:var(--nav-text,var(--text));}
   .wx-title{font-family:'Jost';font-weight:600;font-size:22px;letter-spacing:.24em;text-transform:uppercase;color:var(--text);}
   .wx-rule{width:46px;height:2px;background:var(--accent);margin:10px auto;}
   .wx-sub{font-family:'Jost';font-weight:500;font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-text,var(--accent));}
@@ -4057,7 +4061,7 @@ function renderWAExportCard(key){
   const datum = new Date().toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
   return `<div id="export-card-inner" class="wa-export wa-${key} wa-${key.split('-')[0]}">
     <div class="wx-head">
-      <div class="wx-title">De Geleerde Bank</div>
+      <div class="wx-title"><span>De Geleerde Bank</span><svg class="bank-ico" width="34" height="23" viewBox="0 0 32 22" aria-hidden="true"><path d="M3 11 V7 Q16 -1 29 7 V11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="10.5" width="20" height="2.6" rx="1.2" fill="currentColor"/><rect x="5" y="15" width="22" height="3" rx="1.3" fill="currentColor"/><path d="M8 18 V21 M24 18 V21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div>
       <div class="wx-rule"></div>
       <div class="wx-sub">${label}</div>
       <div class="wx-meta">${state.formation} · €${squadTotalPrice().toFixed(2).replace('.',',')}M${rondeTot!=null?` · ${rondeTot} pnt in ronde ${laatste}`:''}</div>
@@ -10701,7 +10705,7 @@ function render(){
   const navBtn = (g, cls)=>`<button class="${cls} ${activeGroup===g.id?'active':''}" style="${activeGroup===g.id?`--nav-c:${g.color};`:''}" onclick="setTab('${g.tabs[0]}')">${icon(g.iconName,18)}<span>${g.label}</span>${(g.id==='team'||g.id==='blessures')&&nieuwsN?`<i class="nav-dot" title="${nieuwsN} melding${nieuwsN===1?'':'en'} over jouw spelers (laatste 7 dagen)">${nieuwsN}</i>`:''}</button>`;
   app.innerHTML = `
     <aside class="nav2">
-      <div class="nav2-brand"><div class="nav2-title">De Geleerde Bank</div><div class="nav2-rule"></div><div class="nav2-sub">Casting Couch · 2026/27</div></div>
+      <div class="nav2-brand"><div class="nav2-title">De Geleerde Bank<svg class="bank-ico" viewBox="0 0 32 22" aria-hidden="true"><path d="M3 11 V7 Q16 -1 29 7 V11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="10.5" width="20" height="2.6" rx="1.2" fill="currentColor"/><rect x="5" y="15" width="22" height="3" rx="1.3" fill="currentColor"/><path d="M8 18 V21 M24 18 V21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div><div class="nav2-rule"></div><div class="nav2-sub">Casting Couch · 2026/27</div></div>
       <nav class="nav2-list">${NAV_GROUPS.map(g=>navBtn(g,'nav2-btn')).join('')}</nav>
       <div class="nav2-foot">
         <button class="nav2-btn" onclick="openAppThemePicker()">${icon('navPalette',18)}<span>Thema</span></button>
