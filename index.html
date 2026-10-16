@@ -3480,10 +3480,14 @@ function renderTile(p){
   const iconen = statIconenHtml(p, 13);
   const ib = intBadge(p);
   const ph = playerPhoto(p.Speler);
-  const cel = (v,l)=>`<div class="t2-cel"><b>${v}</b><span>${l}</span></div>`;
+  const cel = (v,l,t)=>`<div class="t2-cel"${t?` title="${t}"`:''}><b>${v}</b><span>${l}</span></div>`;
+  const keeperNul = pl => { if(season!=='2026/27'){ const d=p.seasons[season]; return d && d.CleanSheet!=null ? Math.round(d.CleanSheet/(CLEANSHEET_PTS_PER.Goalkeeper||5)) : '–'; } const r = compute2627RawSeasonStats(pl, state.roundFrom||null, state.roundTo||null); return r && r.cleanSheets!=null ? r.cleanSheets : '–'; };
   const stats = data
     ? (data.Goals!=null
-        ? cel(data.Totaal,'PNT')+cel(data.Goals,'G')+cel(data.Assists,'A')+cel(data.Minuten,'MIN')
+        ? (p.Positie==='Goalkeeper'
+            // Keepers: doelpunten zijn zinloos, dus daar het aantal keer de nul gehouden.
+            ? cel(data.Totaal,'PNT')+cel(keeperNul(p),'NUL','Aantal keer de nul gehouden')+cel(data.Assists,'A')+cel(data.Minuten,'MIN')
+            : cel(data.Totaal,'PNT')+cel(data.Goals,'G')+cel(data.Assists,'A')+cel(data.Minuten,'MIN'))
         : cel(data.Totaal,'PNT')+cel(data.Gemiddelde,'GEM')+cel(data.Gespeeld,'RND')+cel(data.Minuten,'MIN'))
     : `<div class="t2-leeg">${season==='2026/27' ? 'Nog geen rondes gespeeld' : 'Geen data dit seizoen'}</div>`;
   return `<div class="tile t2${inTeam?' in-my-team':''}" style="--pc:${color};--pct:${posTxt(color)};" onclick="openPlayerModal('${enc(p.Speler)}','${enc(p.Team)}')">
