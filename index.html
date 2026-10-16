@@ -3481,12 +3481,14 @@ function renderTile(p){
   const ib = intBadge(p);
   const ph = playerPhoto(p.Speler);
   const cel = (v,l,t)=>`<div class="t2-cel"${t?` title="${t}"`:''}><b>${v}</b><span>${l}</span></div>`;
-  const keeperNul = pl => { if(season!=='2026/27'){ const d=p.seasons[season]; return d && d.CleanSheet!=null ? Math.round(d.CleanSheet/(CLEANSHEET_PTS_PER.Goalkeeper||5)) : '–'; } const r = compute2627RawSeasonStats(pl, state.roundFrom||null, state.roundTo||null); return r && r.cleanSheets!=null ? r.cleanSheets : '–'; };
+  // Punten voor de nul gehouden (keeper: 5 per keer), net als bij G/A de punten i.p.v. het aantal.
+  const keeperNul = pl => { const per = CLEANSHEET_PTS_PER.Goalkeeper||5; if(season!=='2026/27'){ const d=p.seasons[season]; return d && d.CleanSheet!=null ? {pnt:d.CleanSheet, n:Math.round(d.CleanSheet/per)} : null; } const r = compute2627RawSeasonStats(pl, state.roundFrom||null, state.roundTo||null); return r && r.cleanSheets!=null ? {pnt:r.cleanSheets*per, n:r.cleanSheets} : null; };
+  const nul = p.Positie==='Goalkeeper' ? keeperNul(p) : null;
   const stats = data
     ? (data.Goals!=null
         ? (p.Positie==='Goalkeeper'
             // Keepers: doelpunten zijn zinloos, dus daar het aantal keer de nul gehouden.
-            ? cel(data.Totaal,'PNT')+cel(keeperNul(p),'NUL','Aantal keer de nul gehouden')+cel(data.Assists,'A')+cel(data.Minuten,'MIN')
+            ? cel(data.Totaal,'PNT')+cel(nul?nul.pnt:'–','NUL',nul?`${nul.n}× de nul gehouden = ${nul.pnt} punten`:'')+cel(data.Assists,'A')+cel(data.Minuten,'MIN')
             : cel(data.Totaal,'PNT')+cel(data.Goals,'G')+cel(data.Assists,'A')+cel(data.Minuten,'MIN'))
         : cel(data.Totaal,'PNT')+cel(data.Gemiddelde,'GEM')+cel(data.Gespeeld,'RND')+cel(data.Minuten,'MIN'))
     : `<div class="t2-leeg">${season==='2026/27' ? 'Nog geen rondes gespeeld' : 'Geen data dit seizoen'}</div>`;
