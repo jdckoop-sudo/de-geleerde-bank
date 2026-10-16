@@ -2553,11 +2553,29 @@ function countdownString(){
   else text = `${mins}m ${secs}s`;
   return {round:info.round, text, hasTime:!!info.dateTime};
 }
+// Een ronde begint pas bij de eerste aftrap (niet om 00:00 op de speeldag): tot dat moment wissel je
+// nog voor die ronde (16-10-2026: om 09:30 telde ronde 9 als begonnen en kwamen wissels op ronde 10).
+let __rondeStartCache = null;
+function roundStartMoment(r){
+  if(!__rondeStartCache){
+    __rondeStartCache = {};
+    MATCHES.forEach(m=>{
+      if(m.type!=='Eredivisie') return;
+      const mm = /Ronde\s*(\d+)/i.exec(m.competitie||''); if(!mm) return;
+      const rr = m.cvhjRonde || parseInt(mm[1]);
+      if(m.cvhjRonde && m.cvhjRonde!==parseInt(mm[1])) return; // inhaalduel bepaalt de start niet
+      const dt = m.date + 'T' + (m.time || '00:00');
+      if(!__rondeStartCache[rr] || dt<__rondeStartCache[rr]) __rondeStartCache[rr] = dt;
+    });
+  }
+  const dt = __rondeStartCache[r] || (ROUND_START_DATES[r] ? ROUND_START_DATES[r]+'T00:00' : null);
+  return dt ? new Date(dt) : null; // lokale tijd (Nederland)
+}
 function currentRoundNumber(){
   if(!seasonStarted()) return 0;
-  const t = todayStr();
+  const now = new Date();
   let round = 1;
-  for(let r=1;r<=34;r++){ if(t>=ROUND_START_DATES[r]) round=r; else break; }
+  for(let r=2;r<=34;r++){ const st = roundStartMoment(r); if(st && now>=st) round=r; else break; }
   return round;
 }
 // ---- Wedstrijden zonder dekking: voor de eerstvolgende nog te spelen speelronde, welke
@@ -2635,7 +2653,7 @@ function trySpendWissel(slotId){
   const allowance = windowAllowanceForRound(r);
   const used = state.wisselsUsed[key] || 0;
   if(used >= allowance){
-    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.<br><br>Lijkt dit niet te kloppen (bijv. je hebt zelf nog niets gewisseld)? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — dat kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het écht niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
+    showInfo(`Je wisseltegoed voor speelronde ${r} is op (${used}/${allowance} gebruikt). Wissels zijn niet op te sparen naar de volgende ronde — dat staat letterlijk in de spelregels. Wil je toch vrij experimenteren? Gebruik Sandbox-modus.<br><br>Klopt dit niet (bijv. je hebt zelf nog niet zoveel gewisseld)? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return false;
   }
   state.wisselsUsed[key] = used + 1;
@@ -2773,6 +2791,14 @@ async function loadWissels(){
   try{
     const r = await storageGet('cvhj-wissels', false);
     if(r && r.value) state.wisselsUsed = JSON.parse(r.value);
+    // Herstel (16-10-2026): wissels die door de oude rondebepaling op een ronde ná de huidige wisselronde
+    // zijn geboekt (die ronde is nog niet open), horen bij de huidige wisselronde.
+    const wr = Math.min(34, currentRoundNumber()+1); let verplaatst = false;
+    Object.keys(state.wisselsUsed||{}).forEach(k=>{
+      const n = parseInt(k.slice(1));
+      if(k[0]==='r' && n>wr){ state.wisselsUsed['r'+wr] = (state.wisselsUsed['r'+wr]||0) + state.wisselsUsed[k]; delete state.wisselsUsed[k]; verplaatst = true; }
+    });
+    if(verplaatst) saveWissels();
   }catch(e){}
 }
 
@@ -15987,7 +16013,7 @@ function removeFromSlot(slotId){
   // sowieso nog wisseltegoed is — anders zou je een plek leeg kunnen maken zonder 'm ooit weer te
   // kunnen aanvullen deze ronde.
   if(state.mode==='real' && seasonStarted() && wisselsRemaining()<=0){
-    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.<br><br>Nog geen wissel bewust gedaan deze ronde? Check Bankie (rechtsonder) op een melding "Geplande wissel doorgevoerd" — die kan hem hebben verbruikt via een eerder ingeplande tijdmachine-wissel. Klopt het echt niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
+    showInfo(`Je wisseltegoed voor deze ronde is op. Leeg deze plek pas zodra je weer wisseltegoed hebt — anders kun je 'm niet meer aanvullen. Gebruik anders de kiezer (klik op de speler, "Vervangen") om in één stap direct te wisselen.<br><br>Klopt dit niet? <a href="#" onclick="closeDialog();resetRoundWissels();return false;" style="color:var(--accent-text,var(--accent));text-decoration:underline;">Herstel je wisseltegoed voor deze ronde</a>.`);
     return;
   }
   delete state.squad[slotId]; saveSquad(); render();
