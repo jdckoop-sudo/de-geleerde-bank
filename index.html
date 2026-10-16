@@ -189,6 +189,48 @@
   .tile .mini-stats span b{color:var(--text);}
   .new-badge{font-family:'Inter';font-size:10px;color:var(--accent-text,var(--accent));margin-top:8px;letter-spacing:0.5px;}
 
+  /* Spelerstegel (vernieuwd 16-10-2026): kleurband in positiekleur bovenaan, vaste opbouw
+     foto/meter → naam → club → badges → prijs → statistiekblokjes → voet met knoppen. */
+  .tile.t2{display:flex;flex-direction:column;padding:12px 12px 10px;overflow:visible;}
+  .t2-band{position:absolute;left:0;right:0;top:0;height:56px;background:linear-gradient(180deg, color-mix(in srgb, var(--pc) 30%, transparent), transparent);}
+  .t2-band::before{content:'';position:absolute;left:0;right:0;top:0;height:4px;background:var(--pc);}
+  .t2 > *:not(.tile-clip){position:relative;z-index:1;}
+  .t2-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin:2px 0 8px;}
+  .t2-photo{width:60px;height:64px;border-radius:12px;border:2px solid var(--pc);box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+  .t2-init{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Jost';font-weight:700;font-size:20px;color:var(--text);}
+  .t2-mijn{align-self:flex-start;display:inline-flex;align-items:center;gap:3px;margin-top:2px;background:var(--myteam);color:var(--on-accent);font-family:'Inter';font-size:9.5px;font-weight:800;letter-spacing:.3px;padding:3px 7px;border-radius:999px;white-space:nowrap;}
+  .t2 .gauge{flex-shrink:0;}
+  .t2 h3.t2-naam{font-size:16.5px;margin:0 0 3px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+  .t2 .t2-club{display:flex;align-items:center;gap:5px;margin:0 0 8px;font-size:12px;min-width:0;}
+  .t2 .t2-club > span:first-of-type{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .t2-nu{color:var(--text-dim);font-size:10px;}
+  .t2-oud{font-family:'Inter';font-size:10px;color:var(--text-dim);margin:-4px 0 8px;display:flex;align-items:center;gap:4px;}
+  .t2-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:8px;}
+  .t2-sort{font-family:'Inter';font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--pc);color:var(--text);}
+  .t2-sort b{font-weight:800;}
+  .t2-iconen{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;margin-bottom:8px;align-self:flex-start;background:var(--bg);border-radius:999px;padding:3px 7px;}
+  .t2-prijs{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid var(--line);}
+  .t2 .price{font-family:'Inter';font-size:16px;font-weight:800;letter-spacing:-.2px;}
+  .t2-sterren{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
+  .t2-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;}
+  .t2-cel{background:var(--bg);border-radius:8px;padding:5px 2px 4px;text-align:center;line-height:1.1;}
+  .t2-cel b{display:block;font-family:'Inter';font-size:14px;font-weight:800;color:var(--text);}
+  .t2-cel span{font-family:'Inter';font-size:8.5px;letter-spacing:.6px;color:var(--text-dim);}
+  .t2-leeg{grid-column:1/-1;font-family:'Inter';font-size:10.5px;color:var(--accent-text,var(--accent));padding:6px 0;}
+  .t2-voet{display:flex;align-items:center;justify-content:space-between;margin-top:8px;font-family:'Inter';font-size:10px;color:var(--text-dim);}
+  .t2-knoppen{display:inline-flex;gap:5px;}
+  .compare-toggle.t2-knop{position:static;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;padding:0;}
+  .tile.t2.in-my-team{border:2px solid var(--myteam);box-shadow:0 0 0 3px color-mix(in srgb, var(--myteam) 22%, transparent);}
+  @media (max-width:760px){
+    .t2-photo{width:50px;height:54px;}
+    .t2 .gauge{transform:scale(.85);transform-origin:top right;}
+    .t2-mijn{font-size:0;padding:4px;gap:0;}
+    .t2 h3.t2-naam{font-size:14.5px;}
+    .t2 .price{font-size:14px;}
+    .t2-cel b{font-size:12.5px;}
+    .t2-voet > span:first-child{display:none;} .t2-voet{justify-content:flex-end;}
+  }
+
   .section-title{font-family:'Jost';text-transform:uppercase;letter-spacing:0.8px;font-size:13px;color:var(--text-dim);margin:26px 0 10px;display:flex;align-items:center;gap:10px;}
   .section-title .line{flex:1;height:1px;background:var(--line);}
 
@@ -3424,32 +3466,43 @@ function renderTile(p){
   const color = POS_COLOR[p.Positie];
   const season = state.scoutSeason;
   // '2026/27' staat nooit in p.seasons (dat statische veld wordt pas ná afloop van het seizoen
-  // gevuld) — voor het lopende seizoen moet dit uit de live SEASON_2627_SNAPSHOTS-rondedata komen,
-  // zelfde bron als latestSeasonData()/_strength elders in de app.
+  // gevuld) — voor het lopende seizoen komt dit uit de live SEASON_2627_SNAPSHOTS-rondedata.
   const data = scoutSeasonDataFor(p);
   const strength = season==='2026/27' ? p._strength : strengthFor(p, season);
   const inj = findInjury(p.Speler, p.Team);
   const clubThen = clubForSeason(p, season);
   const sortStat = sortStatDisplay(p);
+  // Sorteerwaarde alleen als extra regel tonen als die niet al onderaan in de statistieken staat.
+  const dubbel = ['punten','minuten','doelpuntenAantal','assistsAantal','prijs'].includes(state.sortBy) && (data || state.sortBy==='prijs');
   const inTeam = isInMyTeam(p);
-  return `<div class="tile${inTeam?' in-my-team':''}" onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')">
-    <div class="tile-clip">${inTeam ? `<div class="myteam-ribbon">JOUW TEAM</div>` : ''}<div class="stripe" style="background:${color}"></div></div>
-    <div class="top-row">
-      ${(()=>{ const ph = playerPhoto(p.Speler); return ph
-        ? `<div class="tile-photo" style="--pos-color:${posTxt(color)};"><img src="${ph}" alt="" loading="lazy"><span class="pos-badge" style="background:${color};color:${posOn(color)}">${POS_SHORT[p.Positie]}</span></div>`
-        : `<span class="pos-badge" style="background:${color};color:${posOn(color)}">${POS_SHORT[p.Positie]}</span>`; })()}
+  const enc = s=>encodeURIComponent(s);
+  const iconen = `${goalsIconHtml(p, 13)}${assistsIconHtml(p, 13)}${savesIconHtml(p, 13)}${penScoredIconHtml(p, 13)}${winDrawIconHtml(p, 13)}${penaltyIconHtml(p.Speler, p.Team, 13)}${cornerIconHtml(p.Speler, p.Team, 13)}${freekickIconHtml(p.Speler, p.Team, 13)}${cardsIconHtml(p, 13)}`.trim();
+  const ib = intBadge(p);
+  const ph = playerPhoto(p.Speler);
+  const cel = (v,l)=>`<div class="t2-cel"><b>${v}</b><span>${l}</span></div>`;
+  const stats = data
+    ? (data.Goals!=null
+        ? cel(data.Totaal,'PNT')+cel(data.Goals,'G')+cel(data.Assists,'A')+cel(data.Minuten,'MIN')
+        : cel(data.Totaal,'PNT')+cel(data.Gemiddelde,'GEM')+cel(data.Gespeeld,'RND')+cel(data.Minuten,'MIN'))
+    : `<div class="t2-leeg">${season==='2026/27' ? 'Nog geen rondes gespeeld' : 'Geen data dit seizoen'}</div>`;
+  return `<div class="tile t2${inTeam?' in-my-team':''}" style="--pc:${color};--pct:${posTxt(color)};" onclick="openPlayerModal('${enc(p.Speler)}','${enc(p.Team)}')">
+    <div class="tile-clip"><div class="t2-band"></div></div>
+    <div class="t2-top">
+      <div class="tile-photo t2-photo" style="--pos-color:${posTxt(color)};">${ph?`<img src="${ph}" alt="" loading="lazy">`:`<span class="t2-init">${p.Speler.split(' ').map(x=>x[0]).slice(0,2).join('')}</span>`}<span class="pos-badge" style="background:${color};color:${posOn(color)}">${POS_SHORT[p.Positie]}</span></div>
+      ${inTeam ? `<span class="t2-mijn" title="In jouw team">${icon('star',11)} Jouw team</span>` : '<span></span>'}
       ${gaugeSvg(strength, color)}
     </div>
-    <button class="compare-toggle ${isComparing(p)?'active':''}" style="right:38px;" onclick="event.stopPropagation();toggleCompare('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" title="Vergelijken">${icon('scale',14)}</button>
-    <button class="compare-toggle ${isScouted(p)?'active':''}" onclick="event.stopPropagation();toggleScouted('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" title="${isScouted(p)?'Markering voor scouting verwijderen':'Markeer voor scouting'}">${icon('bookmark',14)}</button>
-    ${inTeam ? `<div style="display:inline-flex;align-items:center;gap:3px;color:var(--on-accent);font-family:'Inter';font-size:9.5px;font-weight:800;background:var(--myteam);padding:2px 6px;border-radius:4px;margin-bottom:4px;">${icon('star',11)} IN JOUW TEAM</div>` : ''}
-    <h3>${p.Speler} ${intBadge(p)} ${injuryBadge(inj)} ${goalsIconHtml(p, 13)}${assistsIconHtml(p, 13)}${savesIconHtml(p, 13)}${penScoredIconHtml(p, 13)}${winDrawIconHtml(p, 13)}${penaltyIconHtml(p.Speler, p.Team, 13)}${cornerIconHtml(p.Speler, p.Team, 13)}${freekickIconHtml(p.Speler, p.Team, 13)}${cardsIconHtml(p, 13)}</h3>
-    ${sortStat ? `<div style="margin:2px 0 4px 0;padding:2px 8px;background:transparent;border:1px solid ${color};border-left:4px solid ${color};border-radius:6px;font-size:11px;font-weight:700;color:var(--text);display:inline-block;">${sortStat.label} <b>${sortStat.value}</b></div>` : ''}
-    <div class="club">${jerseySvg(clubThen,15)}${teamLogo(clubThen)}${clubThen}${clubThen!==p.Team?` <span style="color:var(--text-dim);font-size:10px;">(nu: ${p.Team})</span>`:''}</div>
-    ${p.former ? `<div style="font-family:'Inter';font-size:10px;color:var(--text-dim);margin-top:2px;">${icon('clock',14)} Niet meer actief in 2026/27</div>` : ''}
-    <div style="margin:6px 0;">${starRatingHtml(p)}</div>
-    <div class="stats-row"><span class="price">${fmtEuro(p.Prijs)}</span></div>
-    ${data ? `<div class="mini-stats"><span>PNT <b>${data.Totaal}</b></span>${data.Goals!=null?`<span>G <b>${data.Goals}</b></span><span>A <b>${data.Assists}</b></span>`:`<span>Gem <b>${data.Gemiddelde}</b></span><span>${data.Gespeeld} rondes</span>`}<span>MIN <b>${data.Minuten}</b></span></div><div class="new-badge" style="color:var(--text-dim)">seizoen ${season}</div>` : `<div class="new-badge">${season==='2026/27' ? 'NOG GEEN RONDES GESPEELD' : 'GEEN DATA DIT SEIZOEN'}</div>`}
+    <h3 class="t2-naam">${p.Speler}${inj?' '+injuryBadge(inj):''}</h3>
+    <div class="club t2-club">${teamLogo(clubThen)}<span>${clubThen}</span>${clubThen!==p.Team?` <span class="t2-nu">(nu: ${p.Team})</span>`:''}</div>
+    ${p.former ? `<div class="t2-oud">${icon('clock',12)} Niet meer actief in 2026/27</div>` : ''}
+    ${(ib || (sortStat && !dubbel)) ? `<div class="t2-chips">${ib}${sortStat && !dubbel ? `<span class="t2-sort">${sortStat.label} <b>${sortStat.value}</b></span>` : ''}</div>` : ''}
+    ${iconen ? `<div class="t2-iconen">${iconen}</div>` : ''}
+    <div class="t2-prijs"><span class="price">${fmtEuro(p.Prijs)}</span><span class="t2-sterren">${starRatingHtml(p)}</span></div>
+    <div class="t2-stats">${stats}</div>
+    <div class="t2-voet"><span>seizoen ${season}</span><span class="t2-knoppen">
+      <button class="compare-toggle t2-knop ${isComparing(p)?'active':''}" onclick="event.stopPropagation();toggleCompare('${enc(p.Speler)}','${enc(p.Team)}')" title="Vergelijken">${icon('scale',13)}</button>
+      <button class="compare-toggle t2-knop ${isScouted(p)?'active':''}" onclick="event.stopPropagation();toggleScouted('${enc(p.Speler)}','${enc(p.Team)}')" title="${isScouted(p)?'Markering voor scouting verwijderen':'Markeer voor scouting'}">${icon('bookmark',13)}</button>
+    </span></div>
   </div>`;
 }
 
@@ -4417,7 +4470,7 @@ function renderSquadSideStats(perPlayer, round){
     ${top?`<div class="side-row"><span>Topscorer</span><b>${naam(top)} · ${fmt(top.points||0)}</b></div>`:''}
     ${laag && laag!==top?`<div class="side-row"><span>Minste punten</span><b>${naam(laag)} · ${fmt(laag.points||0)}</b></div>`:''}
     ${waardeBekend?`<div class="side-row"><span>Teamwaarde</span><b>€${waarde.toFixed(2).replace('.',',')}M</b></div>`:''}
-    <div class="side-row"><span>Verschillende clubs</span><b>${Object.keys(clubs).length}</b></div>
+    ${(()=>{ const mx = Math.max(0,...Object.values(clubs)); if(mx<2) return ''; const cl = Object.keys(clubs).filter(c=>clubs[c]===mx); return `<div class="side-row"><span>Meeste spelers per club</span><b>${cl.map(c=>teamLogo(c)+c).join(', ')} · ${mx}</b></div>`; })()}
     <div class="side-row"><span>Ook in Mijn Team</span><b>${mijn.length}</b></div>
     ${mijn.length?`<div class="side-names">${mijn.map(naam).join(', ')}</div>`:''}
   </div>`;
