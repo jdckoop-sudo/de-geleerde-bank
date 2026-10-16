@@ -208,7 +208,8 @@
   .t2-chips{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-bottom:8px;}
   .t2-sort{font-family:'Inter';font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid var(--pc);color:var(--text);}
   .t2-sort b{font-weight:800;}
-  .t2-iconen{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;margin-bottom:8px;align-self:flex-start;background:var(--bg);border-radius:999px;padding:3px 7px;}
+  .stat-iconen{display:inline-flex;flex-wrap:wrap;gap:3px;align-items:center;vertical-align:middle;background:#161616;border-radius:999px;padding:3px 7px;line-height:0;}
+  .t2 > .stat-iconen{margin-bottom:8px;align-self:flex-start;}
   .t2-prijs{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:8px;border-top:1px solid var(--line);}
   .t2 .price{font-family:'Inter';font-size:16px;font-weight:800;letter-spacing:-.2px;}
   .t2-sterren{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
@@ -3476,7 +3477,7 @@ function renderTile(p){
   const dubbel = ['punten','minuten','doelpuntenAantal','assistsAantal','prijs'].includes(state.sortBy) && (data || state.sortBy==='prijs');
   const inTeam = isInMyTeam(p);
   const enc = s=>encodeURIComponent(s);
-  const iconen = `${goalsIconHtml(p, 13)}${assistsIconHtml(p, 13)}${savesIconHtml(p, 13)}${penScoredIconHtml(p, 13)}${winDrawIconHtml(p, 13)}${penaltyIconHtml(p.Speler, p.Team, 13)}${cornerIconHtml(p.Speler, p.Team, 13)}${freekickIconHtml(p.Speler, p.Team, 13)}${cardsIconHtml(p, 13)}`.trim();
+  const iconen = statIconenHtml(p, 13);
   const ib = intBadge(p);
   const ph = playerPhoto(p.Speler);
   const cel = (v,l)=>`<div class="t2-cel"><b>${v}</b><span>${l}</span></div>`;
@@ -3496,7 +3497,7 @@ function renderTile(p){
     <div class="club t2-club">${teamLogo(clubThen)}<span>${clubThen}</span>${clubThen!==p.Team?` <span class="t2-nu">(nu: ${p.Team})</span>`:''}</div>
     ${p.former ? `<div class="t2-oud">${icon('clock',12)} Niet meer actief in 2026/27</div>` : ''}
     ${(ib || (sortStat && !dubbel)) ? `<div class="t2-chips">${ib}${sortStat && !dubbel ? `<span class="t2-sort">${sortStat.label} <b>${sortStat.value}</b></span>` : ''}</div>` : ''}
-    ${iconen ? `<div class="t2-iconen">${iconen}</div>` : ''}
+    ${iconen}
     <div class="t2-prijs"><span class="price">${fmtEuro(p.Prijs)}</span><span class="t2-sterren">${starRatingHtml(p)}</span></div>
     <div class="t2-stats">${stats}</div>
     <div class="t2-voet"><span>seizoen ${season}</span><span class="t2-knoppen">
@@ -3786,7 +3787,7 @@ function renderScoutTab(){
             return `<tr onclick="openPlayerModal('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')" style="${inTeam?'background:color-mix(in srgb, var(--myteam) 16%, transparent);box-shadow:inset 3px 0 0 var(--myteam);':''}">
               <td onclick="event.stopPropagation();toggleCompare('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')"><span class="compare-toggle-inline ${isComparing(p)?'active':''}">${icon('scale',14)}</span></td>
               <td onclick="event.stopPropagation();toggleScouted('${encodeURIComponent(p.Speler)}','${encodeURIComponent(p.Team)}')"><span class="compare-toggle-inline ${isScouted(p)?'active':''}">${icon('bookmark',14)}</span></td>
-              <td>${inTeam?`<span title="Zit in jouw team" style="display:inline-flex;align-items:center;gap:3px;color:var(--on-accent);font-family:'Inter';font-size:10px;font-weight:800;background:var(--myteam);padding:2px 6px;border-radius:4px;margin-right:5px;">${icon('star',11)} JOUW TEAM</span>`:''}${p.Speler} ${injuryBadge(inj)} ${goalsIconHtml(p, 12)}${assistsIconHtml(p, 12)}${savesIconHtml(p, 12)}${penScoredIconHtml(p, 12)}${winDrawIconHtml(p, 12)}${penaltyIconHtml(p.Speler, p.Team, 12)}${cornerIconHtml(p.Speler, p.Team, 12)}${freekickIconHtml(p.Speler, p.Team, 12)}${cardsIconHtml(p, 12)}${p.former ? `<span style="font-family:'Inter';font-size:10px;color:var(--text-dim);margin-left:4px;">${icon('clock',12)} niet actief</span>` : ''} ${intBadge(p)}</td>
+              <td>${inTeam?`<span title="Zit in jouw team" style="display:inline-flex;align-items:center;gap:3px;color:var(--on-accent);font-family:'Inter';font-size:10px;font-weight:800;background:var(--myteam);padding:2px 6px;border-radius:4px;margin-right:5px;">${icon('star',11)} JOUW TEAM</span>`:''}${p.Speler} ${injuryBadge(inj)} ${statIconenHtml(p, 12)}${p.former ? `<span style="font-family:'Inter';font-size:10px;color:var(--text-dim);margin-left:4px;">${icon('clock',12)} niet actief</span>` : ''} ${intBadge(p)}</td>
               <td>${teamLogo(clubThen)}${clubThen}</td>
               <td style="color:${posTxt(color)}">${POS_SHORT[p.Positie]}</td>
               <td>${starRatingHtml(p)}</td>
@@ -16099,6 +16100,12 @@ function freekickIconHtml(speler, team, size){
 // Kleine iconen voor de overige manieren om CVHJ-punten te scoren dit seizoen (doelpunten, assists,
 // reddingen, penalty's raak, overwinning/gelijkspel) — zelfde stijl (icoon + tooltip met de precieze
 // telling en de puntenwaarde) als de bestaande penalty/hoekschop/vrije trap-iconen hierboven.
+// Rij met seizoensicoontjes (goals, assists, …) op een vaste donkere pil, zodat de gekleurde
+// icoontjes in elk thema (ook gele/lichte vlakken) altijd goed zichtbaar zijn.
+function statIconenHtml(p, size){
+  const h = `${goalsIconHtml(p, size)}${assistsIconHtml(p, size)}${savesIconHtml(p, size)}${penScoredIconHtml(p, size)}${winDrawIconHtml(p, size)}${penaltyIconHtml(p.Speler, p.Team, size)}${cornerIconHtml(p.Speler, p.Team, size)}${freekickIconHtml(p.Speler, p.Team, size)}${cardsIconHtml(p, size)}`.trim();
+  return h ? `<span class="stat-iconen">${h}</span>` : '';
+}
 function goalsIconHtml(p, size){
   if(state.scoutSeason!=='2026/27') return '';
   const d = current2627SeasonData(p);
