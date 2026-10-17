@@ -10574,9 +10574,22 @@ const GR_MAATSTAVEN = {
     {id:'eigen', label:'Eigen doelpunten', soort:'som', event:'eigen'},
     {id:'geel', label:'Gele kaarten', soort:'som', veld:'playerRoundYellow'},
     {id:'rood', label:'Rode kaarten', soort:'som', veld:'playerRoundRed'},
+    {id:'kaarten', label:'Alle kaarten', soort:'som'},
     {id:'straf', label:'Strafpunten (geel −3, rood −8, penalty mis −2)', soort:'som', topLaag:true},
     {id:'cs', label:'Clean sheets', soort:'som', veld:'playerRoundCleanSheet'},
     {id:'reddingen', label:'Reddingen (keepers)', soort:'som', veld:'playerRoundSaves'},
+    {id:'vc_schoten', label:'Doelpogingen', soort:'cum', vc:['Doelpogingen','Schoten'], deelbaar:true},
+    {id:'vc_schotpct', label:'Rendement doelpogingen (% raak)', soort:'cum', vc:['Doelpogingen','pct','Doelpunten','Schoten']},
+    {id:'vc_passes', label:'Passes (totaal)', soort:'cum', vc:['Passes','Totaal'], deelbaar:true},
+    {id:'vc_passaan', label:'Passes aangekomen', soort:'cum', vc:['Passes','Aangekomen'], deelbaar:true},
+    {id:'vc_passpct', label:'Passnauwkeurigheid (%)', soort:'cum', vc:['Passes','pct','Aangekomen','Totaal']},
+    {id:'vc_duels', label:'Duels (totaal)', soort:'cum', vc:['Duels','Totaal'], deelbaar:true},
+    {id:'vc_duelwin', label:'Duels gewonnen', soort:'cum', vc:['Duels','Gewonnen'], deelbaar:true},
+    {id:'vc_duelpct', label:'Duels gewonnen (%)', soort:'cum', vc:['Duels','pct','Gewonnen','Totaal']},
+    {id:'vc_overtr', label:'Overtredingen begaan', soort:'cum', vc:['Overtredingen begaan','Totaal'], deelbaar:true},
+    {id:'vc_vrij', label:'Vrije trappen', soort:'cum', vc:['Vrije trappen','Totaal'], deelbaar:true},
+    {id:'vc_hoek', label:'Hoekschoppen', soort:'cum', vc:['Hoekschoppen','Totaal'], deelbaar:true},
+    {id:'vc_buiten', label:'Buitenspel', soort:'cum', vc:['Buitenspel','Totaal'], deelbaar:true},
   ],
   clubs:[
     {id:'punten', label:'CVHJ-punten (alle spelers)', soort:'som'},
@@ -10586,6 +10599,22 @@ const GR_MAATSTAVEN = {
     {id:'saldo', label:'Doelsaldo', soort:'som'},
     {id:'cs', label:'Clean sheets (team)', soort:'som'},
     {id:'geel', label:'Gele kaarten', soort:'som'},
+    {id:'rood', label:'Rode kaarten', soort:'som'},
+    {id:'kaarten', label:'Alle kaarten', soort:'som'},
+    {id:'pengoal', label:"Penalty's benut", soort:'som'},
+    {id:'penmis', label:"Penalty's gemist", soort:'som'},
+    {id:'vc_schoten', label:'Doelpogingen', soort:'cum', vc:['Doelpogingen','Schoten'], deelbaar:true},
+    {id:'vc_schotpct', label:'Rendement doelpogingen (% raak)', soort:'cum', vc:['Doelpogingen','pct','Doelpunten','Schoten']},
+    {id:'vc_passes', label:'Passes (totaal)', soort:'cum', vc:['Passes','Totaal'], deelbaar:true},
+    {id:'vc_passaan', label:'Passes aangekomen', soort:'cum', vc:['Passes','Aangekomen'], deelbaar:true},
+    {id:'vc_passpct', label:'Passnauwkeurigheid (%)', soort:'cum', vc:['Passes','pct','Aangekomen','Totaal']},
+    {id:'vc_duels', label:'Duels (totaal)', soort:'cum', vc:['Duels','Totaal'], deelbaar:true},
+    {id:'vc_duelwin', label:'Duels gewonnen', soort:'cum', vc:['Duels','Gewonnen'], deelbaar:true},
+    {id:'vc_duelpct', label:'Duels gewonnen (%)', soort:'cum', vc:['Duels','pct','Gewonnen','Totaal']},
+    {id:'vc_overtr', label:'Overtredingen begaan', soort:'cum', vc:['Overtredingen begaan','Totaal'], deelbaar:true},
+    {id:'vc_vrij', label:'Vrije trappen', soort:'cum', vc:['Vrije trappen','Totaal'], deelbaar:true},
+    {id:'vc_hoek', label:'Hoekschoppen', soort:'cum', vc:['Hoekschoppen','Totaal'], deelbaar:true},
+    {id:'vc_buiten', label:'Buitenspel', soort:'cum', vc:['Buitenspel','Totaal'], deelbaar:true},
     {id:'stand', label:'Positie in de Eredivisie', soort:'stand', laagBeter:true},
   ],
   coaches:[
@@ -10617,7 +10646,7 @@ function grState(){
     const top = sortedCastingCouchRows(LEAGUE_ROUND_SNAPSHOTS[grLaatsteCcRonde()]).slice(0,4).map(c=>c.coach);
     state.gr = {onderwerp:'coaches', maatstaf:'totaal', soort:'lijn', weergave:'ronde', opgeteld:false, gemiddelde:false, metLopend:true,
       van:null, tot:null, tabel:false, zoek:'', fClubs:[], fPos:'', prijsMin:0, prijsMax:5,
-      vorm:false, gemLijn:false, thuisUit:'alle', refCoach:'', vCoach:'', favNaam:'',
+      vorm:false, gemLijn:false, thuisUit:'alle', refCoach:'', vCoach:'', favNaam:'', vcPerRonde:false,
       selectie:{spelers:[], clubs:[], coaches:[...new Set([coach, ...top])].filter(c=>CASTING_COUCH_COACHES.some(x=>x.coach===c)).slice(0,5), scheids:[], verdeling:[]}};
     grLeesLink();
   }
@@ -10629,6 +10658,8 @@ function grRondes(){
   if(g.onderwerp==='coaches') R = R.filter(r=>LEAGUE_ROUND_SNAPSHOTS[r]);
   if(g.onderwerp==='scheids') R = R.filter(r=>REFEREE_STATS[r]);
   if(g.onderwerp==='verdeling') R = R.filter(r=>CASTING_COUCH_TEAM_SQUADS[r]);
+  const mv = (GR_MAATSTAVEN[g.onderwerp]||[]).find(x=>x.id===g.maatstaf);
+  if(mv && mv.vc){ const vr = grVcRondes().filter(r=> !g.vcPerRonde || grVcRondes().includes(r-1)); R = R.filter(r=>vr.includes(r)); }
   const van = g.van || R[0], tot = g.tot || R[R.length-1];
   return R.filter(r=>r>=van && r<=tot);
 }
@@ -10684,11 +10715,42 @@ function grSpelerIndex(r){ const k = 'ix'+r; if(__grCache[k]) return __grCache[k
   ['playerRoundPoints','playerRoundMinutes'].forEach(v=>Object.keys(S[v]||{}).forEach(key=>{ const n = key.slice(0,key.lastIndexOf('|')); (ix[n] = ix[n] || []); if(!ix[n].includes(key)) ix[n].push(key); }));
   return __grCache[k] = ix; }
 // thuis/uit per club per ronde in de cache
+// voetbal.com-statistieken (Spelers → Overig): standen t/m een ronde (OVERIGE_STATISTIEKEN_SNAPSHOTS, nu t/m ronde 6, 7 en 8).
+// Rijen koppelen aan PLAYERS op naam + club; anders gespelde namen (Tsygankov/Tsyhankov, Þórisson/Thórisson) binnen dezelfde club op voor- of achternaam.
+function grVcNorm(t){ return String(t||'').replace(/Þ/g,'Th').replace(/þ/g,'th').replace(/ð/g,'d').replace(/Ð/g,'D').replace(/æ/g,'ae').replace(/ø/g,'o').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim(); }
+function grVcIndex(r){ const k = 'vc'+r; if(__grCache[k]) return __grCache[k];
+  const S = (typeof OVERIGE_STATISTIEKEN_SNAPSHOTS!=='undefined') ? OVERIGE_STATISTIEKEN_SNAPSHOTS[r] : null; if(!S) return __grCache[k] = null;
+  const perClub = {}; PLAYERS.forEach(p=>{ (perClub[p.Team] = perClub[p.Team] || []).push(p); });
+  const idx = {}; // cat -> {spelerId: rij}
+  Object.entries(S).forEach(([cat, rijen])=>{ const m = idx[cat] = {};
+    (rijen||[]).forEach(row=>{ const n = grVcNorm(row.naam), kand = perClub[row.club] || [];
+      let p = kand.find(x=>grVcNorm(x.Speler)===n);
+      if(!p){ const t = n.split(' '), tl = t[t.length-1];
+        const sc = kand.map(x=>{ const u = grVcNorm(x.Speler).split(' '), ul = u[u.length-1]; return {x, s:(u[0]===t[0]?1:0) + (ul===tl?2:0) + (ul.slice(0,4)===tl.slice(0,4)?1:0) + (ul.slice(-4)===tl.slice(-4)?1:0)}; }).sort((a,b)=>b.s-a.s);
+        if(sc.length && sc[0].s>=1 && (sc.length===1 || sc[0].s>sc[1].s)) p = sc[0].x; }
+      const id = p ? p.Speler+'|'+p.Team : row.naam+'|'+row.club; (m[id] = m[id] || []).push(row); }); });
+  return __grCache[k] = idx; }
+function grVcRondes(){ return (typeof OVERIGE_STATISTIEKEN_SNAPSHOTS!=='undefined') ? Object.keys(OVERIGE_STATISTIEKEN_SNAPSHOTS).map(Number).sort((a,b)=>a-b) : []; }
+function grVcWaarde(m, onderwerp, id, r){
+  const g = grState();
+  if(g.vcPerRonde && m.deelbaar){ const a = grVcRuw(m, onderwerp, id, r), b = grVcRuw(m, onderwerp, id, r-1); return a==null || b==null ? null : a-b; }
+  return grVcRuw(m, onderwerp, id, r);
+}
+function grVcRuw(m, onderwerp, id, r){
+  const ix = grVcIndex(r); if(!ix) return null; const [cat, veld, teller, noemer] = m.vc; const tab = ix[cat] || {};
+  let rijen;
+  if(onderwerp==='clubs') rijen = Object.values(tab).flat().filter(x=>x.club===id);
+  else { const naam = id.slice(0, id.lastIndexOf('|')); rijen = Object.entries(tab).filter(([k])=>k===id || k.slice(0,k.lastIndexOf('|'))===naam).flatMap(([,v])=>v); }
+  const som = v=> rijen.reduce((a,x)=>a+(+x[v]||0), 0);
+  if(veld==='pct'){ const n = som(noemer); return n ? Math.round(som(teller)/n*1000)/10 : null; }
+  return som(veld);
+}
 // ---- waarde van één entiteit in één ronde ----
 function grWaarde(onderwerp, maatstaf, id, r){
   const S = SEASON_2627_SNAPSHOTS[r], g = grState();
   if(onderwerp==='spelers'){
     if(!S) return null; const m = GR_MAATSTAVEN.spelers.find(x=>x.id===maatstaf);
+    if(m.vc) return grVcWaarde(m, 'spelers', id, r);
     const naam = id.slice(0, id.lastIndexOf('|')); const ix = grSpelerIndex(r);
     // sleutels zijn "Naam|Club" van het moment; bij een transfer staat de speler in oudere rondes onder zijn oude club
     const sleutels = ix[naam];
@@ -10696,15 +10758,19 @@ function grWaarde(onderwerp, maatstaf, id, r){
     if(g.thuisUit!=='alle' && !sleutels.some(k=>grThuisUitOk(k.slice(k.lastIndexOf('|')+1), r))) return null;
     const som = veld=>{ const bron = S[veld]; if(!bron) return 0; let v = 0; sleutels.forEach(k=>{ if(k in bron) v += (veld===m.veld && m.telAls ? m.telAls(bron[k]) : bron[k]); }); return v; };
     if(m.event){ const e = grEvents(r)[naam]; if(!e) return 0; return g.thuisUit==='alle' ? e[m.event] : e[g.thuisUit][m.event]; }
+    if(maatstaf==='kaarten') return som('playerRoundYellow') + som('playerRoundRed');
     if(maatstaf==='straf'){ const e = grEvents(r)[naam]; const pm = e ? (g.thuisUit==='alle' ? e.penmis : e[g.thuisUit].penmis) : 0;
       return -3*som('playerRoundYellow') - 8*som('playerRoundRed') - 2*pm; }
     return som(m.veld);
   }
   if(onderwerp==='clubs'){
     if(maatstaf==='stand') return grClubStand(r)[id] ?? null;
+    const mc = GR_MAATSTAVEN.clubs.find(x=>x.id===maatstaf); if(mc && mc.vc) return grVcWaarde(mc, 'clubs', id, r);
     let ms = grRondeWedstrijden(id, r);
     if(g.thuisUit!=='alle') ms = ms.filter(m=> g.thuisUit==='thuis' ? m.home===id : m.away===id);
-    if(maatstaf==='punten' || maatstaf==='geel'){ if(!S || !ms.length) return null; const bron = maatstaf==='punten' ? S.playerRoundPoints : (S.playerRoundYellow||{}); let v=0; for(const k in bron){ if(k.slice(k.lastIndexOf('|')+1)===id) v+=bron[k]; } return v; }
+    if(['punten','geel','rood','kaarten'].includes(maatstaf)){ if(!S || !ms.length) return null; const velden = maatstaf==='punten' ? ['playerRoundPoints'] : maatstaf==='geel' ? ['playerRoundYellow'] : maatstaf==='rood' ? ['playerRoundRed'] : ['playerRoundYellow','playerRoundRed'];
+      let v=0; velden.forEach(vd=>{ const bron = S[vd]||{}; for(const k in bron){ if(k.slice(k.lastIndexOf('|')+1)===id) v+=bron[k]; } }); return v; }
+    if(maatstaf==='pengoal' || maatstaf==='penmis'){ if(!ms.length) return null; let v=0; ms.forEach(m=>{ if(maatstaf==='pengoal') (m.goals||[]).forEach(go=>{ if(go.penalty && !go.ownGoal && go.team===id) v++; }); else (m.penaltyMisses||[]).forEach(pm=>{ if(pm.team===id) v++; }); }); return v; }
     if(!ms.length) return null;
     let v=0; ms.forEach(m=>{ const thuis=m.home===id, gv=thuis?m.homeScore:m.awayScore, gt=thuis?m.awayScore:m.homeScore;
       v += maatstaf==='wpunten' ? (gv>gt?3:gv===gt?1:0) : maatstaf==='voor' ? gv : maatstaf==='tegen' ? gt : maatstaf==='saldo' ? gv-gt : maatstaf==='cs' ? (gt===0?1:0) : 0; });
@@ -10737,6 +10803,7 @@ function grClubStand(r){
 // ---- samenvatten: totaal / gemiddelde / vorm (laatste 3) ----
 function grSamenvatting(waarden, m){
   const g = grState(); const geldig = waarden.filter(v=>v!=null); if(!geldig.length) return null;
+  if(m.vc && g.vcPerRonde && m.deelbaar) return geldig.reduce((a,b)=>a+b,0);
   if(m.soort!=='som') return geldig[geldig.length-1];
   if(g.vorm){ const l3 = geldig.slice(-3); return Math.round(l3.reduce((a,b)=>a+b,0)/l3.length*10)/10; }
   const s = geldig.reduce((a,b)=>a+b,0);
@@ -10852,9 +10919,9 @@ function grCsv(){
   grDownload(`grafiek_${g.onderwerp}_${m.id}.csv`, new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
 }
 // ---- favorieten: vast in het dashboard (GRAFIEK_FAVORIETEN uit de databank) + eigen favorieten (dashboard-opslag) + link ----
-const GR_FAV_VELDEN = ['onderwerp','maatstaf','soort','weergave','opgeteld','gemiddelde','metLopend','van','tot','tabel','fClubs','fPos','prijsMin','prijsMax','vorm','gemLijn','thuisUit','refCoach','vCoach'];
+const GR_FAV_VELDEN = ['onderwerp','maatstaf','soort','weergave','opgeteld','gemiddelde','metLopend','van','tot','tabel','fClubs','fPos','prijsMin','prijsMax','vorm','gemLijn','thuisUit','refCoach','vCoach','vcPerRonde'];
 function grMomentopname(){ const g = grState(); const o = {}; GR_FAV_VELDEN.forEach(k=>o[k]=JSON.parse(JSON.stringify(g[k]))); o.selectie = {[g.onderwerp]: g.selectie[g.onderwerp].slice()}; return o; }
-const GR_STANDAARD = {opgeteld:false, gemiddelde:false, metLopend:true, van:null, tot:null, tabel:false, fClubs:[], fPos:'', prijsMin:0, prijsMax:5, vorm:false, gemLijn:false, thuisUit:'alle', refCoach:'', vCoach:''};
+const GR_STANDAARD = {opgeteld:false, gemiddelde:false, metLopend:true, van:null, tot:null, tabel:false, fClubs:[], fPos:'', prijsMin:0, prijsMax:5, vorm:false, gemLijn:false, thuisUit:'alle', refCoach:'', vCoach:'', vcPerRonde:false};
 function grPasToe(o){ const g = grState(); if(!o || !GR_ONDERWERPEN[o.onderwerp]) return; g.zoek = ''; Object.entries(GR_STANDAARD).forEach(([k,v])=>g[k]=JSON.parse(JSON.stringify(v))); GR_FAV_VELDEN.forEach(k=>{ if(k in o) g[k] = JSON.parse(JSON.stringify(o[k])); });
   if(o.selectie) Object.entries(o.selectie).forEach(([k,v])=>{ if(g.selectie[k] && Array.isArray(v)) g.selectie[k] = v.slice(); });
   if(!o.selectie && !o.autoTop && !o.autoAlles && !o.mijnTeam) grStandaardSelectie();
@@ -10919,7 +10986,7 @@ function grSvgRonde(reeksen, R, m, soort, gem, achtergrond){
   const stand = m.soort==='stand';
   const alle = reeksen.flatMap(s=>s.waarden).concat(gem ? gem.waarden : []).concat(achtergrond.flatMap(s=>s.waarden)).filter(v=>v!=null);
   if(!alle.length) return `<div class="news-note">Geen gegevens voor deze keuze.</div>`;
-  let lo = alle.reduce((a,b)=>Math.min(a,b), Infinity), hi = alle.reduce((a,b)=>Math.max(a,b), -Infinity); if(!stand && (soort==='staaf' || (lo>0 && m.id!=='totaal'))) lo = Math.min(0, lo);
+  let lo = alle.reduce((a,b)=>Math.min(a,b), Infinity), hi = alle.reduce((a,b)=>Math.max(a,b), -Infinity); if(!stand && (soort==='staaf' || (lo>0 && m.soort==='som'))) lo = Math.min(0, lo); // lijn met stand/percentage: as zoomt in op de gegevens
   const sc = grSchaal(lo, hi, stand); const yv = v => stand ? y0 + (v - sc.a)/(sc.b - sc.a)*(y1-y0) : y1 - (v - sc.a)/(sc.b - sc.a)*(y1-y0);
   const n = R.length, stap = soort==='staaf' ? (x1-x0)/n : (n>1 ? (x1-x0)/(n-1) : 0);
   const xc = i => soort==='staaf' ? x0 + stap*(i+0.5) : (n>1 ? x0 + i*stap : (x0+x1)/2);
@@ -10976,7 +11043,7 @@ function grSvgTotaal(reeksen, m, gem){
 }
 // ---- tekenen: cirkel ----
 function grSvgCirkel(reeksen, m){
-  if(m.soort!=='som') return `<div class="news-note">Een cirkeldiagram toont een verdeling van een totaal; dat kan niet met een positie of een stand. Kies een staaf- of lijngrafiek.</div>`;
+  if(m.soort!=='som' && !m.deelbaar) return `<div class="news-note">Een cirkeldiagram toont een verdeling van een totaal; dat kan niet met een positie of een stand. Kies een staaf- of lijngrafiek.</div>`;
   let data = reeksen.filter(s=>s.totaal!=null && s.totaal>0).slice().sort((a,b)=>b.totaal-a.totaal);
   const neg = reeksen.some(s=>s.totaal<0);
   if(!data.length) return `<div class="news-note">Geen positieve waarden om te verdelen.</div>`;
@@ -11153,7 +11220,7 @@ function renderGrafiekenTab(){
   const extra = [];
   if(g.onderwerp==='coaches' && m.id==='achterstand') extra.push(`<label class="gr-veld"><span>Achterstand op</span><select onchange="grZet('refCoach',this.value)">${sel2(g.refCoach,'','Koploper (nummer 1)')}${ccNamen.map(c=>sel2(g.refCoach,c,c)).join('')}</select></label>`);
   if(g.onderwerp==='verdeling') extra.push(`<label class="gr-veld"><span>Team van</span><select onchange="grZet('vCoach',this.value)">${ccNamen.map(c=>sel2(grVCoach(),c,c+(c===(state.followedCoach||'Jelle Coachman')?' (mijn team)':''))).join('')}</select></label>`);
-  if(g.onderwerp==='spelers' || g.onderwerp==='clubs') extra.push(`<div class="gr-veld"><span>Wedstrijden</span><div class="view-toggle">${knop('thuisUit','alle','Alle')}${knop('thuisUit','thuis','Thuis')}${knop('thuisUit','uit','Uit')}</div></div>`);
+  if((g.onderwerp==='spelers' || g.onderwerp==='clubs') && !m.vc) extra.push(`<div class="gr-veld"><span>Wedstrijden</span><div class="view-toggle">${knop('thuisUit','alle','Alle')}${knop('thuisUit','thuis','Thuis')}${knop('thuisUit','uit','Uit')}</div></div>`);
   setTimeout(()=>document.querySelectorAll('.gr-alles input[data-half]').forEach(i=>i.indeterminate=true), 0);
   return `<div class="gr-root">
     ${lopend ? `<div class="news-note">${icon('clock',13)} Ronde ${LIVE_RONDE.ronde} loopt nog: die ronde telt voorlopig mee (gemarkeerd met *). Zet "Lopende ronde" uit om alleen afgeronde rondes te tonen.</div>` : ''}
@@ -11172,6 +11239,7 @@ function renderGrafiekenTab(){
         ${m.soort==='som' && g.weergave==='ronde' ? `<label class="gr-check"><input type="checkbox" ${g.opgeteld?'checked':''} onchange="grZet('opgeteld',this.checked)"> Opgeteld (cumulatief)</label>` : ''}
         ${m.soort==='som' && g.weergave==='totaal' ? `<label class="gr-check"><input type="checkbox" ${g.gemiddelde?'checked':''} onchange="grZet('gemiddelde',this.checked)"> Gemiddelde per ronde</label>` : ''}
         ${m.soort==='som' && g.weergave!=='kop' ? `<label class="gr-check" title="${g.weergave==='ronde'?'Per ronde het gemiddelde van die ronde en de twee rondes ervoor':'Gemiddelde van de laatste 3 rondes in het gekozen bereik'}"><input type="checkbox" ${g.vorm?'checked':''} onchange="grZet('vorm',this.checked)"> Vorm (gem. laatste 3 rondes)</label>` : ''}
+        ${m.vc && m.deelbaar ? `<label class="gr-check" title="Verschil tussen de stand na een ronde en de stand na de ronde ervoor"><input type="checkbox" ${g.vcPerRonde?'checked':''} onchange="grZet('vcPerRonde',this.checked)"> Per ronde (in plaats van stand t/m de ronde)</label>` : ''}
         ${kanGem ? `<label class="gr-check"><input type="checkbox" ${g.gemLijn?'checked':''} onchange="grZet('gemLijn',this.checked)"> Gemiddelde van alle ${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} tonen</label>` : ''}
         ${availableSnapshotRounds().some(r=>isVoorlopigeRonde(r)) ? `<label class="gr-check"><input type="checkbox" ${g.metLopend?'checked':''} onchange="grZet('metLopend',this.checked)"> Lopende ronde meenemen</label>` : ''}
         <label class="gr-check"><input type="checkbox" ${g.tabel?'checked':''} onchange="grZet('tabel',this.checked)"> Tabel tonen</label>
@@ -11182,6 +11250,7 @@ function renderGrafiekenTab(){
     </div>
     <div class="gr-kaart">
       <div class="gr-titel">${grEsc(grTitel())} <small>${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} · ronde ${R[0]??'–'} t/m ${R[R.length-1]??'–'}${grLaagBeter(m)?' · lager is beter':''}${g.thuisUit!=='alle'&&(g.onderwerp==='spelers'||g.onderwerp==='clubs')?' · alleen '+g.thuisUit+'wedstrijden':''}${g.onderwerp==='clubs'&&m.id==='stand'&&g.thuisUit!=='alle'?' (de stand telt altijd alle wedstrijden)':''}</small></div>
+      ${m.vc ? `<div class="gr-noot">Bron: voetbal.com (Spelers → Overig). ${g.vcPerRonde?'Verschil per ronde':'Stand t/m de ronde'}; beschikbaar voor ronde ${grVcRondes().join(', ')}${g.vcPerRonde?' (per ronde vanaf de tweede meting)':''}. Andere rondes: onbekend.</div>` : ''}
       ${g.onderwerp==='verdeling' ? `<div class="gr-noot">Punten zoals ze voor het team telden (bankspeler 100% als hij invalt, anders 50%), berekend uit de rondepunten per speler. Het officiële totaal uit het portaal kan een paar punten afwijken.</div>` : ''}
       ${g.soort==='spreiding' ? `<div class="gr-noot">Elke stip is een speler binnen je filter (${grSpreidingData().punten.length}). De stippellijn is wat je bij die prijs gemiddeld mag verwachten; de 5 grootste koopjes zijn omcirkeld en benoemd, je eigen selectie is gekleurd.</div>` : ''}
       ${teVeel ? `<div class="news-note">${icon('info',13)} Je hebt er ${reeksenAlle.length} gekozen. De ${GR_MAX_REEKSEN} hoogsten op ${grEsc(m.label.toLowerCase())} staan in kleur${g.soort==='lijn'?`, de andere ${reeksenAlle.length-GR_MAX_REEKSEN} als dunne grijze lijnen op de achtergrond`:` (bij een staafgrafiek per ronde passen er niet meer; kies Lijn om de rest grijs te zien)`}. Kies "Totaal" om ze allemaal naast elkaar te zien.</div>` : ''}
