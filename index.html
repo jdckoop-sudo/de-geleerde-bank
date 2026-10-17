@@ -10789,7 +10789,7 @@ function grStandaardSelectie(){
   if(o==='clubs') g.selectie.clubs = grKandidaten().map(k=>k.id).slice(0,5);
   if(o==='coaches') g.selectie.coaches = sortedCastingCouchRows(LEAGUE_ROUND_SNAPSHOTS[grLaatsteCcRonde()]).slice(0,5).map(c=>c.coach);
   if(o==='scheids') g.selectie.scheids = grKandidaten().map(k=>k.id).slice(0,5);
-  if(o==='verdeling') g.selectie.verdeling = grKandidaten().map(k=>k.id).slice(0, g.maatstaf==='speler'||g.maatstaf==='club' ? 8 : 4);
+  if(o==='verdeling') g.selectie.verdeling = grKandidaten().map(k=>k.id); // alles: de cirkel vouwt de rest in "Overig", per ronde toont de eerste 8
 }
 function grTop(n, stil){
   const g = grState(), m = grMaatstaf(), R = grRondes();
