@@ -1351,6 +1351,9 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
 .gr-fav.eigen button{background:none;border:none;color:var(--text);font-size:11px;padding:4px 4px 4px 9px;cursor:pointer;}
 .gr-fav.eigen .gr-x{padding:4px 9px 4px 4px;color:var(--text-dim);}
 @media (max-width:640px){.gr-kop{grid-template-columns:1fr 1fr;}.gr-kop-m{grid-column:1 / -1;order:3;}}
+.gr-alles{margin-top:6px;border:1px dashed var(--line);font-weight:700;}
+.gr-alles small{font-weight:400;}
+.gr-achter{fill:none;stroke:var(--text-dim);stroke-width:1;opacity:.12;pointer-events:none;}
 @media (max-width:640px){.gr-veld select{min-width:0;width:100%;}.gr-veld:has(.view-toggle){flex:1 1 100%;}.gr-veld .view-toggle{display:flex;}.gr-veld .view-toggle button{flex:1;}.gr-veld{flex:1 1 45%;}.gr-lijst{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -10753,6 +10756,13 @@ function grReeksen(){
   const sel = (g.selectie[g.onderwerp]||[]).filter(id=>kand.some(k=>k.id===id));
   const uit = sel.map((id,i)=>{ const k = kand.find(x=>x.id===id); return Object.assign({id, naam:k?k.naam:id, sub:k?k.sub:'', kleurIdx:i}, grReeksVan(id, R, m)); });
   // meer dan 8 in één totaalgrafiek: staaf = één kleur; cirkel = kleur op volgorde van de verdeling (top 7), rest = Overig (grijs)
+  // meer dan 8 per ronde: de 8 hoogsten op de maatstaf in kleur (op volgorde), de rest grijs op de achtergrond
+  if(g.weergave==='ronde' && uit.length>GR_MAX_REEKSEN){
+    const lb = grLaagBeter(m) || m.topLaag;
+    const rang = uit.filter(s=>s.totaal!=null).sort((a,b)=> lb ? a.totaal-b.totaal : b.totaal-a.totaal).map(s=>s.id);
+    uit.forEach(s=>{ const r = rang.indexOf(s.id); s.kleurIdx = (r>=0 && r<GR_MAX_REEKSEN) ? r : GR_MAX_REEKSEN; s.achter = s.kleurIdx>=GR_MAX_REEKSEN; });
+    uit.sort((a,b)=>a.kleurIdx-b.kleurIdx);
+  }
   if(g.weergave==='totaal' && uit.length>GR_MAX_REEKSEN){
     if(g.soort==='cirkel'){ const rang = uit.filter(s=>s.totaal>0).sort((a,b)=>b.totaal-a.totaal).map(s=>s.id); uit.forEach(s=>{ const r = rang.indexOf(s.id); s.kleurIdx = (r>=0 && r<GR_MAX_REEKSEN-1) ? r : GR_MAX_REEKSEN; }); }
     else uit.forEach(s=>s.kleurIdx = 0);
@@ -10805,13 +10815,21 @@ function grMijnTeam(){ const g = grState();
   render(); }
 function grAlles(){ const g = grState(); g.selectie[g.onderwerp] = grGefilterd().map(k=>k.id); render(); }
 function grToggleClubFilter(c){ const g = grState(); const i = g.fClubs.indexOf(c); if(i>=0) g.fClubs.splice(i,1); else g.fClubs.push(c); render(); }
+function grPosLijst(){ const f = grState().fPos; return Array.isArray(f) ? f : (f ? [f] : []); }
+function grTogglePos(p){ const g = grState(); const l = grPosLijst().slice(); const i = l.indexOf(p); if(i>=0) l.splice(i,1); else l.push(p); g.fPos = l.length===4 ? [] : l; render(); }
+// "alles in deze lijst": alle zichtbare (gefilterde) items aan, of — als ze al allemaal aan staan — allemaal uit
+function grLijstAlles(){ const g = grState(), ids = grGefilterd().map(k=>k.id), s = g.selectie[g.onderwerp];
+  const allesAan = ids.length && ids.every(id=>s.includes(id));
+  g.selectie[g.onderwerp] = allesAan ? s.filter(id=>!ids.includes(id)) : s.concat(ids.filter(id=>!s.includes(id))); render(); }
+function grClubsAlle(){ grState().fClubs = []; render(); }
+function grPrijsAlle(){ const g = grState(); g.prijsMin = 0; g.prijsMax = 5; render(); }
 function grGefilterd(){
   const g = grState(); const q = normSearch(g.zoek||'');
   return grKandidaten().filter(k=>{
     if(q && !normSearch(k.naam+' '+(k.sub||'')).includes(q)) return false;
     if(g.onderwerp==='spelers'){
       if(g.fClubs.length && !g.fClubs.includes(k.club)) return false;
-      if(g.fPos && k.pos!==g.fPos) return false;
+      const fp = grPosLijst(); if(fp.length && !fp.includes(k.pos)) return false;
       if(k.prijs<g.prijsMin || k.prijs>g.prijsMax) return false;
     }
     if(g.onderwerp==='clubs' && g.fClubs.length && !g.fClubs.includes(k.club)) return false;
@@ -10890,12 +10908,13 @@ function grTitel(){ const g = grState(), m = grMaatstaf(); let t = m.label;
   return t + (m.soort==='som' ? (g.vorm ? ' — vorm (gem. laatste 3 rondes)' : g.gemiddelde ? ' — gemiddelde per ronde' : ' — totaal') : ' — na de laatste ronde');
 }
 // ---- tekenen: per ronde ----
-function grSvgRonde(reeksen, R, m, soort, gem){
+function grSvgRonde(reeksen, R, m, soort, gem, achtergrond){
+  achtergrond = achtergrond || [];
   const W = grMobiel() ? 440 : 900, H = grMobiel() ? 300 : 380, x0 = 44, x1 = W-14, y0 = 18, y1 = H-38;
   const stand = m.soort==='stand';
-  const alle = reeksen.flatMap(s=>s.waarden).concat(gem ? gem.waarden : []).filter(v=>v!=null);
+  const alle = reeksen.flatMap(s=>s.waarden).concat(gem ? gem.waarden : []).concat(achtergrond.flatMap(s=>s.waarden)).filter(v=>v!=null);
   if(!alle.length) return `<div class="news-note">Geen gegevens voor deze keuze.</div>`;
-  let lo = Math.min(...alle), hi = Math.max(...alle); if(!stand && (soort==='staaf' || (lo>0 && m.id!=='totaal'))) lo = Math.min(0, lo);
+  let lo = alle.reduce((a,b)=>Math.min(a,b), Infinity), hi = alle.reduce((a,b)=>Math.max(a,b), -Infinity); if(!stand && (soort==='staaf' || (lo>0 && m.id!=='totaal'))) lo = Math.min(0, lo);
   const sc = grSchaal(lo, hi, stand); const yv = v => stand ? y0 + (v - sc.a)/(sc.b - sc.a)*(y1-y0) : y1 - (v - sc.a)/(sc.b - sc.a)*(y1-y0);
   const n = R.length, stap = soort==='staaf' ? (x1-x0)/n : (n>1 ? (x1-x0)/(n-1) : 0);
   const xc = i => soort==='staaf' ? x0 + stap*(i+0.5) : (n>1 ? x0 + i*stap : (x0+x1)/2);
@@ -10915,6 +10934,8 @@ function grSvgRonde(reeksen, R, m, soort, gem){
         g += `<rect x="${start + j*(bw+2)}" y="${top}" width="${bw}" height="${h}" rx="${Math.min(4,bw/2)}" fill="${grKleur(s.kleurIdx)}" onmousemove="grTip(event,'<b>${grJsArg(s.naam)}</b><br>Ronde ${r}: <b>${grFmt(v)}</b>')" onmouseleave="grUit()"/>`; }); });
     g += gemPad();
   } else {
+    achtergrond.forEach(s=>{ let pad = '', open = false; s.waarden.forEach((v,i)=>{ if(v==null){ open=false; return; } pad += `${open?'L':'M'}${xc(i).toFixed(1)},${yv(v).toFixed(1)} `; open = true; });
+      if(pad) g += `<path d="${pad}" class="gr-achter"/>`; });
     g += gemPad();
     reeksen.forEach(s=>{ const kl = grKleur(s.kleurIdx); let pad = '', open = false;
       s.waarden.forEach((v,i)=>{ if(v==null){ open=false; return; } pad += `${open?'L':'M'}${xc(i).toFixed(1)},${yv(v).toFixed(1)} `; open = true; });
@@ -10999,7 +11020,7 @@ function grSvgKop(kd, R, m){
 // ---- tekenen: spreiding prijs × maatstaf (alle spelers in het filter) ----
 function grSpreidingData(){
   const g = grState(), m = grMaatstaf(), R = grRondes(); const sel = g.selectie.spelers;
-  const k = 'sp|'+m.id+'|'+R.join(',')+'|'+g.thuisUit+'|'+g.vorm+'|'+g.gemiddelde+'|'+g.fClubs.join(',')+'|'+g.fPos+'|'+g.prijsMin+'|'+g.prijsMax+'|'+g.zoek;
+  const k = 'sp|'+m.id+'|'+R.join(',')+'|'+g.thuisUit+'|'+g.vorm+'|'+g.gemiddelde+'|'+g.fClubs.join(',')+'|'+grPosLijst().join(',')+'|'+g.prijsMin+'|'+g.prijsMax+'|'+g.zoek;
   let punten = __grCache[k];
   if(!punten){ punten = grGefilterd().map(c=>{ const y = grSamenvatting(R.map(r=>grWaarde('spelers', m.id, c.id, r)), m); return y==null ? null : {id:c.id, naam:c.naam, club:c.club, pos:c.pos, x:c.prijs, y}; }).filter(Boolean); __grCache[k] = punten; }
   // lineaire trend (kleinste kwadraten): wat je bij deze prijs mag verwachten
@@ -11073,7 +11094,8 @@ function renderGrafiekenTab(){
   if(state.grFavs===undefined){ state.grFavs = []; grLaadEigenFavs().then(()=>{ if(state.tab==='grafieken') render(); }); }
   const reeksenAlle = g.soort==='spreiding' ? [] : grReeksen();
   const teVeel = g.weergave==='ronde' && reeksenAlle.length > GR_MAX_REEKSEN;
-  const reeksen = teVeel ? reeksenAlle.slice(0, GR_MAX_REEKSEN) : reeksenAlle;
+  const reeksen = teVeel ? reeksenAlle.filter(s=>!s.achter) : reeksenAlle;
+  const achtergrond = teVeel && g.soort==='lijn' ? reeksenAlle.filter(s=>s.achter) : [];
   const sel = g.selectie[g.onderwerp];
   const kand = grGefilterd();
   const kanGem = (m.soort==='som' || m.soort==='cum') && g.weergave!=='kop' && g.soort!=='cirkel' && g.soort!=='spreiding';
@@ -11087,7 +11109,7 @@ function renderGrafiekenTab(){
   else if(!reeksen.length) grafiek = `<div class="news-note">Kies hieronder één of meer ${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} om een grafiek te maken.</div>`;
   else if(g.weergave==='kop') grafiek = kd ? grSvgKop(kd, R, m) : `<div class="news-note">Kies er twee om kop tegen kop te vergelijken.</div>`;
   else if(g.soort==='cirkel') grafiek = grSvgCirkel(reeksenAlle, m);
-  else if(g.weergave==='ronde') grafiek = grSvgRonde(reeksen, R, m, g.soort, gem);
+  else if(g.weergave==='ronde') grafiek = grSvgRonde(reeksen, R, m, g.soort, gem, achtergrond);
   else grafiek = grSvgTotaal(reeksenAlle, m, gem);
   const kopTegels = kd ? `<div class="gr-kop">
       <div class="gr-kop-t"><i style="background:${grKleur(kd.A.kleurIdx)}"></i><b>${grEsc(kd.A.naam)}</b><span>${kd.wA} ronde${kd.wA===1?'':'s'} beter</span></div>
@@ -11106,11 +11128,11 @@ function renderGrafiekenTab(){
       <tbody>${rijen.map(s=>`<tr${s.gem?' class="gr-tr-gem"':''}><td><i class="gr-dot" style="background:${s.gem?'transparent;border:1px dashed var(--text-dim)':grKleur(s.kleurIdx)}"></i>${grEsc(s.naam)}</td>${g.weergave!=='totaal'?s.waarden.map(v=>`<td style="text-align:right;">${grFmt(v)}</td>`).join(''):''}<td style="text-align:right;font-weight:700;">${grFmt(s.totaal)}</td></tr>`).join('')}</tbody></table></div>`; }
   const filters = g.onderwerp==='spelers' ? `
       <div class="gr-f-rij">
-        <select onchange="grZet('fPos',this.value)">${sel2(g.fPos,'','Alle posities')}${['Goalkeeper','Defender','Midfielder','Forward'].map(p=>sel2(g.fPos,p,POS_LABEL[p])).join('')}</select>
+        <div class="gr-chips" style="margin:0;"><button class="gr-chip ${!grPosLijst().length?'on':''}" onclick="grState().fPos=[];render()">Alle posities</button>${['Goalkeeper','Defender','Midfielder','Forward'].map(p=>`<button class="gr-chip ${grPosLijst().includes(p)?'on':''}" onclick="grTogglePos('${p}')">${POS_LABEL[p]}</button>`).join('')}</div>
         <label class="gr-mini">Prijs €${g.prijsMin.toFixed(2).replace('.',',')}M – €${g.prijsMax.toFixed(2).replace('.',',')}M
-          <span class="gr-range"><input type="range" id="input-gr-pmin" min="0" max="5" step="0.25" value="${g.prijsMin}" oninput="grZet('prijsMin',Math.min(+this.value,grState().prijsMax))"><input type="range" id="input-gr-pmax" min="0" max="5" step="0.25" value="${g.prijsMax}" oninput="grZet('prijsMax',Math.max(+this.value,grState().prijsMin))"></span></label>
+          <span class="gr-range">${g.prijsMin>0||g.prijsMax<5?`<button class="gr-chip" style="padding:2px 8px;" onclick="grPrijsAlle()">alle prijzen</button>`:''}<input type="range" id="input-gr-pmin" min="0" max="5" step="0.25" value="${g.prijsMin}" oninput="grZet('prijsMin',Math.min(+this.value,grState().prijsMax))"><input type="range" id="input-gr-pmax" min="0" max="5" step="0.25" value="${g.prijsMax}" oninput="grZet('prijsMax',Math.max(+this.value,grState().prijsMin))"></span></label>
       </div>` : '';
-  const clubChips = (g.onderwerp==='spelers') ? `<div class="gr-chips">${[...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort().map(c=>`<button class="gr-chip ${g.fClubs.includes(c)?'on':''}" onclick="grToggleClubFilter('${grJsArg(c)}')">${teamLogo(c)}${CLUB_SHORT&&CLUB_SHORT[c]?CLUB_SHORT[c]:c}</button>`).join('')}${g.fClubs.length?`<button class="gr-chip" onclick="grState().fClubs=[];render()">wis clubs</button>`:''}</div>` : '';
+  const clubChips = (g.onderwerp==='spelers') ? `<div class="gr-chips"><button class="gr-chip ${!g.fClubs.length?'on':''}" onclick="grClubsAlle()">Alle clubs</button>${[...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort().map(c=>`<button class="gr-chip ${g.fClubs.includes(c)?'on':''}" onclick="grToggleClubFilter('${grJsArg(c)}')">${teamLogo(c)}${CLUB_SHORT&&CLUB_SHORT[c]?CLUB_SHORT[c]:c}</button>`).join('')}</div>` : '';
   const vasteFavs = typeof GRAFIEK_FAVORIETEN!=='undefined' ? GRAFIEK_FAVORIETEN : [];
   const favs = `<div class="gr-paneel gr-favs">
       <div class="gr-rij" style="align-items:center;"><b style="font-size:13px;">${icon('navStar',13)} Bewaarde grafieken</b><span class="gr-noot" style="padding:0;">klik om te openen</span></div>
@@ -11127,6 +11149,7 @@ function renderGrafiekenTab(){
   if(g.onderwerp==='coaches' && m.id==='achterstand') extra.push(`<label class="gr-veld"><span>Achterstand op</span><select onchange="grZet('refCoach',this.value)">${sel2(g.refCoach,'','Koploper (nummer 1)')}${ccNamen.map(c=>sel2(g.refCoach,c,c)).join('')}</select></label>`);
   if(g.onderwerp==='verdeling') extra.push(`<label class="gr-veld"><span>Team van</span><select onchange="grZet('vCoach',this.value)">${ccNamen.map(c=>sel2(grVCoach(),c,c+(c===(state.followedCoach||'Jelle Coachman')?' (mijn team)':''))).join('')}</select></label>`);
   if(g.onderwerp==='spelers' || g.onderwerp==='clubs') extra.push(`<div class="gr-veld"><span>Wedstrijden</span><div class="view-toggle">${knop('thuisUit','alle','Alle')}${knop('thuisUit','thuis','Thuis')}${knop('thuisUit','uit','Uit')}</div></div>`);
+  setTimeout(()=>document.querySelectorAll('.gr-alles input[data-half]').forEach(i=>i.indeterminate=true), 0);
   return `<div class="gr-root">
     ${lopend ? `<div class="news-note">${icon('clock',13)} Ronde ${LIVE_RONDE.ronde} loopt nog: die ronde telt voorlopig mee (gemarkeerd met *). Zet "Lopende ronde" uit om alleen afgeronde rondes te tonen.</div>` : ''}
     ${favs}
@@ -11156,7 +11179,7 @@ function renderGrafiekenTab(){
       <div class="gr-titel">${grEsc(grTitel())} <small>${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} · ronde ${R[0]??'–'} t/m ${R[R.length-1]??'–'}${grLaagBeter(m)?' · lager is beter':''}${g.thuisUit!=='alle'&&(g.onderwerp==='spelers'||g.onderwerp==='clubs')?' · alleen '+g.thuisUit+'wedstrijden':''}${g.onderwerp==='clubs'&&m.id==='stand'&&g.thuisUit!=='alle'?' (de stand telt altijd alle wedstrijden)':''}</small></div>
       ${g.onderwerp==='verdeling' ? `<div class="gr-noot">Punten zoals ze voor het team telden (bankspeler 100% als hij invalt, anders 50%), berekend uit de rondepunten per speler. Het officiële totaal uit het portaal kan een paar punten afwijken.</div>` : ''}
       ${g.soort==='spreiding' ? `<div class="gr-noot">Elke stip is een speler binnen je filter (${grSpreidingData().punten.length}). De stippellijn is wat je bij die prijs gemiddeld mag verwachten; de 5 grootste koopjes zijn omcirkeld en benoemd, je eigen selectie is gekleurd.</div>` : ''}
-      ${teVeel ? `<div class="news-note">Per ronde passen maximaal ${GR_MAX_REEKSEN} lijnen of staven in één grafiek; de eerste ${GR_MAX_REEKSEN} van je selectie staan erin. Kies "Totaal" om alle ${reeksenAlle.length} te vergelijken.</div>` : ''}
+      ${teVeel ? `<div class="news-note">${icon('info',13)} Je hebt er ${reeksenAlle.length} gekozen. De ${GR_MAX_REEKSEN} hoogsten op ${grEsc(m.label.toLowerCase())} staan in kleur${g.soort==='lijn'?`, de andere ${reeksenAlle.length-GR_MAX_REEKSEN} als dunne grijze lijnen op de achtergrond`:` (bij een staafgrafiek per ronde passen er niet meer; kies Lijn om de rest grijs te zien)`}. Kies "Totaal" om ze allemaal naast elkaar te zien.</div>` : ''}
       ${kopTegels}
       <div class="gr-plot">${grafiek}<div id="gr-tip" class="gr-tip"></div></div>
       ${legenda}${tabel}
@@ -11166,13 +11189,14 @@ function renderGrafiekenTab(){
         <b style="font-size:13px;">Selectie (${sel.length})</b>
         <button class="btn ghost gr-kl" onclick="grTop(5)">Top 5</button><button class="btn ghost gr-kl" onclick="grTop(10)">Top 10</button>
         ${g.onderwerp!=='scheids' ? `<button class="btn ghost gr-kl" onclick="grMijnTeam()">${g.onderwerp==='coaches'||g.onderwerp==='verdeling'?'Mijn coach':'Mijn team'}</button>` : ''}
-        <button class="btn ghost gr-kl" onclick="grAlles()">Alles${g.zoek||g.fClubs.length||g.fPos?' (gefilterd)':''}</button>
+        <button class="btn ghost gr-kl" onclick="grAlles()">Alles${g.zoek||g.fClubs.length||grPosLijst().length?' (gefilterd)':''}</button>
         <button class="btn ghost gr-kl" onclick="grWis()">Wis</button>
       </div>
       ${g.soort==='spreiding' ? `<div class="gr-noot">Bij "Prijs × waarde" staan alle spelers binnen het filter in de grafiek; met de selectie kleur je spelers in.</div>` : ''}
-      ${sel.length ? `<div class="gr-chips">${sel.map((id,i)=>{ const k = grKandidaten().find(x=>x.id===id); const rk = reeksenAlle.find(s=>s.id===id); const ki = rk ? rk.kleurIdx : i; return `<button class="gr-chip on" onclick="grToggle('${grJsArg(id)}')" title="Verwijderen"><i style="background:${grKleur(ki)}"></i>${grEsc(k?k.naam:id)} ×</button>`; }).join('')}</div>` : ''}
+      ${sel.length ? `<div class="gr-chips">${(state.grChipsAlles || sel.length<=24 ? sel : (teVeel ? reeksenAlle.slice(0,24).map(s=>s.id) : sel.slice(0,24))).map((id,i)=>{ const k = grKandidaten().find(x=>x.id===id); const rk = reeksenAlle.find(s=>s.id===id); const ki = rk ? rk.kleurIdx : i; return `<button class="gr-chip on" onclick="grToggle('${grJsArg(id)}')" title="Verwijderen"><i style="background:${grKleur(ki)}"></i>${grEsc(k?k.naam:id)} ×</button>`; }).join('')}${sel.length>24?`<button class="gr-chip" onclick="state.grChipsAlles=!state.grChipsAlles;render()">${state.grChipsAlles?'minder tonen':`+ ${sel.length-24} meer`}</button>`:''}</div>` : ''}
       <input type="text" id="input-gr-zoek" placeholder="Zoek ${GR_ONDERWERPEN[g.onderwerp].enkel}…" value="${grEsc(g.zoek||'')}" oninput="grZet('zoek',this.value)" autocomplete="off" style="width:100%;margin:8px 0;">
       ${filters}${clubChips}
+      ${kand.length ? (()=>{ const aan = kand.filter(k=>sel.includes(k.id)).length; return `<label class="gr-item gr-alles"><input type="checkbox" ${aan===kand.length?'checked':''} ${aan>0&&aan<kand.length?'data-half="1"':''} onchange="grLijstAlles()"><span>Alles in deze lijst selecteren</span><small>${aan} van ${kand.length}${g.zoek||g.fClubs.length||grPosLijst().length||g.prijsMin>0||g.prijsMax<5?' · gefilterd':''}</small></label>`; })() : ''}
       <div class="gr-lijst">${kand.slice(0,300).map(k=>`<label class="gr-item ${sel.includes(k.id)?'on':''}"><input type="checkbox" ${sel.includes(k.id)?'checked':''} onchange="grToggle('${grJsArg(k.id)}')">${k.club?teamLogo(k.club):''}<span>${grEsc(k.naam)}</span>${k.sub?`<small>${grEsc(k.sub)}</small>`:''}</label>`).join('')}${kand.length>300?`<div class="gr-noot">Nog ${kand.length-300} meer — verfijn met zoeken of filters.</div>`:''}${!kand.length?'<div class="gr-noot">Niets gevonden.</div>':''}</div>
     </div>
   </div>`;
