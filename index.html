@@ -10784,13 +10784,17 @@ function grZet(veld, waarde){ const g = grState(); g[veld] = waarde;
   if(veld==='onderwerp'){ g.maatstaf = GR_MAATSTAVEN[waarde][0].id; g.zoek=''; if(g.soort==='spreiding' && waarde!=='spelers') g.soort='staaf'; if(g.weergave==='kop' && waarde==='verdeling') g.weergave='ronde'; if(!g.selectie[waarde].length) grStandaardSelectie(); }
   if(veld==='maatstaf' && g.onderwerp==='verdeling'){ grStandaardSelectie(); }
   if(veld==='vCoach'){ grStandaardSelectie(); }
-  if(veld==='soort' && waarde==='cirkel' && g.weergave!=='totaal') g.weergave = 'totaal';
-  if(veld==='soort' && waarde==='spreiding'){ g.weergave = 'totaal'; }
-  if(veld==='weergave' && waarde!=='totaal' && (g.soort==='cirkel' || g.soort==='spreiding')) g.soort = waarde==='kop' ? 'staaf' : 'lijn';
   if(veld==='weergave' && waarde==='kop' && (g.selectie[g.onderwerp]||[]).length<2) grTop(2, true);
   if(veld==='vorm' && waarde){ g.opgeteld = false; g.gemiddelde = false; }
   if((veld==='opgeteld' || veld==='gemiddelde') && waarde) g.vorm = false;
-  render(); }
+  grNormaliseer(veld); render(); }
+// geldige combinaties: lijn = per ronde (of kop tegen kop → staaf); cirkel en prijs × waarde = totaal
+function grNormaliseer(veld){ const g = grState();
+  if(g.soort==='spreiding' && g.onderwerp!=='spelers') g.soort = 'staaf';
+  if(g.soort==='lijn' && g.weergave==='totaal'){ if(veld==='weergave') g.soort = 'staaf'; else g.weergave = 'ronde'; }
+  if(g.soort==='lijn' && g.weergave==='kop'){ if(veld==='weergave') g.soort = 'staaf'; else g.weergave = 'ronde'; }
+  if((g.soort==='cirkel' || g.soort==='spreiding') && g.weergave!=='totaal'){ if(veld==='weergave') g.soort = g.weergave==='kop' ? 'staaf' : 'lijn'; else g.weergave = 'totaal'; }
+  if(g.weergave==='kop' && g.onderwerp==='verdeling') g.weergave = 'ronde'; }
 function grToggle(id){ const g = grState(); const s = g.selectie[g.onderwerp]; const i = s.indexOf(id); if(i>=0) s.splice(i,1); else s.push(id); render(); }
 function grWis(){ grState().selectie[grState().onderwerp] = []; render(); }
 function grStandaardSelectie(){
@@ -10857,6 +10861,7 @@ function grPasToe(o){ const g = grState(); if(!o || !GR_ONDERWERPEN[o.onderwerp]
   if(o.autoTop){ g.selectie[g.onderwerp] = []; grTop(o.autoTop, true); }
   if(o.mijnCoach){ const c = state.followedCoach || 'Jelle Coachman'; if(o.onderwerp==='coaches' && !g.selectie.coaches.includes(c)) g.selectie.coaches.unshift(c); }
   if(o.autoAlles){ g.selectie[g.onderwerp] = grGefilterd().map(k=>k.id); }
+  grNormaliseer();
   if(o.mijnTeam && o.onderwerp==='spelers'){ g.selectie.spelers = Object.values(state.squad||{}).filter(Boolean).map(p=>p.Speler+'|'+p.Team); }
 }
 function grEigenFavs(){ return Array.isArray(state.grFavs) ? state.grFavs : []; }
