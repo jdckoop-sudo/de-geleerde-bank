@@ -1358,6 +1358,53 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
 .parels-kop{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:none;padding:0 0 10px;cursor:pointer;color:inherit;text-align:left;}
 .parels-meer{font-size:11px;color:var(--accent-text,var(--accent));font-weight:600;white-space:nowrap;}
 .parels-kop:hover .parels-meer{text-decoration:underline;}
+
+.hof-ere{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:22px;}
+.hof-ere-k{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 12px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center;}
+.hof-ere-k.nieuw{border-color:var(--accent);}
+.hof-ere-k.toernooi{border-style:dashed;}
+.hof-ere-k.leeg{opacity:.75;border-style:dashed;}
+.hof-ere-sz{font-size:11px;color:var(--text-dim);letter-spacing:.04em;}
+.hof-ere-icoon{color:var(--accent-text,var(--accent));margin:4px 0;}
+.hof-ere-w{font-family:'Jost',sans-serif;font-weight:800;font-size:20px;color:var(--text);}
+.hof-ere-p{font-size:12px;color:var(--text);}
+.hof-tag{font-size:9px;border:1px solid var(--line);border-radius:999px;padding:1px 6px;margin-left:4px;}
+.hof-dim{color:var(--text-dim);font-size:.9em;font-weight:400;}
+.hof-ik{font-weight:700;color:var(--accent-text,var(--accent));}
+.hof-kast{display:flex;flex-direction:column;gap:6px;margin-bottom:22px;}
+.hof-kast-r{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:10px;padding:8px 12px;flex-wrap:wrap;}
+.hof-kast-r b{min-width:70px;}
+.hof-beker{display:inline-flex;align-items:center;gap:3px;font-size:11px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--text);margin:1px 4px 1px 0;white-space:nowrap;}
+.hof-recs{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:18px;}
+.hof-rec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;}
+.hof-rec-l{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:5px;}
+.hof-rec-w{font-family:'Jost',sans-serif;font-weight:800;font-size:30px;line-height:1.05;color:var(--accent-text,var(--accent));}
+.hof-rec-w small{font-size:13px;font-weight:600;color:var(--text-dim);margin-left:3px;}
+.hof-rec-h{font-size:13px;color:var(--text);line-height:1.4;}
+.hof-rec-s{font-size:11px;color:var(--text-dim);}
+.hof-twee{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-bottom:18px;}
+.hof-ol{list-style:none;margin:0;padding:0;}
+.hof-ol li{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.hof-nr{width:22px;text-align:right;color:var(--text-dim);font-family:'Jost',sans-serif;}
+.hof-nm{flex:1;display:flex;align-items:center;gap:6px;min-width:0;}
+.hof-r{margin-left:auto;white-space:nowrap;color:var(--text-dim);font-size:12px;}
+.hof-r b{color:var(--text);font-size:13px;}
+.hof-rondes{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-bottom:18px;}
+.hof-ronde{background:var(--surface);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;font-size:12px;}
+.hof-ronde-n{font-family:'Jost',sans-serif;font-weight:700;color:var(--text-dim);}
+.hof-ronde-p{font-family:'Jost',sans-serif;font-weight:800;font-size:18px;color:var(--accent-text,var(--accent));}
+.hof-ronde-p small{font-size:10px;color:var(--text-dim);}
+.hof-ronde-s{grid-column:1 / -1;font-size:10px;color:var(--text-dim);}
+.hof-tabel td,.hof-tabel th{white-space:nowrap;}
+.hof-noot{font-size:11px;color:var(--text-dim);margin-top:8px;}
+.hof-bezet{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:18px;}
+.hof-bezet-k{display:flex;gap:10px;align-items:center;background:var(--surface);border-radius:10px;padding:8px 12px;font-size:13px;}
+.hof-bezet-p{font-family:'Jost',sans-serif;font-weight:800;font-size:20px;color:var(--accent-text,var(--accent));min-width:44px;text-align:center;}
+.hof-dos{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.hof-dos-k{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;}
+.hof-dos-t{font-family:'Jost',sans-serif;font-weight:700;font-size:15px;color:var(--accent-text,var(--accent));}
+.hof-dos-n{font-size:12px;margin:2px 0 6px;}
+.hof-dos-s{font-size:12px;color:var(--text-dim);font-style:italic;}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -12043,24 +12090,33 @@ async function downloadLeagueScreenshot(theme){
 const HALL_OF_FAME_WINNERS = [
   {season:'2022/2023', winner:'Lard', points:1524},
   {season:'2023/2024', winner:'Jelle', points:1561},
-  {season:'EK2024', winner:'Jaap', points:228},
+  {season:'EK2024', winner:'Jaap', points:228, toernooi:true},
   {season:'2024/2025', winner:'Pim', points:1362},
   {season:'2025/2026', winner:'Lars', points:1563, extraLabel:'Alle spelers', extraValue:681},
-  {season:'WK2026', winner:'Jacco', points:357, extraLabel:'Alle spelers', extraValue:507},
+  {season:'WK2026', winner:'Jacco', points:357, extraLabel:'Alle spelers', extraValue:507, toernooi:true},
 ];
 // Hoogste ronde-score ooit behaald door een team, per seizoen — uit de Coach van het Jaar-analyse-PDF
 // (seizoen 2025/2026, "Beste ronde per team": twee teams deelden het seizoensrecord van 84 punten).
-// Voor 2026/27 houd ik dit automatisch bij zodra jij me na een ronde de Casting Couch-standen geeft.
 const HISTORIC_HIGHEST_ROUND = {
   '2025/2026': [
     {team:'FC Blonde Strijder', round:9, points:84},
     {team:'Geniepige Geiten', round:27, points:84},
   ],
 };
+// Archief 2025/26 — uit seizoenen/2025-2026/Coach_van_het_Jaar_Analyse_2025-2026.pdf (tussenstand na ronde 32 van 34;
+// de eindwinnaar staat in HALL_OF_FAME_WINNERS). Overgenomen zoals het in de PDF staat (sinds 18-10-2026).
+const HOF_ARCHIEF_2526 = {
+  bron:'Coach van het Jaar-analyse 2025/26 (PDF, tussenstand na ronde 32 van 34)',
+  stand:[["WhyAyewRunning",1463],["F.C. Buurman '88",1441],["Jellético Madrid",1426],["Bayermo Leverkroosten",1421],["FC Blonde Strijder",1401],["FC Knoflookadem",1392],["Deportivo Lardón",1362],["Dinkamo Zagreb",1359],["Hang-over 69",1356],["Shamrock FC",1346],["Geniepige Geiten",1342],["Jusventus FC",1338],["Peter Bosz Fanclub",1336],["FC op het Nippertje",1334],["InterNoukzionale",1333],["De Fur Marjas",1332],["VV OnderDeRivieren",1328],["AS Johma",1245],["FC Bastiaan!",1161],["JeMoederBV",1092]],
+  besteRonde:[["AS Johma",67,9],["Bayermo Leverkroosten",81,27],["De Fur Marjas",69,27],["Deportivo Lardón",77,27],["Dinkamo Zagreb",79,27],["F.C. Buurman '88",74,9],["FC Bastiaan!",59,5],["FC Blonde Strijder",84,9],["FC Knoflookadem",78,27],["FC op het Nippertje",66,22],["Geniepige Geiten",84,27],["Hang-over 69",74,18],["InterNoukzionale",76,27],["JeMoederBV",58,27],["Jellético Madrid",76,29],["Jusventus FC",78,27],["Peter Bosz Fanclub",69,27],["Shamrock FC",76,27],["VV OnderDeRivieren",81,9],["WhyAyewRunning",81,9]],
+  meestBezet:[["WhyAyewRunning",1,24],["Jellético Madrid",2,12],["F.C. Buurman '88",2,12],["FC Blonde Strijder",3,12],["Bayermo Leverkroosten",4,13],["FC op het Nippertje",5,4],["FC Knoflookadem",6,9],["Deportivo Lardón",7,9],["Peter Bosz Fanclub",7,5],["Shamrock FC",7,5],["Hang-over 69",9,5],["De Fur Marjas",9,7],["Jusventus FC",11,4],["VV OnderDeRivieren",14,6],["Geniepige Geiten",16,11],["InterNoukzionale",17,7],["Dinkamo Zagreb",18,7],["AS Johma",18,11],["FC Bastiaan!",19,15],["JeMoederBV",20,30]],
+  dossiers:[["AS Johma","De Salade-Specialist","Staat vaker op de 19e plek dan dat er smaken huzarensalade zijn."],["Bayermo Leverkroosten","De Podium-Vaste Klant","Is nog nooit lager dan de 5e plek gezakt dit seizoen."],["De Fur Marjas","De Middenmoot-Motor","Heeft 15 weken lang exact op de 7e of 8e plek gestaan."],["Deportivo Lardón","De Onvoorspelbare Jojo","Stond op maar liefst 12 verschillende posities dit jaar."],["Dinkamo Zagreb","De Kroatische Rots","Hun favoriete plek is de 10e positie (7 keer)."],["F.C. Buurman '88","De Eeuwige Schaduw","Heeft 28 weken in de top 3 doorgebracht zonder de titel te pakken."],["FC Bastiaan!","De Gevarenzone-Gids","Heeft de meeste 'nipt geredde' rondes boven de degradatiestreep."],["FC Blonde Strijder","De Blonde Sloper","Begon op plek 15 en knokte zich naar de top 5."],["FC Knoflookadem","De Geur van het Linkerrijtje","Hun record van 78 punten in ronde 27 was legendarisch."],["FC op het Nippertje","De Grensrechter","Pakte 55% van hun punten in de tweede seizoenshelft."],["Geniepige Geiten","De Klimgeit","Haalde in ronde 27 een bizarre 84 punten (seizoensrecord)."],["Hang-over 69","De Zaterdagnacht-Strijder","Grootste klimmer van het veld: van plek 20 naar 9."],["InterNoukzionale","De Gevallen Grootmacht","Startte als leider (ronde 1-4), maar vecht nu tegen de salades."],["JeMoederBV","De Fundering","Is de enige die de 20e positie 25 weken lang heeft warmgehouden."],["Jellético Madrid","De Stabiele Subtopper","Heeft de minste positiewisselingen in de laatste 10 ronden."],["Jusventus FC","De Oude Dame","Scoorde in ronde 21 hun hoogste weekscore van 60 punten."],["Peter Bosz Fanclub","De Tactische Volgeling","Klom in ronde 7 van plek 11 naar plek 6 in één klap."],["Shamrock FC","The Irish Lady","Scoorde in ronde 27 hun hoogste weekscore van 76 punten."],["VV OnderDeRivieren","De Zuiderse Standvastigheid","Heeft de meest constante score-opbouw van iedereen."],["WhyAyewRunning","De Troonbezetter","Stond maar liefst 23 van de 32 weken op nummer 1."]],
+};
 function computeHighestRoundThisSeason(){
   let best = [];
   let bestPts = -Infinity;
   Object.entries(LEAGUE_ROUND_SNAPSHOTS).forEach(([round, snap])=>{
+    if(snap.voorlopig) return; // lopende ronde telt pas mee als hij af is
     Object.entries(snap.standings||{}).forEach(([team, info])=>{
       if(info.ronde==null) return;
       if(info.ronde>bestPts){ bestPts = info.ronde; best = [{team, round:parseInt(round), points:info.ronde}]; }
@@ -12070,50 +12126,161 @@ function computeHighestRoundThisSeason(){
   return best;
 }
 function setHofYear(v){ state.hofYear = v; render(); }
-function renderHallOfFameTab(){
-  const years = ['ALLE', ...HALL_OF_FAME_WINNERS.map(w=>w.season)];
-  const yr = state.hofYear || 'ALLE';
-  const liveHighest = computeHighestRoundThisSeason();
-  return `
-    <div class="news-note">Overzicht van eerdere winnaars en records van jullie Casting Couch-league.</div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-      <span style="font-family:'Inter';font-size:12px;color:var(--text-dim);">Seizoen:</span>
-      <select onchange="setHofYear(this.value)" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:6px 10px;font-family:'Inter';font-size:12px;">
-        ${years.map(y=>`<option value="${y}" ${yr===y?'selected':''}>${y==='ALLE'?'Alle jaren':y}</option>`).join('')}
-      </select>
-    </div>
-    <div class="section-title" style="margin-top:0;"><span>${icon('trophy',16)} Winnaars</span><span class="line"></span></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
-      ${HALL_OF_FAME_WINNERS.filter(w=>yr==='ALLE'||w.season===yr).map(w=>`
-        <div class="picker-item" style="background:var(--surface);border-radius:10px;">
-          <div style="display:flex;align-items:center;gap:10px;">
-            ${icon('trophy',20)}
-            <div><div class="pname">${w.season}: <b>${w.winner}</b></div><div class="pclub">${w.points} punten${w.extraLabel?` · ${w.extraValue} — ${w.extraLabel}`:''}</div></div>
-          </div>
-        </div>
-      `).join('')}
-    </div>
-    <div class="section-title"><span>${icon('medal',16)} Hoogste rondescore ooit</span><span class="line"></span></div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-      ${yr==='ALLE' ? Object.entries(HISTORIC_HIGHEST_ROUND).map(([season, recs])=>recs.map(r=>`
-        <div class="picker-item" style="background:var(--surface);border-radius:10px;">
-          <div><div class="pname">${season} — Ronde ${r.round}</div><div class="pclub">${r.team}</div></div>
-          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent-text,var(--accent));">${r.points} pnt</div>
-        </div>
-      `).join('')).join('')
-      : (HISTORIC_HIGHEST_ROUND[yr] ? HISTORIC_HIGHEST_ROUND[yr].map(r=>`
-        <div class="picker-item" style="background:var(--surface);border-radius:10px;">
-          <div><div class="pname">Ronde ${r.round}</div><div class="pclub">${r.team}</div></div>
-          <div class="pmeta" style="font-family:'Jost';font-weight:700;color:var(--accent-text,var(--accent));">${r.points} pnt</div>
-        </div>
-      `).join('') : `<div class="news-note">Geen rondegegevens beschikbaar voor ${yr}.</div>`)
-      }
-    </div>
-    ${yr==='ALLE'||yr==='2026/2027' ? `
-    <div class="news-note">${icon('refresh',13)} <b>2026/27 (huidig seizoen)</b>: ${liveHighest.length ? liveHighest.map(r=>`${r.team} — Ronde ${r.round} (${r.points} pnt)`).join(' · ') : 'nog geen ronde-data — dit record wordt automatisch bijgehouden zodra jij me na een speelronde de Casting Couch-standen geeft.'}</div>
-    ` : ''}
-  `;
+function setHofView(v){ state.hofView = v; render(); }
+// ---- seizoen 2026/27: records uit LEAGUE_ROUND_SNAPSHOTS (alleen afgeronde rondes) ----
+function hofCoachVanTeam(team){ const c = CASTING_COUCH_COACHES.find(x=>x.team===team); return c ? c.coach : team; }
+function hofTitels(coach){ const voor = String(coach||'').split(' ')[0].toLowerCase(); return HALL_OF_FAME_WINNERS.filter(w=>w.winner.toLowerCase()===String(coach).toLowerCase() || w.winner.toLowerCase()===voor); }
+let __hofCache = null;
+function hofSeizoen(){
+  const sleutel = Object.keys(LEAGUE_ROUND_SNAPSHOTS).join(',') + '|' + Object.values(LEAGUE_ROUND_SNAPSHOTS).filter(s=>s.voorlopig).length;
+  if(__hofCache && __hofCache.sleutel===sleutel) return __hofCache;
+  const R = Object.keys(LEAGUE_ROUND_SNAPSHOTS).map(Number).filter(r=>!LEAGUE_ROUND_SNAPSHOTS[r].voorlopig).sort((a,b)=>a-b);
+  const teams = CASTING_COUCH_COACHES.map(c=>c.team);
+  const per = {}; teams.forEach(t=>per[t] = {team:t, coach:hofCoachVanTeam(t), rondes:{}, pos:{}, alg:{}, weken1:0, cvdw:0, bovenGem:0, reeks1:0, reeks1Max:0, reeks1Van:null});
+  const rondeInfo = {};
+  R.forEach(r=>{
+    const snap = LEAGUE_ROUND_SNAPSHOTS[r]; const rows = sortedCastingCouchRows(snap);
+    const scores = Object.entries(snap.standings).filter(([t,i])=>per[t] && i.ronde!=null);
+    const gem = scores.reduce((a,[,i])=>a+i.ronde,0)/(scores.length||1);
+    const max = Math.max(...scores.map(([,i])=>i.ronde)), min = Math.min(...scores.map(([,i])=>i.ronde));
+    const t1 = snap.standings[rows[0].team], t2 = snap.standings[rows[1].team];
+    rondeInfo[r] = {gem, max, min, leider:rows[0].team, voorsprong:(t1&&t2)?t1.totaal-t2.totaal:null, top:scores.filter(([,i])=>i.ronde===max).map(([t])=>t), bodem:scores.filter(([,i])=>i.ronde===min).map(([t])=>t)};
+    rows.forEach((c,i)=>{ const p = per[c.team]; if(!p) return; const st = snap.standings[c.team]; if(!st) return;
+      p.rondes[r] = st.ronde; p.pos[r] = i+1; p.alg[r] = st.positieAlgemeenKlassement; p.totaal = st.totaal;
+      if(st.ronde > gem) p.bovenGem++;
+      if(i===0){ p.weken1++; p.reeks1++; if(p.reeks1>p.reeks1Max){ p.reeks1Max = p.reeks1; } } else p.reeks1 = 0; });
+    rondeInfo[r].top.forEach(t=>per[t].cvdw++);
+  });
+  const lijst = Object.values(per).filter(p=>Object.keys(p.rondes).length);
+  lijst.forEach(p=>{ const v = Object.entries(p.rondes).map(([r,x])=>({r:+r, x}));
+    p.beste = v.reduce((a,b)=>b.x>a.x?b:a, {x:-Infinity}); p.slechtste = v.reduce((a,b)=>b.x<a.x?b:a, {x:Infinity});
+    const g = v.reduce((a,b)=>a+b.x,0)/v.length; p.gem = g; p.sd = Math.sqrt(v.reduce((a,b)=>a+(b.x-g)**2,0)/v.length);
+    const ps = Object.values(p.pos); p.hoogstePos = Math.min(...ps); p.laagstePos = Math.max(...ps);
+    const alg = Object.values(p.alg).filter(x=>x!=null); p.besteAlg = alg.length ? Math.min(...alg) : null;
+    p.sprongen = R.filter(r=>p.pos[r]!=null && p.pos[r-1]!=null).map(r=>({r, d:p.pos[r-1]-p.pos[r]}));
+    const tel = {}; ps.forEach(x=>tel[x]=(tel[x]||0)+1); const fav = Object.entries(tel).sort((a,b)=>b[1]-a[1]||a[0]-b[0])[0]; p.favPos = fav ? {pos:+fav[0], n:fav[1]} : null;
+    p.titels = hofTitels(p.coach); });
+  const alleScores = lijst.flatMap(p=>Object.entries(p.rondes).map(([r,x])=>({team:p.team, coach:p.coach, r:+r, x})));
+  const sprongen = lijst.flatMap(p=>p.sprongen.map(s=>({team:p.team, coach:p.coach, ...s})));
+  __hofCache = {sleutel, R, lijst, rondeInfo, alleScores, sprongen};
+  return __hofCache;
 }
+// ---- weergave ----
+function hofRecordKaart(label, waarde, eenheid, houders, sub, ic){
+  return `<div class="hof-rec"><div class="hof-rec-l">${icon(ic||'medal',13)} ${label}</div>
+    <div class="hof-rec-w">${waarde}<small>${eenheid||''}</small></div>
+    <div class="hof-rec-h">${houders}</div>${sub?`<div class="hof-rec-s">${sub}</div>`:''}</div>`;
+}
+function hofMax3(arr){ return arr.length>3 ? arr.slice(0,3).join('<br>')+`<br><span class="hof-dim">+ ${arr.length-3} andere teams</span>` : arr.join('<br>'); }
+function hofTeamNaam(team, coach){ const ik = state.followedCoach && coach===state.followedCoach; return `<span class="${ik?'hof-ik':''}">${team}</span>${coach&&coach!==team?` <span class="hof-dim">· ${coach}</span>`:''}`; }
+function hofTopLijst(items, fmt){ return `<ol class="hof-ol">${items.map((x,i)=>`<li><span class="hof-nr">${i+1}</span><span class="hof-nm">${fmt(x)}</span></li>`).join('')}</ol>`; }
+function renderHofOverzicht(){
+  const S = hofSeizoen(); const live = computeHighestRoundThisSeason();
+  // prijzenkast: titels per winnaar
+  const kast = {}; HALL_OF_FAME_WINNERS.forEach(w=>{ (kast[w.winner] = kast[w.winner] || []).push(w); });
+  const allTimeHoog = [];
+  Object.entries(HISTORIC_HIGHEST_ROUND).forEach(([sz, recs])=>recs.forEach(r=>allTimeHoog.push({sz, ...r})));
+  live.forEach(r=>allTimeHoog.push({sz:'2026/2027', ...r}));
+  allTimeHoog.sort((a,b)=>b.points-a.points);
+  const max = allTimeHoog.length ? allTimeHoog[0].points : null;
+  const besteTotaal = HALL_OF_FAME_WINNERS.filter(w=>!w.toernooi).slice().sort((a,b)=>b.points-a.points)[0];
+  const leider = S.lijst.slice().sort((a,b)=>b.totaal-a.totaal)[0];
+  return `
+    <div class="section-title" style="margin-top:0;"><span>${icon('trophy',16)} Erelijst</span><span class="line"></span></div>
+    <div class="hof-ere">
+      ${HALL_OF_FAME_WINNERS.slice().reverse().map((w,i)=>`<div class="hof-ere-k ${i===0?'nieuw':''} ${w.toernooi?'toernooi':''}">
+        <div class="hof-ere-sz">${w.season}${w.toernooi?' <span class="hof-tag">toernooi</span>':''}</div>
+        <div class="hof-ere-icoon">${icon('trophy',28)}</div>
+        <div class="hof-ere-w">${w.winner}</div>
+        <div class="hof-ere-p">${w.points} punten${w.extraLabel?`<br><span class="hof-dim">${w.extraLabel}: ${w.extraValue}</span>`:''}</div></div>`).join('')}
+      <div class="hof-ere-k leeg"><div class="hof-ere-sz">2026/2027</div><div class="hof-ere-icoon">${icon('hourglass',24)}</div><div class="hof-ere-w">?</div>
+        <div class="hof-ere-p">${leider?`Nu: ${leider.team} (${leider.totaal}) na ronde ${S.R[S.R.length-1]}`:'nog geen rondes'}</div></div>
+    </div>
+    <div class="section-title"><span>${icon('gem',16)} Prijzenkast</span><span class="line"></span></div>
+    <div class="hof-kast">${Object.entries(kast).sort((a,b)=>b[1].length-a[1].length).map(([naam, ws])=>`<div class="hof-kast-r"><b>${naam}</b><span>${ws.map(w=>`<span class="hof-beker" title="${w.season} · ${w.points} pnt">${icon('trophy',14)} ${w.season}</span>`).join('')}</span></div>`).join('')}</div>
+    <div class="section-title"><span>${icon('medal',16)} Records aller tijden</span><span class="line"></span></div>
+    <div class="hof-recs">
+      ${max!=null ? hofRecordKaart('Hoogste rondescore ooit', max, ' pnt', allTimeHoog.filter(r=>r.points===max).map(r=>`${r.team} <span class="hof-dim">${r.sz} · ronde ${r.round}</span>`).join('<br>'), allTimeHoog.find(r=>r.points<max) ? `daarna: ${allTimeHoog.find(r=>r.points<max).points} pnt (${allTimeHoog.find(r=>r.points<max).team}, ${allTimeHoog.find(r=>r.points<max).sz})` : '', 'medal') : ''}
+      ${besteTotaal ? hofRecordKaart('Hoogste seizoenstotaal (winnaar)', besteTotaal.points, ' pnt', `${besteTotaal.winner} <span class="hof-dim">${besteTotaal.season}</span>`, 'van de bekende winnaarstotalen', 'trophy') : ''}
+      ${hofRecordKaart('Langst op nummer 1 (één seizoen)', 24, ' weken', `WhyAyewRunning <span class="hof-dim">2025/26</span>`, 'analyse-PDF, tabel meest bezette plek (in de teamdossiers staat 23 van 32)', 'star')}
+      ${hofRecordKaart('Langst op de laatste plek', 30, ' weken', `JeMoederBV <span class="hof-dim">2025/26</span>`, '20e plek, analyse-PDF tabel meest bezette plek (in de teamdossiers staat 25 weken)', 'warning')}
+    </div>
+    ${S.R.length ? `<div class="section-title"><span>${icon('refresh',16)} Lopend seizoen in het kort</span><span class="line"></span></div>
+    <div class="hof-recs">${hofSeizoenKaarten(S).slice(0,4).join('')}</div>
+    <div style="text-align:right;margin-top:8px;"><button class="btn ghost" style="padding:6px 12px;font-size:12px;" onclick="setHofView('seizoen')">Alle records van 2026/27 ›</button></div>` : ''}`;
+}
+function hofSeizoenKaarten(S){
+  const k = [];
+  const hoog = S.alleScores.slice().sort((a,b)=>b.x-a.x), laag = S.alleScores.slice().sort((a,b)=>a.x-b.x);
+  if(hoog.length){ const m = hoog[0].x; k.push(hofRecordKaart('Hoogste rondescore', m, ' pnt', hoog.filter(s=>s.x===m).map(s=>`${hofTeamNaam(s.team, s.coach)} <span class="hof-dim">ronde ${s.r}</span>`).join('<br>'), '', 'medal')); }
+  const w1 = S.lijst.slice().sort((a,b)=>b.weken1-a.weken1)[0];
+  if(w1 && w1.weken1) k.push(hofRecordKaart('Meeste weken op 1', w1.weken1, '×', hofMax3(S.lijst.filter(p=>p.weken1===w1.weken1).map(p=>hofTeamNaam(p.team,p.coach))), `langste reeks: ${Math.max(...S.lijst.map(p=>p.reeks1Max))} rondes op rij`, 'star'));
+  const cv = S.lijst.slice().sort((a,b)=>b.cvdw-a.cvdw)[0];
+  if(cv && cv.cvdw) k.push(hofRecordKaart('Vaakst Couch v/d week', cv.cvdw, '×', hofMax3(S.lijst.filter(p=>p.cvdw===cv.cvdw).map(p=>hofTeamNaam(p.team,p.coach))), 'hoogste rondescore van de league', 'couch'));
+  const sp = S.sprongen.slice().sort((a,b)=>b.d-a.d)[0];
+  if(sp && sp.d>0) k.push(hofRecordKaart('Grootste stijger in één ronde', '+'+sp.d, ' plekken', hofMax3(S.sprongen.filter(s=>s.d===sp.d).map(s=>`${hofTeamNaam(s.team,s.coach)} <span class="hof-dim">ronde ${s.r}</span>`)), '', 'refresh'));
+  if(laag.length){ const m = laag[0].x; k.push(hofRecordKaart('Laagste rondescore', m, ' pnt', laag.filter(s=>s.x===m).map(s=>`${hofTeamNaam(s.team, s.coach)} <span class="hof-dim">ronde ${s.r}</span>`).join('<br>'), '', 'warning')); }
+  const dl = S.sprongen.slice().sort((a,b)=>a.d-b.d)[0];
+  if(dl && dl.d<0) k.push(hofRecordKaart('Grootste daler in één ronde', dl.d, ' plekken', hofMax3(S.sprongen.filter(s=>s.d===dl.d).map(s=>`${hofTeamNaam(s.team,s.coach)} <span class="hof-dim">ronde ${s.r}</span>`)), '', 'chevronDown'));
+  const vs = Object.entries(S.rondeInfo).filter(([,i])=>i.voorsprong!=null).sort((a,b)=>b[1].voorsprong-a[1].voorsprong)[0];
+  if(vs) k.push(hofRecordKaart('Grootste voorsprong koploper', vs[1].voorsprong, ' pnt', `${hofTeamNaam(vs[1].leider, hofCoachVanTeam(vs[1].leider))} <span class="hof-dim">na ronde ${vs[0]}</span>`, '', 'trophy'));
+  const cst = S.lijst.filter(p=>Object.keys(p.rondes).length>=3).slice().sort((a,b)=>a.sd-b.sd)[0];
+  if(cst) k.push(hofRecordKaart('Meest constant', grFmtHof(cst.sd), ' pnt spreiding', hofTeamNaam(cst.team,cst.coach), `gemiddeld ${grFmtHof(cst.gem)} pnt per ronde`, 'scale'));
+  const ba = S.lijst.filter(p=>p.besteAlg!=null).slice().sort((a,b)=>a.besteAlg-b.besteAlg)[0];
+  if(ba) k.push(hofRecordKaart('Beste plek algemeen klassement', '#'+ba.besteAlg, '', hofTeamNaam(ba.team,ba.coach), 'van ±26.000 deelnemers', 'globe'));
+  const bg = S.lijst.slice().sort((a,b)=>b.bovenGem-a.bovenGem)[0];
+  if(bg) k.push(hofRecordKaart('Vaakst boven het gemiddelde', bg.bovenGem, '× van '+S.R.length, hofMax3(S.lijst.filter(p=>p.bovenGem===bg.bovenGem).map(p=>hofTeamNaam(p.team,p.coach))), 'rondescore hoger dan het leaguegemiddelde', 'chart'));
+  return k;
+}
+function grFmtHof(v){ return (Math.round(v*10)/10).toString().replace('.',','); }
+function renderHofSeizoen(){
+  const S = hofSeizoen();
+  if(!S.R.length) return `<div class="news-note">Nog geen afgeronde rondes in 2026/27.</div>`;
+  const lopend = typeof liveRondeActief==='function' && liveRondeActief();
+  const hoog = S.alleScores.slice().sort((a,b)=>b.x-a.x||a.r-b.r).slice(0,10), laag = S.alleScores.slice().sort((a,b)=>a.x-b.x||a.r-b.r).slice(0,10);
+  const srt = state.hofSort || 'totaal';
+  const sorteer = {totaal:(a,b)=>b.totaal-a.totaal, beste:(a,b)=>b.beste.x-a.beste.x, weken1:(a,b)=>b.weken1-a.weken1||b.totaal-a.totaal, cvdw:(a,b)=>b.cvdw-a.cvdw||b.totaal-a.totaal, gem:(a,b)=>b.gem-a.gem, sd:(a,b)=>a.sd-b.sd};
+  const th = (k,l)=>`<th style="text-align:right;cursor:pointer;${srt===k?'color:var(--accent-text,var(--accent));':''}" onclick="state.hofSort='${k}';render()">${l}${srt===k?' ▾':''}</th>`;
+  return `
+    <div class="news-note">Records van 2026/27 over ronde ${S.R[0]} t/m ${S.R[S.R.length-1]} (alleen afgeronde rondes).${lopend?` Ronde ${LIVE_RONDE.ronde} loopt nog en telt mee zodra alle wedstrijden zijn gespeeld.`:''}</div>
+    <div class="hof-recs">${hofSeizoenKaarten(S).join('')}</div>
+    <div class="hof-twee">
+      <div class="summary-card" style="text-align:left;"><div class="label" style="margin-bottom:8px;">${icon('medal',13)} Top 10 rondescores</div>${hofTopLijst(hoog, s=>`${hofTeamNaam(s.team,s.coach)}<span class="hof-r">R${s.r} · <b>${s.x}</b></span>`)}</div>
+      <div class="summary-card" style="text-align:left;"><div class="label" style="margin-bottom:8px;">${icon('warning',13)} Laagste 10 rondescores</div>${hofTopLijst(laag, s=>`${hofTeamNaam(s.team,s.coach)}<span class="hof-r">R${s.r} · <b>${s.x}</b></span>`)}</div>
+    </div>
+    <div class="section-title"><span>${icon('couch',16)} Couch van de week per ronde</span><span class="line"></span></div>
+    <div class="hof-rondes">${S.R.map(r=>{ const i = S.rondeInfo[r]; return `<div class="hof-ronde"><div class="hof-ronde-n">R${r}</div><div class="hof-ronde-w">${i.top.map(t=>`<div>${hofTeamNaam(t, hofCoachVanTeam(t))}</div>`).join('')}</div><div class="hof-ronde-p">${i.max}<small> pnt</small></div><div class="hof-ronde-s">gem. ${grFmtHof(i.gem)} · leider: ${i.leider}</div></div>`; }).join('')}</div>
+    <div class="section-title"><span>${icon('clipboard',16)} Teamdossiers</span><span class="line"></span></div>
+    <div style="overflow-x:auto;"><table class="stat-table hof-tabel"><thead><tr><th>Team</th><th>Titels</th>${th('totaal','Totaal')}${th('beste','Beste ronde')}<th style="text-align:right;">Slechtste</th>${th('gem','Gem.')}${th('sd','Spreiding')}${th('weken1','Weken #1')}${th('cvdw','Couch v/d week')}<th style="text-align:right;">Hoogste–laagste plek</th><th style="text-align:right;">Vaakst op</th><th style="text-align:right;">Beste alg.</th><th style="text-align:right;">Beste ronde 25/26</th></tr></thead>
+      <tbody>${S.lijst.slice().sort(sorteer[srt]||sorteer.totaal).map(p=>{ const a = HOF_ARCHIEF_2526.besteRonde.find(x=>x[0]===p.team); const ik = state.followedCoach===p.coach;
+        return `<tr${ik?' style="background:color-mix(in srgb, var(--accent) 10%, transparent);"':''}><td>${hofTeamNaam(p.team,p.coach)}</td><td>${p.titels.map(w=>`<span class="hof-beker" title="${w.season}">${icon('trophy',12)}${w.season.replace('20','’').replace('/20','/')}</span>`).join('')||'<span class="hof-dim">–</span>'}</td>
+        <td style="text-align:right;font-weight:700;">${p.totaal}</td><td style="text-align:right;">${p.beste.x} <span class="hof-dim">R${p.beste.r}</span></td><td style="text-align:right;">${p.slechtste.x} <span class="hof-dim">R${p.slechtste.r}</span></td><td style="text-align:right;">${grFmtHof(p.gem)}</td><td style="text-align:right;">${grFmtHof(p.sd)}</td><td style="text-align:right;">${p.weken1||'–'}</td><td style="text-align:right;">${p.cvdw||'–'}</td><td style="text-align:right;">${p.hoogstePos}–${p.laagstePos}</td><td style="text-align:right;">${p.favPos?`${p.favPos.pos}e <span class="hof-dim">${p.favPos.n}×</span>`:'–'}</td><td style="text-align:right;">${p.besteAlg!=null?'#'+p.besteAlg:'–'}</td><td style="text-align:right;">${a?`${a[1]} <span class="hof-dim">R${a[2]}</span>`:'<span class="hof-dim">–</span>'}</td></tr>`; }).join('')}</tbody></table></div>
+    <div class="hof-noot">Titels: gekoppeld op coachnaam (voornaam) aan de erelijst. Spreiding = standaardafwijking van de rondescores (lager = constanter). Beste ronde 25/26 alleen bij dezelfde teamnaam, uit de analyse-PDF.</div>`;
+}
+function renderHofArchief(){
+  const A = HOF_ARCHIEF_2526; const maxB = Math.max(...A.besteRonde.map(x=>x[1]));
+  return `
+    <div class="news-note">${icon('note',13)} ${A.bron}. Winnaar van het seizoen: <b>${(HALL_OF_FAME_WINNERS.find(w=>w.season==='2025/2026')||{}).winner||'onbekend'}</b> met ${(HALL_OF_FAME_WINNERS.find(w=>w.season==='2025/2026')||{}).points||'?'} punten.</div>
+    <div class="hof-twee">
+      <div class="summary-card" style="text-align:left;"><div class="label" style="margin-bottom:8px;">${icon('trophy',13)} Stand na ronde 32</div>
+        ${hofTopLijst(A.stand, x=>`${x[0]}${CASTING_COUCH_COACHES.some(c=>c.team===x[0])?` <span class="hof-dim">· ${hofCoachVanTeam(x[0])}</span>`:''}<span class="hof-r"><b>${x[1]}</b></span>`)}</div>
+      <div class="summary-card" style="text-align:left;"><div class="label" style="margin-bottom:8px;">${icon('medal',13)} De Gouden Ronde — beste ronde per team</div>
+        ${hofTopLijst(A.besteRonde.slice().sort((a,b)=>b[1]-a[1]), x=>`${x[0]}${x[1]===maxB?' '+icon('star',11):''}<span class="hof-r">R${x[2]} · <b>${x[1]}</b></span>`)}</div>
+    </div>
+    <div class="section-title"><span>${icon('pin',16)} Meest bezette plek</span><span class="line"></span></div>
+    <div class="hof-bezet">${A.meestBezet.map(x=>`<div class="hof-bezet-k"><div class="hof-bezet-p">${x[1]}e</div><div><b>${x[0]}</b><div class="hof-dim">${x[2]} weken</div></div></div>`).join('')}</div>
+    <div class="section-title"><span>${icon('clipboard',16)} Teamdossiers 2025/26</span><span class="line"></span></div>
+    <div class="hof-dos">${A.dossiers.map(x=>`<div class="hof-dos-k"><div class="hof-dos-t">${x[1]}</div><div class="hof-dos-n">${x[0]}${CASTING_COUCH_COACHES.some(c=>c.team===x[0])?` <span class="hof-dim">· ${hofCoachVanTeam(x[0])}</span>`:''}</div><div class="hof-dos-s">${x[2]}</div></div>`).join('')}</div>`;
+}
+function renderHallOfFameTab(){
+  const v = state.hofView || 'overzicht';
+  const tabs = [['overzicht','Overzicht'],['seizoen','Seizoen 2026/27'],['archief','Archief 2025/26']];
+  return `
+    <div class="news-note">Erelijst, prijzenkast en records van jullie Casting Couch-league. De records van dit seizoen rekenen automatisch mee na elke afgeronde ronde.</div>
+    <div class="view-toggle" style="margin-bottom:16px;">${tabs.map(([k,l])=>`<button class="${v===k?'active':''}" onclick="setHofView('${k}')">${l}</button>`).join('')}</div>
+    ${v==='seizoen' ? renderHofSeizoen() : v==='archief' ? renderHofArchief() : renderHofOverzicht()}`;
+}
+
 function renderLeagueTab(){
   const availRounds = availableLeagueRounds();
   const selectedRound = state.leagueSelectedRound;
