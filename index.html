@@ -1280,6 +1280,61 @@
   .vo-noot{margin-top:10px;font-size:11px;color:var(--text-dim);}
   .pc-opp.vo-twijfel{background:var(--myteam);color:var(--on-myteam);border-radius:999px;padding:0 5px;}
   .pc-opp.vo-nieuw{background:var(--accent);color:var(--on-accent);border-radius:999px;padding:0 5px;}
+
+.gr-root{--gs-1:#3987e5;--gs-2:#d95926;--gs-3:#199e70;--gs-4:#c98500;--gs-5:#d55181;--gs-6:#008300;--gs-7:#9085e9;--gs-8:#e66767;display:flex;flex-direction:column;gap:14px;}
+body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:#1baf7a;--gs-4:#eda100;--gs-5:#e87ba4;--gs-6:#008300;--gs-7:#6250d6;--gs-8:#e34948;}
+.gr-paneel,.gr-kaart{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;}
+.gr-rij{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;}
+.gr-opties{margin-top:10px;align-items:center;}
+.gr-veld{display:flex;flex-direction:column;gap:4px;font-size:11px;color:var(--text-dim);min-width:0;}
+.gr-veld select{min-width:120px;}
+.gr-root select,.gr-root input[type=text]{background:var(--bg-alt);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:7px 10px;font-family:'Inter';font-size:13px;}
+.gr-root select{font-weight:600;}
+.gr-plot .gr-svg{background:var(--bg-alt);border-radius:10px;padding:6px;box-sizing:border-box;}
+.gr-cirkel .gr-svg{background:none;}
+.gr-check{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text);cursor:pointer;}
+.gr-titel{font-weight:700;font-size:15px;margin-bottom:8px;}
+.gr-titel small{display:block;font-weight:400;font-size:11px;color:var(--text-dim);margin-top:2px;}
+.gr-plot{position:relative;}
+.gr-svg{width:100%;height:auto;display:block;overflow:visible;}
+.gr-svg-c{max-width:340px;}
+.gr-grid{stroke:var(--line);stroke-width:1;}
+.gr-nul{stroke:var(--text-dim);stroke-width:1;}
+.gr-cross{stroke:var(--text-dim);stroke-width:1;stroke-dasharray:3 3;pointer-events:none;}
+.gr-as{fill:var(--text-dim);font-size:11px;}
+.gr-lbl{fill:var(--text);font-size:11px;font-weight:600;}
+.gr-som{fill:var(--text);font-size:26px;font-weight:800;}
+.gr-tip{position:absolute;display:none;pointer-events:none;background:var(--bg-alt);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;color:var(--text);box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:5;min-width:140px;}
+.gr-tr{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.gr-tr b{margin-left:auto;padding-left:10px;}
+.gr-tr i,.gr-leg-i i,.gr-leg-r i,.gr-chip i,.gr-dot{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none;}
+.gr-dot{margin-right:6px;vertical-align:-1px;}
+.gr-leg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;}
+.gr-leg-i{display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);}
+.gr-leg-i b{color:var(--text-dim);font-weight:600;}
+.gr-cirkel{display:flex;flex-wrap:wrap;gap:18px;align-items:center;}
+.gr-cirkel .gr-svg{flex:0 1 340px;}
+.gr-leg-v{flex:1 1 220px;display:flex;flex-direction:column;gap:6px;font-size:13px;}
+.gr-leg-r{display:flex;align-items:center;gap:8px;}
+.gr-leg-r b{margin-left:auto;}
+.gr-leg-r small{color:var(--text-dim);width:36px;text-align:right;}
+.gr-noot{font-size:11px;color:var(--text-dim);padding:6px 2px;}
+.gr-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.gr-chip{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--text);cursor:pointer;}
+.gr-chip.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);}
+.gr-chip img,.gr-item img{width:14px;height:14px;object-fit:contain;}
+.gr-root .btn.gr-kl{padding:5px 10px !important;font-size:11px !important;min-height:0 !important;}
+.gr-f-rij{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:4px;}
+.gr-mini{font-size:11px;color:var(--text-dim);display:flex;flex-direction:column;gap:2px;}
+.gr-range{display:flex;gap:6px;}
+.gr-range input{width:110px;}
+.gr-lijst{max-height:320px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:2px 10px;margin-top:6px;}
+.gr-item{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 6px;border-radius:6px;cursor:pointer;min-width:0;}
+.gr-item:hover{background:color-mix(in srgb,var(--accent) 8%,transparent);}
+.gr-item.on{background:color-mix(in srgb,var(--accent) 14%,transparent);}
+.gr-item span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gr-item small{color:var(--text-dim);margin-left:auto;white-space:nowrap;font-size:10px;}
+@media (max-width:640px){.gr-veld select{min-width:0;width:100%;}.gr-veld:has(.view-toggle){flex:1 1 100%;}.gr-veld .view-toggle{display:flex;}.gr-veld .view-toggle button{flex:1;}.gr-veld{flex:1 1 45%;}.gr-lijst{grid-template-columns:1fr;}}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -1957,6 +2012,7 @@ const TRANSFERS_UPDATED = '2026-09-21'; // datum van de aangeleverde transferlij
 const ICONS = {
 
   navTeam: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.4 3.5 16 2a4 4 0 0 1-8 0L3.6 3.5a2 2 0 0 0-1.3 2.2l.6 3.5a1 1 0 0 0 1 .8H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.2a1 1 0 0 0 1-.8l.6-3.5a2 2 0 0 0-1.3-2.2z"/></svg>`,
+  navChart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>`,
   navStar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>`,
   navRonde: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3.5 2"/></svg>`,
   navTrophy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.7V17c0 .6-.5 1-1 1.2C7.9 18.8 7 20.2 7 22"/><path d="M14 14.7V17c0 .6.5 1 1 1.2 1.1.6 2 2 2 3.8"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`,
@@ -2037,6 +2093,7 @@ const NAV_GROUPS = [
   {id:'scout', label:'Spelers', iconName:'navUsers', tabs:['scout','rankings','parels','clubs','positiewisselingen','penaltys','transfers'], color:'var(--accent)', desc:'Zoeken, vergelijken en ontdekken'},
   {id:'wedstrijden', label:'Wedstrijden', iconName:'navCal', tabs:['matches','calendar','standings'], color:'var(--accent)', desc:'Programma, uitslagen en standen'},
   {id:'blessures', label:'Blessures', iconName:'navMed', tabs:['injuries','suspensions','injuryIndex','cardIndex','injuryHistory'], color:'var(--accent)', desc:'Wie is er (niet) fit'},
+  {id:'grafieken', label:'Grafieken', iconName:'navChart', tabs:['grafieken'], color:'var(--accent)', desc:'Stel zelf een grafiek samen: spelers, clubs, coaches en scheidsrechters'},
   {id:'downloads', label:'Downloads', iconName:'navDown', tabs:['downloads','controle'], color:'var(--accent)', desc:'Alle gegevens: per ronde, speler, club, coach, seizoen en per bron'},
 ];
 const TAB_LABELS = {
@@ -2045,7 +2102,7 @@ const TAB_LABELS = {
   scout:'Scout', clubs:'Clubs', rankings:'Topstatistieken', parels:'Parels', positiewisselingen:'Positiewisselingen', penaltys:'Overig', transfers:'Transfers',
   matches:'Wedstrijden', calendar:'Kalender', standings:'Standen',
   injuries:'Actueel', suspensions:'Schorsingen', injuryIndex:'Blessure-index', cardIndex:'Kaarten-index', injuryHistory:'Geschiedenis',
-  downloads:'Downloads', controle:'Controle',
+  downloads:'Downloads', controle:'Controle', grafieken:'Grafieken',
   week_potentieel:'Verwacht (komende ronde)', week_team:'Team v/d week', week_perfectteam:'Perfect team (seizoen)',
   week_players:'Spelers v/d week', week_koopje:'Koopjes', week_flop:'Flops', week_coach:'Coach v/d week (landelijk)', week_couch:'Couch v/d week', week_algemeen:'Algemeen klassement', week_scheidsrechters:'Scheidsrechters',
 };
@@ -10983,6 +11040,362 @@ function toggleCompareFilter(id){
   render();
 }
 
+// ==================== GRAFIEKEN (eigen grafiek samenstellen, sinds 17-10-2026) ====================
+// Onderwerp (spelers, clubs, Casting Couch-coaches, scheidsrechters) × maatstaf × weergave (per ronde / totaal) × soort
+// (lijn, staaf, cirkel), met meervoudige selectie en filters. Alle data komt live uit de rondeconstanten van het dashboard
+// (SEASON_2627_SNAPSHOTS, MATCHES, LEAGUE_ROUND_SNAPSHOTS, REFEREE_STATS), dus volgt elke update vanzelf.
+// Kleuren: vaste categorische reeks (gevalideerd voor licht en donker); de kleur hoort bij de gekozen speler/club/coach.
+const GR_MAX_REEKSEN = 8;
+const GR_ONDERWERPEN = {
+  spelers:{label:'Spelers', enkel:'speler'},
+  clubs:{label:'Clubs', enkel:'club'},
+  coaches:{label:'Casting Couch-coaches', enkel:'coach'},
+  scheids:{label:'Scheidsrechters', enkel:'scheidsrechter'},
+};
+// soort: 'som' = optelbaar per ronde · 'stand' = positie (lager is beter) · 'cum' = al opgeteld (totaal na de ronde)
+const GR_MAATSTAVEN = {
+  spelers:[
+    {id:'punten', label:'CVHJ-punten', soort:'som', veld:'playerRoundPoints'},
+    {id:'minuten', label:'Minuten', soort:'som', veld:'playerRoundMinutes'},
+    {id:'doelpunten', label:'Doelpunten', soort:'som', veld:'playerRoundGoals'},
+    {id:'assists', label:'Assists', soort:'som', veld:'playerRoundAssists'},
+    {id:'geel', label:'Gele kaarten', soort:'som', veld:'playerRoundYellow'},
+    {id:'rood', label:'Rode kaarten', soort:'som', veld:'playerRoundRed'},
+    {id:'cs', label:'Clean sheets', soort:'som', veld:'playerRoundCleanSheet'},
+    {id:'gespeeld', label:'Gespeelde wedstrijden', soort:'som', veld:'playerRoundMinutes', telAls:v=>v>0?1:0},
+  ],
+  clubs:[
+    {id:'punten', label:'CVHJ-punten (alle spelers)', soort:'som'},
+    {id:'wpunten', label:'Wedstrijdpunten (3/1/0)', soort:'som'},
+    {id:'voor', label:'Doelpunten voor', soort:'som'},
+    {id:'tegen', label:'Doelpunten tegen', soort:'som'},
+    {id:'saldo', label:'Doelsaldo', soort:'som'},
+    {id:'cs', label:'Clean sheets (team)', soort:'som'},
+    {id:'geel', label:'Gele kaarten', soort:'som'},
+    {id:'stand', label:'Positie in de Eredivisie', soort:'stand'},
+  ],
+  coaches:[
+    {id:'ronde', label:'Rondepunten', soort:'som'},
+    {id:'totaal', label:'Totaal punten', soort:'cum'},
+    {id:'pos', label:'Positie Casting Couch', soort:'stand'},
+    {id:'alg', label:'Positie algemeen klassement', soort:'stand'},
+  ],
+  scheids:[
+    {id:'punten', label:'Scheidsrechterspunten', soort:'som'},
+    {id:'geel', label:'Gele kaarten', soort:'som'},
+    {id:'rood', label:'Rode kaarten', soort:'som'},
+    {id:'overtredingen', label:'Overtredingen', soort:'som'},
+    {id:'penaltys', label:"Penalty's", soort:'som'},
+    {id:'wedstrijden', label:'Wedstrijden', soort:'som'},
+  ],
+};
+function grState(){
+  if(!state.gr){
+    const coach = state.followedCoach || 'Jelle Coachman';
+    const lr = Object.keys(LEAGUE_ROUND_SNAPSHOTS).map(Number).sort((a,b)=>a-b).pop(); const top = sortedCastingCouchRows(LEAGUE_ROUND_SNAPSHOTS[lr]).slice(0,4).map(c=>c.coach);
+    state.gr = {onderwerp:'coaches', maatstaf:'totaal', soort:'lijn', weergave:'ronde', opgeteld:false, gemiddelde:false, metLopend:true,
+      van:null, tot:null, tabel:false, zoek:'', fClubs:[], fPos:'', prijsMin:0, prijsMax:5,
+      selectie:{spelers:[], clubs:[], coaches:[...new Set([coach, ...top])].filter(c=>CASTING_COUCH_COACHES.some(x=>x.coach===c)).slice(0,5), scheids:[]}};
+  }
+  return state.gr;
+}
+function grRondes(){
+  const g = grState();
+  let R = availableSnapshotRounds().filter(r=> g.metLopend || !isVoorlopigeRonde(r));
+  if(g.onderwerp==='coaches') R = R.filter(r=>LEAGUE_ROUND_SNAPSHOTS[r]);
+  if(g.onderwerp==='scheids') R = R.filter(r=>REFEREE_STATS[r]);
+  const van = g.van || R[0], tot = g.tot || R[R.length-1];
+  return R.filter(r=>r>=van && r<=tot);
+}
+function grMaatstaf(){ const g = grState(); const L = GR_MAATSTAVEN[g.onderwerp]; return L.find(m=>m.id===g.maatstaf) || L[0]; }
+// ---- data: alle kandidaten van het onderwerp (voor de selectielijst) ----
+function grKandidaten(){
+  const g = grState();
+  if(g.onderwerp==='spelers') return PLAYERS.filter(p=>!p.former).map(p=>({id:p.Speler+'|'+p.Team, naam:p.Speler, sub:`${p.Team} · ${POS_LABEL[p.Positie]||p.Positie} · ${fmtEuro(p.Prijs)}`, club:p.Team, pos:p.Positie, prijs:p.Prijs, p}));
+  if(g.onderwerp==='clubs') return [...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort().map(c=>({id:c, naam:c, sub:'', club:c}));
+  if(g.onderwerp==='coaches') return CASTING_COUCH_COACHES.map(c=>({id:c.coach, naam:c.coach, sub:c.team}));
+  const namen = new Set(); Object.values(REFEREE_STATS).forEach(r=>Object.keys(r||{}).forEach(n=>namen.add(n)));
+  return [...namen].sort().map(n=>({id:n, naam:n, sub:''}));
+}
+// ---- data: waarde van één entiteit in één ronde ----
+const __grCache = {};
+function grWaarde(onderwerp, maatstaf, id, r){
+  const S = SEASON_2627_SNAPSHOTS[r];
+  if(onderwerp==='spelers'){
+    if(!S) return null; const m = GR_MAATSTAVEN.spelers.find(x=>x.id===maatstaf);
+    const naam = id.slice(0, id.lastIndexOf('|'));
+    const bron = S[m.veld] || {}; let v = 0, gevonden = false;
+    // sleutels zijn "Naam|Club" van het moment; bij een transfer staat de speler in oudere rondes onder zijn oude club
+    for(const k in bron){ if(k===id || k.slice(0,k.lastIndexOf('|'))===naam){ v += (m.telAls ? m.telAls(bron[k]) : bron[k]); gevonden = true; } }
+    if(!gevonden && maatstaf!=='punten' && S.playerRoundPoints && (id in S.playerRoundPoints)) return 0;
+    return gevonden ? v : (maatstaf==='punten' ? (S.playerRoundPoints && (id in S.playerRoundPoints) ? 0 : null) : 0);
+  }
+  if(onderwerp==='clubs'){
+    const ms = MATCHES.filter(m=>m.type==='Eredivisie' && matchRoundNumber(m.id)===r && m.homeScore!=null && (m.home===id || m.away===id));
+    if(maatstaf==='punten'){ if(!S) return null; let v=0; for(const k in S.playerRoundPoints){ if(k.slice(k.lastIndexOf('|')+1)===id) v+=S.playerRoundPoints[k]; } return v; }
+    if(maatstaf==='geel'){ if(!S) return null; let v=0; for(const k in (S.playerRoundYellow||{})){ if(k.slice(k.lastIndexOf('|')+1)===id) v+=S.playerRoundYellow[k]; } return v; }
+    if(maatstaf==='stand') return grClubStand(r)[id] ?? null;
+    if(!ms.length) return null;
+    let v=0; ms.forEach(m=>{ const thuis=m.home===id, gv=thuis?m.homeScore:m.awayScore, gt=thuis?m.awayScore:m.homeScore;
+      v += maatstaf==='wpunten' ? (gv>gt?3:gv===gt?1:0) : maatstaf==='voor' ? gv : maatstaf==='tegen' ? gt : maatstaf==='saldo' ? gv-gt : maatstaf==='cs' ? (gt===0?1:0) : 0; });
+    return v;
+  }
+  if(onderwerp==='coaches'){
+    const L = LEAGUE_ROUND_SNAPSHOTS[r]; if(!L) return null;
+    const info = CASTING_COUCH_COACHES.find(c=>c.coach===id); const st = info && L.standings[info.team]; if(!st) return null;
+    if(maatstaf==='ronde') return st.ronde; if(maatstaf==='totaal') return st.totaal; if(maatstaf==='alg') return st.positieAlgemeenKlassement ?? null;
+    if(maatstaf==='pos'){ const k='cc'+r; if(!__grCache[k]) __grCache[k] = Object.fromEntries(sortedCastingCouchRows(L).map((c,i)=>[c.coach,i+1])); return __grCache[k][id] ?? null; }
+  }
+  if(onderwerp==='scheids'){
+    const R = REFEREE_STATS[r]; if(!R) return null; const e = R[id]; return e ? (e[maatstaf] ?? 0) : 0;
+  }
+  return null;
+}
+// Eredivisie-stand na ronde r (punten, doelsaldo, doelpunten voor) uit MATCHES
+function grClubStand(r){
+  const k = 'stand'+r+'|'+MATCHES.filter(m=>m.homeScore!=null).length; if(__grCache[k]) return __grCache[k];
+  const t = {}; const z = c=> t[c] = t[c] || {p:0, s:0, v:0};
+  MATCHES.filter(m=>m.type==='Eredivisie' && m.homeScore!=null && matchRoundNumber(m.id)<=r).forEach(m=>{
+    const h=z(m.home), a=z(m.away); h.v+=m.homeScore; a.v+=m.awayScore; h.s+=m.homeScore-m.awayScore; a.s+=m.awayScore-m.homeScore;
+    if(m.homeScore>m.awayScore) h.p+=3; else if(m.homeScore<m.awayScore) a.p+=3; else { h.p++; a.p++; } });
+  const pos = Object.fromEntries(Object.entries(t).sort((x,y)=>y[1].p-x[1].p || y[1].s-x[1].s || y[1].v-x[1].v).map(([c],i)=>[c,i+1]));
+  return __grCache[k] = pos;
+}
+// ---- reeksen opbouwen ----
+function grReeksen(){
+  const g = grState(), m = grMaatstaf(), R = grRondes(), kand = grKandidaten();
+  const sel = (g.selectie[g.onderwerp]||[]).filter(id=>kand.some(k=>k.id===id));
+  const uit = sel.map((id,i)=>{
+    const k = kand.find(x=>x.id===id);
+    let waarden = R.map(r=>grWaarde(g.onderwerp, m.id, id, r));
+    if(g.weergave==='ronde' && g.opgeteld && m.soort==='som'){ let s=0, ooit=false; waarden = waarden.map(v=> v==null ? (ooit ? s : null) : (ooit=true, s+=v)); }
+    const geldig = waarden.filter(v=>v!=null);
+    let totaal = null;
+    if(geldig.length){
+      if(m.soort==='som') totaal = g.gemiddelde ? Math.round(geldig.reduce((a,b)=>a+b,0)/geldig.length*10)/10 : geldig.reduce((a,b)=>a+b,0);
+      else totaal = geldig[geldig.length-1];
+    }
+    return {id, naam:k?k.naam:id, sub:k?k.sub:'', kleurIdx:i, waarden, totaal};
+  });
+  // meer dan 8 in één totaalgrafiek: staaf = één kleur; cirkel = kleur op volgorde van de verdeling (top 7), rest = Overig (grijs)
+  if(g.weergave==='totaal' && uit.length>GR_MAX_REEKSEN){
+    if(g.soort==='cirkel'){ const rang = uit.filter(s=>s.totaal>0).sort((a,b)=>b.totaal-a.totaal).map(s=>s.id); uit.forEach(s=>{ const r = rang.indexOf(s.id); s.kleurIdx = (r>=0 && r<GR_MAX_REEKSEN-1) ? r : GR_MAX_REEKSEN; }); }
+    else uit.forEach(s=>s.kleurIdx = 0);
+  }
+  return uit;
+}
+// ---- interactie ----
+function grZet(veld, waarde){ const g = grState(); g[veld] = waarde;
+  if(veld==='onderwerp'){ g.maatstaf = GR_MAATSTAVEN[waarde][0].id; g.zoek=''; if(!g.selectie[waarde].length) grStandaardSelectie(); }
+  if(veld==='soort' && waarde==='cirkel') g.weergave = 'totaal';
+  if(veld==='weergave' && waarde==='ronde' && g.soort==='cirkel') g.soort = 'lijn';
+  render(); }
+function grToggle(id){ const g = grState(); const s = g.selectie[g.onderwerp]; const i = s.indexOf(id); if(i>=0) s.splice(i,1); else s.push(id); render(); }
+function grWis(){ grState().selectie[grState().onderwerp] = []; render(); }
+function grStandaardSelectie(){
+  const g = grState(), o = g.onderwerp;
+  if(o==='spelers'){ g.selectie.spelers = Object.values(state.squad||{}).map(p=>p.Speler+'|'+p.Team).slice(0,5); if(!g.selectie.spelers.length) grTop(5,true); }
+  if(o==='clubs') g.selectie.clubs = grKandidaten().map(k=>k.id).slice(0,5);
+  if(o==='coaches'){ const lr = Object.keys(LEAGUE_ROUND_SNAPSHOTS).map(Number).sort((a,b)=>a-b).pop(); g.selectie.coaches = sortedCastingCouchRows(LEAGUE_ROUND_SNAPSHOTS[lr]).slice(0,5).map(c=>c.coach); }
+  if(o==='scheids') g.selectie.scheids = grKandidaten().map(k=>k.id).slice(0,5);
+}
+function grTop(n, stil){
+  const g = grState(), m = grMaatstaf(), R = grRondes();
+  const lijst = grGefilterd().map(k=>{ const vals = R.map(r=>grWaarde(g.onderwerp, m.id, k.id, r)).filter(v=>v!=null);
+    const t = !vals.length ? null : m.soort==='som' ? vals.reduce((a,b)=>a+b,0) : vals[vals.length-1]; return {id:k.id, t}; })
+    .filter(x=>x.t!=null).sort((a,b)=> m.soort==='stand' ? a.t-b.t : b.t-a.t).slice(0,n);
+  g.selectie[g.onderwerp] = lijst.map(x=>x.id); if(!stil) render();
+}
+function grMijnTeam(){ const g = grState();
+  if(g.onderwerp==='spelers') g.selectie.spelers = Object.values(state.squad||{}).map(p=>p.Speler+'|'+p.Team);
+  if(g.onderwerp==='coaches' && state.followedCoach && !g.selectie.coaches.includes(state.followedCoach)) g.selectie.coaches.unshift(state.followedCoach);
+  if(g.onderwerp==='clubs') g.selectie.clubs = [...new Set(Object.values(state.squad||{}).map(p=>p.Team))];
+  render(); }
+function grAlles(){ const g = grState(); g.selectie[g.onderwerp] = grGefilterd().map(k=>k.id); render(); }
+function grToggleClubFilter(c){ const g = grState(); const i = g.fClubs.indexOf(c); if(i>=0) g.fClubs.splice(i,1); else g.fClubs.push(c); render(); }
+function grGefilterd(){
+  const g = grState(); const q = normSearch(g.zoek||'');
+  return grKandidaten().filter(k=>{
+    if(q && !normSearch(k.naam+' '+(k.sub||'')).includes(q)) return false;
+    if(g.onderwerp==='spelers'){
+      if(g.fClubs.length && !g.fClubs.includes(k.club)) return false;
+      if(g.fPos && k.pos!==g.fPos) return false;
+      if(k.prijs<g.prijsMin || k.prijs>g.prijsMax) return false;
+    }
+    if(g.onderwerp==='clubs' && g.fClubs.length && !g.fClubs.includes(k.club)) return false;
+    return true; });
+}
+function grCsv(){
+  const g = grState(), m = grMaatstaf(), R = grRondes(), reeksen = grReeksen();
+  const kop = g.weergave==='ronde' ? ['Naam', ...R.map(r=>'Ronde '+r)] : ['Naam', m.label+(g.gemiddelde&&m.soort==='som'?' (gem. per ronde)':'')];
+  const rijen = reeksen.map(s=> g.weergave==='ronde' ? [s.naam, ...s.waarden.map(v=>v==null?'':v)] : [s.naam, s.totaal==null?'':s.totaal]);
+  const csv = [kop, ...rijen].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download = `grafiek_${g.onderwerp}_${m.id}.csv`; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 500);
+}
+// ---- tooltips ----
+function grTip(evt, html){ const t = document.getElementById('gr-tip'); if(!t) return; if(!html){ t.style.display='none'; return; }
+  t.innerHTML = html; t.style.display='block'; const box = t.parentElement.getBoundingClientRect();
+  let x = evt.clientX - box.left + 14, y = evt.clientY - box.top + 14; if(x + t.offsetWidth > box.width) x = evt.clientX - box.left - t.offsetWidth - 14; t.style.left = x+'px'; t.style.top = y+'px'; }
+function grHoverRonde(evt){
+  const d = window.__grData; if(!d) return; const svg = evt.currentTarget.ownerSVGElement || evt.currentTarget; const pt = svg.getBoundingClientRect();
+  const x = (evt.clientX - pt.left) / pt.width * d.W; let i = Math.round((x - d.x0) / d.stap); i = Math.max(0, Math.min(d.R.length-1, i));
+  const lijn = document.getElementById('gr-cross'); if(lijn){ const cx = d.x0 + i*d.stap; lijn.setAttribute('x1',cx); lijn.setAttribute('x2',cx); lijn.style.display=''; }
+  const rijen = d.reeksen.map(s=>({s, v:s.waarden[i]})).filter(x=>x.v!=null).sort((a,b)=> d.stand ? a.v-b.v : b.v-a.v);
+  grTip(evt, `<b>Ronde ${d.R[i]}${d.voorlopig.includes(d.R[i])?' (voorlopig)':''}</b>${rijen.map(x=>`<div class="gr-tr"><i style="background:var(--gs-${x.s.kleurIdx%GR_MAX_REEKSEN+1})"></i>${x.s.naam}<b>${grFmt(x.v)}</b></div>`).join('')}`);
+}
+function grUit(){ grTip(null, null); const l = document.getElementById('gr-cross'); if(l) l.style.display='none'; }
+function grFmt(v){ return v==null ? '–' : Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.',','); }
+function grEsc(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// ---- schaal ----
+function grTicks(min, max, n){
+  if(min===max){ max = min+1; min = Math.min(0, min); }
+  const ruw = (max-min)/(n||5), mag = Math.pow(10, Math.floor(Math.log10(ruw))), f = ruw/mag;
+  const stap = (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*mag; const a = Math.floor(min/stap)*stap, b = Math.ceil(max/stap)*stap;
+  const t = []; for(let v=a; v<=b+stap/2; v+=stap) t.push(Math.round(v*100)/100); return {a, b, t};
+}
+// positie-assen beginnen bij 1 (bovenaan) en tonen geen 0
+function grSchaal(lo, hi, stand){ const sc = grTicks(lo, hi, 5); if(stand){ sc.a = 1; sc.t = [1, ...sc.t.filter(t=>t>1)]; if(sc.b<=1) sc.b = 2; } return sc; }
+function grMobiel(){ return (window.innerWidth||1000) < 640; }
+function grLabel(naam, n){ const o = grState().onderwerp; if(o==='spelers') return pitchSurname(naam); if(n>10 && naam.includes(' ')) return naam.split(' ').slice(1).join(' '); return naam; }
+// ---- tekenen ----
+function grSvgRonde(reeksen, R, m, soort){
+  const W = grMobiel() ? 440 : 900, H = grMobiel() ? 300 : 380, x0 = 44, x1 = W-14, y0 = 18, y1 = H-38;
+  const stand = m.soort==='stand';
+  const alle = reeksen.flatMap(s=>s.waarden).filter(v=>v!=null);
+  if(!alle.length) return `<div class="news-note">Geen gegevens voor deze keuze.</div>`;
+  let lo = Math.min(...alle), hi = Math.max(...alle); if(!stand && soort==='staaf') lo = Math.min(0, lo); if(!stand && lo>0 && soort==='lijn' && m.id!=='totaal') lo = Math.min(0, lo);
+  if(stand){ lo = Math.max(1, lo); }
+  const sc = grSchaal(lo, hi, stand); const yv = v => stand ? y0 + (v - sc.a)/(sc.b - sc.a)*(y1-y0) : y1 - (v - sc.a)/(sc.b - sc.a)*(y1-y0);
+  const n = R.length, stap = soort==='staaf' ? (x1-x0)/n : (n>1 ? (x1-x0)/(n-1) : 0);
+  const xc = i => soort==='staaf' ? x0 + stap*(i+0.5) : (n>1 ? x0 + i*stap : (x0+x1)/2);
+  const voorlopig = R.filter(r=>isVoorlopigeRonde(r));
+  let g = '';
+  sc.t.forEach(t=>{ const y = yv(t); g += `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" class="gr-grid"/><text x="${x0-8}" y="${y+4}" class="gr-as" text-anchor="end">${grFmt(t)}</text>`; });
+  const elke = Math.ceil(n / Math.max(1, Math.floor((x1-x0)/34)));
+  R.forEach((r,i)=>{ if(i % elke && i!==n-1) return; g += `<text x="${xc(i)}" y="${y1+20}" class="gr-as" text-anchor="middle">${isVoorlopigeRonde(r)?'R'+r+'*':'R'+r}</text>`; });
+  if(!stand && sc.a<0 && sc.b>0) g += `<line x1="${x0}" x2="${x1}" y1="${yv(0)}" y2="${yv(0)}" class="gr-nul"/>`;
+  if(soort==='staaf'){
+    const k = reeksen.length, bw = Math.max(3, Math.min(28, (stap*0.78 - (k-1)*2)/k));
+    const basis = stand ? y1 : yv(Math.max(sc.a, Math.min(0, sc.b)));
+    R.forEach((r,i)=>{ const start = xc(i) - (k*bw + (k-1)*2)/2;
+      reeksen.forEach((s,j)=>{ const v = s.waarden[i]; if(v==null) return; const y = yv(v); const top = stand ? y : Math.min(y, basis), h = Math.max(1, Math.abs((stand?y1:basis) - y));
+        g += `<rect x="${start + j*(bw+2)}" y="${top}" width="${bw}" height="${h}" rx="${Math.min(4,bw/2)}" fill="var(--gs-${s.kleurIdx%GR_MAX_REEKSEN+1})" onmousemove="grTip(event,'<b>${grEsc(s.naam)}</b><br>Ronde ${r}: <b>${grFmt(v)}</b>')" onmouseleave="grUit()"/>`; }); });
+  } else {
+    reeksen.forEach(s=>{ const kl = `var(--gs-${s.kleurIdx%GR_MAX_REEKSEN+1})`; let pad = '', open = false;
+      s.waarden.forEach((v,i)=>{ if(v==null){ open=false; return; } pad += `${open?'L':'M'}${xc(i).toFixed(1)},${yv(v).toFixed(1)} `; open = true; });
+      g += `<path d="${pad}" fill="none" stroke="${kl}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s.waarden.forEach((v,i)=>{ if(v!=null) g += `<circle cx="${xc(i)}" cy="${yv(v)}" r="4" fill="${kl}" stroke="var(--surface)" stroke-width="2"/>`; });
+      // directe label aan het eind van de lijn bij weinig reeksen
+      if(reeksen.length<=4){ const li = s.waarden.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop(); if(li!=null && li>=0) g += `<text x="${Math.min(xc(li)+8, x1-2)}" y="${yv(s.waarden[li])-8}" class="gr-lbl" text-anchor="${xc(li)+8>x1-60?'end':'start'}">${grEsc(grLabel(s.naam, reeksen.length))}</text>`; }
+    });
+    g += `<line id="gr-cross" x1="0" x2="0" y1="${y0}" y2="${y1}" class="gr-cross" style="display:none"/>`;
+    g += `<rect x="${x0-10}" y="${y0}" width="${x1-x0+20}" height="${y1-y0}" fill="transparent" onmousemove="grHoverRonde(event)" onmouseleave="grUit()"/>`;
+  }
+  window.__grData = {W, x0, stap: n>1?(x1-x0)/(n-1):1, R, reeksen, stand, voorlopig};
+  return `<svg viewBox="0 0 ${W} ${H}" class="gr-svg" role="img" aria-label="${grEsc(m.label)} per ronde">${g}</svg>`;
+}
+function grSvgTotaal(reeksen, m, g0){
+  const data = reeksen.filter(s=>s.totaal!=null).slice().sort((a,b)=> m.soort==='stand' ? a.totaal-b.totaal : b.totaal-a.totaal);
+  if(!data.length) return `<div class="news-note">Geen gegevens voor deze keuze.</div>`;
+  const W = grMobiel() ? 440 : 900, H = grMobiel() ? 320 : 380, x0 = 44, x1 = W-14, y0 = 22, y1 = H-80;
+  const stand = m.soort==='stand';
+  const lo = stand ? 1 : Math.min(0, ...data.map(s=>s.totaal)), hi = Math.max(...data.map(s=>s.totaal));
+  const sc = grSchaal(lo, hi, stand); const yv = v => stand ? y0 + (v-sc.a)/(sc.b-sc.a)*(y1-y0) : y1 - (v-sc.a)/(sc.b-sc.a)*(y1-y0);
+  const n = data.length, stap = (x1-x0)/n, bw = Math.max(4, Math.min(48, stap*0.7)); const basis = stand ? y1 : yv(Math.max(sc.a, Math.min(0, sc.b)));
+  let g = '';
+  sc.t.forEach(t=>{ const y = yv(t); g += `<line x1="${x0}" x2="${x1}" y1="${y}" y2="${y}" class="gr-grid"/><text x="${x0-8}" y="${y+4}" class="gr-as" text-anchor="end">${grFmt(t)}</text>`; });
+  data.forEach((s,i)=>{ const x = x0 + stap*(i+0.5), y = yv(s.totaal), top = stand ? y : Math.min(y, basis), h = Math.max(1, Math.abs((stand?y1:basis)-y));
+    const kl = reeksen.length<=GR_MAX_REEKSEN ? `var(--gs-${s.kleurIdx%GR_MAX_REEKSEN+1})` : 'var(--gs-1)';
+    g += `<rect x="${x-bw/2}" y="${top}" width="${bw}" height="${h}" rx="4" fill="${kl}" onmousemove="grTip(event,'<b>${grEsc(s.naam)}</b><br>${grEsc(m.label)}: <b>${grFmt(s.totaal)}</b>')" onmouseleave="grUit()"/>`;
+    if(n<=(grMobiel()?10:20)) g += `<text x="${x}" y="${(stand?y+h:top)-6}" class="gr-lbl" text-anchor="middle">${grFmt(s.totaal)}</text>`;
+    g += `<text transform="translate(${x},${y1+14}) rotate(-35)" class="gr-as" text-anchor="end">${grEsc(grLabel(s.naam, n).slice(0,18))}</text>`; });
+  return `<svg viewBox="0 0 ${W} ${H}" class="gr-svg" role="img" aria-label="${grEsc(m.label)}">${g}</svg>`;
+}
+function grSvgCirkel(reeksen, m){
+  if(m.soort!=='som') return `<div class="news-note">Een cirkeldiagram toont een verdeling van een totaal; dat kan niet met een positie of een al opgeteld totaal. Kies een staaf- of lijngrafiek.</div>`;
+  let data = reeksen.filter(s=>s.totaal!=null && s.totaal>0).slice().sort((a,b)=>b.totaal-a.totaal);
+  const neg = reeksen.some(s=>s.totaal<0);
+  if(!data.length) return `<div class="news-note">Geen positieve waarden om te verdelen.</div>`;
+  if(data.length>GR_MAX_REEKSEN){ const rest = data.slice(GR_MAX_REEKSEN-1); data = data.slice(0,GR_MAX_REEKSEN-1).concat([{naam:`Overig (${rest.length})`, totaal:rest.reduce((a,b)=>a+b.totaal,0), kleurIdx:-1}]); }
+  const som = data.reduce((a,b)=>a+b.totaal,0); const cx = 190, cy = 190, R1 = 170, R0 = 96; let hoek = -Math.PI/2, g = '';
+  data.forEach(s=>{ const frac = s.totaal/som, a1 = hoek + frac*2*Math.PI; const groot = frac>0.5?1:0;
+    const p = (r,a)=>`${(cx+r*Math.cos(a)).toFixed(2)},${(cy+r*Math.sin(a)).toFixed(2)}`;
+    const kl = (s.kleurIdx<0 || s.kleurIdx>=GR_MAX_REEKSEN) ? 'var(--text-dim)' : `var(--gs-${s.kleurIdx+1})`;
+    const d = frac>=0.9999 ? `M${cx},${cy-R1} A${R1},${R1} 0 1 1 ${cx-0.01},${cy-R1} L${cx-0.01},${cy-R0} A${R0},${R0} 0 1 0 ${cx},${cy-R0} Z`
+      : `M${p(R1,hoek)} A${R1},${R1} 0 ${groot} 1 ${p(R1,a1)} L${p(R0,a1)} A${R0},${R0} 0 ${groot} 0 ${p(R0,hoek)} Z`;
+    g += `<path d="${d}" fill="${kl}" stroke="var(--surface)" stroke-width="2" onmousemove="grTip(event,'<b>${grEsc(s.naam)}</b><br>${grFmt(s.totaal)} (${Math.round(frac*100)}%)')" onmouseleave="grUit()"/>`;
+    hoek = a1; });
+  g += `<text x="${cx}" y="${cy-4}" text-anchor="middle" class="gr-som">${grFmt(Math.round(som*10)/10)}</text><text x="${cx}" y="${cy+18}" text-anchor="middle" class="gr-as">${grEsc(m.label.toLowerCase())}</text>`;
+  const legenda = data.map(s=>`<div class="gr-leg-r"><i style="background:${(s.kleurIdx<0||s.kleurIdx>=GR_MAX_REEKSEN)?'var(--text-dim)':`var(--gs-${s.kleurIdx+1})`}"></i><span>${grEsc(s.naam)}</span><b>${grFmt(s.totaal)}</b><small>${Math.round(s.totaal/som*100)}%</small></div>`).join('');
+  return `<div class="gr-cirkel"><svg viewBox="0 0 380 380" class="gr-svg gr-svg-c" role="img" aria-label="Verdeling ${grEsc(m.label)}">${g}</svg><div class="gr-leg-v">${legenda}${neg?'<div class="gr-noot">Negatieve totalen tellen niet mee in de verdeling.</div>':''}</div></div>`;
+}
+// ---- tabblad ----
+function renderGrafiekenTab(){
+  const g = grState(), m = grMaatstaf(), alleR = availableSnapshotRounds().filter(r=> g.metLopend || !isVoorlopigeRonde(r)), R = grRondes();
+  const reeksenAlle = grReeksen();
+  const teVeel = g.weergave==='ronde' && reeksenAlle.length > GR_MAX_REEKSEN;
+  const reeksen = teVeel ? reeksenAlle.slice(0, GR_MAX_REEKSEN) : reeksenAlle;
+  const sel = g.selectie[g.onderwerp];
+  const kand = grGefilterd();
+  const sel2 = (o,v,lab)=>`<option value="${v}" ${o===v?'selected':''}>${lab}</option>`;
+  const knop = (veld, waarde, lab, ic)=>`<button class="${g[veld]===waarde?'active':''}" onclick="grZet('${veld}','${waarde}')">${ic?icon(ic,13)+' ':''}${lab}</button>`;
+  const lopend = typeof liveRondeActief==='function' && liveRondeActief();
+  const grafiek = !reeksen.length ? `<div class="news-note">Kies hieronder één of meer ${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} om een grafiek te maken.</div>`
+    : g.soort==='cirkel' ? grSvgCirkel(reeksenAlle, m)
+    : g.weergave==='ronde' ? grSvgRonde(reeksen, R, m, g.soort) : grSvgTotaal(reeksenAlle, m, g);
+  const legenda = (g.soort!=='cirkel' && reeksen.length>=2 && (g.weergave==='ronde' || reeksen.length<=GR_MAX_REEKSEN))
+    ? `<div class="gr-leg">${(g.weergave==='ronde'?reeksen:reeksenAlle).map(s=>`<span class="gr-leg-i" onclick="grToggle('${grEsc(s.id)}')" title="Klik om te verwijderen"><i style="background:var(--gs-${s.kleurIdx%GR_MAX_REEKSEN+1})"></i>${grEsc(s.naam)}${s.totaal!=null?` <b>${grFmt(s.totaal)}</b>`:''}</span>`).join('')}</div>` : '';
+  const tabel = g.tabel && reeksenAlle.length ? `<div style="overflow-x:auto;margin-top:10px;"><table class="stat-table"><thead><tr><th>${GR_ONDERWERPEN[g.onderwerp].enkel}</th>${g.weergave==='ronde'?R.map(r=>`<th style="text-align:right;">R${r}${isVoorlopigeRonde(r)?'*':''}</th>`).join(''):''}<th style="text-align:right;">${m.soort==='som'?(g.gemiddelde?'Gem./ronde':'Totaal'):'Laatste'}</th></tr></thead>
+      <tbody>${(g.weergave==='totaal' ? reeksenAlle.slice().sort((a,b)=> (a.totaal==null)-(b.totaal==null) || (m.soort==='stand' ? a.totaal-b.totaal : b.totaal-a.totaal)) : reeksenAlle).map(s=>`<tr><td><i class="gr-dot" style="background:${s.kleurIdx<GR_MAX_REEKSEN?`var(--gs-${s.kleurIdx+1})`:'var(--text-dim)'}"></i>${grEsc(s.naam)}</td>${g.weergave==='ronde'?s.waarden.map(v=>`<td style="text-align:right;">${grFmt(v)}</td>`).join(''):''}<td style="text-align:right;font-weight:700;">${grFmt(s.totaal)}</td></tr>`).join('')}</tbody></table></div>` : '';
+  const filters = g.onderwerp==='spelers' ? `
+      <div class="gr-f-rij">
+        <select onchange="grZet('fPos',this.value)">${sel2(g.fPos,'','Alle posities')}${['Goalkeeper','Defender','Midfielder','Forward'].map(p=>sel2(g.fPos,p,POS_LABEL[p])).join('')}</select>
+        <label class="gr-mini">Prijs €${g.prijsMin.toFixed(2).replace('.',',')}M – €${g.prijsMax.toFixed(2).replace('.',',')}M
+          <span class="gr-range"><input type="range" id="input-gr-pmin" min="0" max="5" step="0.25" value="${g.prijsMin}" oninput="grZet('prijsMin',Math.min(+this.value,grState().prijsMax))"><input type="range" id="input-gr-pmax" min="0" max="5" step="0.25" value="${g.prijsMax}" oninput="grZet('prijsMax',Math.max(+this.value,grState().prijsMin))"></span></label>
+      </div>` : '';
+  const clubChips = (g.onderwerp==='spelers') ? `<div class="gr-chips">${[...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort().map(c=>`<button class="gr-chip ${g.fClubs.includes(c)?'on':''}" onclick="grToggleClubFilter('${grEsc(c)}')">${teamLogo(c)}${CLUB_SHORT&&CLUB_SHORT[c]?CLUB_SHORT[c]:c}</button>`).join('')}${g.fClubs.length?`<button class="gr-chip" onclick="grState().fClubs=[];render()">wis clubs</button>`:''}</div>` : '';
+  return `<div class="gr-root">
+    ${lopend ? `<div class="news-note">${icon('clock',13)} Ronde ${LIVE_RONDE.ronde} loopt nog: die ronde telt voorlopig mee (gemarkeerd met *). Zet "Lopende ronde" uit om alleen afgeronde rondes te tonen.</div>` : ''}
+    <div class="gr-paneel">
+      <div class="gr-rij">
+        <label class="gr-veld"><span>Onderwerp</span><select onchange="grZet('onderwerp',this.value)">${Object.entries(GR_ONDERWERPEN).map(([k,v])=>sel2(g.onderwerp,k,v.label)).join('')}</select></label>
+        <label class="gr-veld"><span>Maatstaf</span><select onchange="grZet('maatstaf',this.value)">${GR_MAATSTAVEN[g.onderwerp].map(x=>sel2(g.maatstaf,x.id,x.label)).join('')}</select></label>
+        <div class="gr-veld"><span>Grafiek</span><div class="view-toggle">${knop('soort','lijn','Lijn')}${knop('soort','staaf','Staaf')}${knop('soort','cirkel','Cirkel')}</div></div>
+        <div class="gr-veld"><span>Weergave</span><div class="view-toggle">${knop('weergave','ronde','Per ronde')}${knop('weergave','totaal','Totaal')}</div></div>
+        <label class="gr-veld"><span>Van ronde</span><select onchange="grZet('van',+this.value||null)">${alleR.map(r=>sel2(String(g.van||alleR[0]),String(r),'Ronde '+r)).join('')}</select></label>
+        <label class="gr-veld"><span>Tot ronde</span><select onchange="grZet('tot',+this.value||null)">${alleR.map(r=>sel2(String(g.tot||alleR[alleR.length-1]),String(r),'Ronde '+r+(isVoorlopigeRonde(r)?' (live)':''))).join('')}</select></label>
+      </div>
+      <div class="gr-rij gr-opties">
+        ${m.soort==='som' && g.weergave==='ronde' ? `<label class="gr-check"><input type="checkbox" ${g.opgeteld?'checked':''} onchange="grZet('opgeteld',this.checked)"> Opgeteld (cumulatief)</label>` : ''}
+        ${m.soort==='som' && g.weergave==='totaal' ? `<label class="gr-check"><input type="checkbox" ${g.gemiddelde?'checked':''} onchange="grZet('gemiddelde',this.checked)"> Gemiddelde per ronde</label>` : ''}
+        ${availableSnapshotRounds().some(r=>isVoorlopigeRonde(r)) ? `<label class="gr-check"><input type="checkbox" ${g.metLopend?'checked':''} onchange="grZet('metLopend',this.checked)"> Lopende ronde meenemen</label>` : ''}
+        <label class="gr-check"><input type="checkbox" ${g.tabel?'checked':''} onchange="grZet('tabel',this.checked)"> Tabel tonen</label>
+        <button class="btn ghost" style="padding:6px 10px;font-size:11px;margin-left:auto;" onclick="grCsv()">${icon('download',12)} CSV</button>
+      </div>
+    </div>
+    <div class="gr-kaart">
+      <div class="gr-titel">${grEsc(m.label)}${g.weergave==='ronde'?(g.opgeteld&&m.soort==='som'?' — opgeteld per ronde':' per ronde'):(m.soort==='som'?(g.gemiddelde?' — gemiddelde per ronde':' — totaal'):' — na de laatste ronde')} <small>${GR_ONDERWERPEN[g.onderwerp].label.toLowerCase()} · ronde ${R[0]??'–'} t/m ${R[R.length-1]??'–'}${m.soort==='stand'?' · lager is beter':''}</small></div>
+      ${teVeel ? `<div class="news-note">Per ronde passen maximaal ${GR_MAX_REEKSEN} lijnen of staven in één grafiek; de eerste ${GR_MAX_REEKSEN} van je selectie staan erin. Kies "Totaal" om alle ${reeksenAlle.length} te vergelijken.</div>` : ''}
+      <div class="gr-plot">${grafiek}<div id="gr-tip" class="gr-tip"></div></div>
+      ${legenda}${tabel}
+    </div>
+    <div class="gr-paneel">
+      <div class="gr-rij" style="align-items:center;">
+        <b style="font-size:13px;">Selectie (${sel.length})</b>
+        <button class="btn ghost gr-kl" onclick="grTop(5)">Top 5</button><button class="btn ghost gr-kl" onclick="grTop(10)">Top 10</button>
+        ${g.onderwerp!=='scheids' ? `<button class="btn ghost gr-kl" onclick="grMijnTeam()">${g.onderwerp==='coaches'?'Mijn coach':'Mijn team'}</button>` : ''}
+        <button class="btn ghost gr-kl" onclick="grAlles()">Alles${g.zoek||g.fClubs.length||g.fPos?' (gefilterd)':''}</button>
+        <button class="btn ghost gr-kl" onclick="grWis()">Wis</button>
+      </div>
+      ${sel.length ? `<div class="gr-chips">${sel.map((id,i)=>{ const k = grKandidaten().find(x=>x.id===id); const rk = reeksenAlle.find(s=>s.id===id); const ki = rk ? rk.kleurIdx : i; return `<button class="gr-chip on" onclick="grToggle('${grEsc(id)}')" title="Verwijderen"><i style="background:${ki<GR_MAX_REEKSEN?`var(--gs-${ki+1})`:'var(--text-dim)'}"></i>${grEsc(k?k.naam:id)} ×</button>`; }).join('')}</div>` : ''}
+      <input type="text" id="input-gr-zoek" placeholder="Zoek ${GR_ONDERWERPEN[g.onderwerp].enkel}…" value="${grEsc(g.zoek||'')}" oninput="grZet('zoek',this.value)" autocomplete="off" style="width:100%;margin:8px 0;">
+      ${filters}${clubChips}
+      <div class="gr-lijst">${kand.slice(0,300).map(k=>`<label class="gr-item ${sel.includes(k.id)?'on':''}"><input type="checkbox" ${sel.includes(k.id)?'checked':''} onchange="grToggle('${grEsc(k.id)}')">${k.club?teamLogo(k.club):''}<span>${grEsc(k.naam)}</span>${k.sub?`<small>${grEsc(k.sub)}</small>`:''}</label>`).join('')}${kand.length>300?`<div class="gr-noot">Nog ${kand.length-300} meer — verfijn met zoeken of filters.</div>`:''}${!kand.length?'<div class="gr-noot">Niets gevonden.</div>':''}</div>
+    </div>
+  </div>`;
+}
+
 function render(){
   // Herziening 13-10-2026: tijdmachine, Bankie, rekenmachine, snelknoppen, intro en Home/Persoonlijk/Nieuws zijn weg.
   if(state.timeMachine) state.timeMachine.active = false;
@@ -11044,7 +11457,7 @@ function render(){
       ${groupTabs.map(t=>`<button class="${state.tab===t?'active':''}" onclick="setTab('${t}')">${TAB_LABELS[t]||t}</button>`).join('')}
     </nav>` : ''}
     <main>
-      ${state.tab==='scout' ? renderScoutTab() : state.tab==='team' ? renderTeamTab() : state.tab==='clubs' ? renderClubsTab() : state.tab==='stats' ? renderStatsTab() : state.tab==='league' ? renderLeagueTab() : state.tab==='rivalen' ? renderRivalenTab() : state.tab==='leagueStats' ? (renderPuntenverloop()+renderLeagueStatsTab()) : state.tab==='spelersZoeker' ? renderSpelersZoekerTab() : state.tab==='coachTeamView' ? renderCoachTeamViewTab() : state.tab==='hof' ? renderHallOfFameTab() : state.tab==='wissels' ? renderWisselsTab() : state.tab==='parels' ? renderParelsTab() : state.tab==='matches' ? renderMatchesTab() : state.tab==='calendar' ? renderCalendarTab() : state.tab==='wisselschema' ? renderWisselschemaTab() : state.tab==='injuries' ? renderInjuriesTab() : state.tab==='injuryIndex' ? renderInjuryIndexTab() : state.tab==='cardIndex' ? renderCardIndexTab() : state.tab==='injuryHistory' ? renderInjuryHistoryTab() : state.tab==='suspensions' ? renderSuspensionsTab() : state.tab==='standings' ? renderStandingsTab() : state.tab==='rankings' ? renderRankingsTab() : state.tab==='positiewisselingen' ? renderPositiewisselingenTab() : state.tab==='penaltys' ? renderPenaltysTab() : state.tab==='controle' ? (dlOpen() ? renderControleTab() : renderDlSlot()) : state.tab==='downloads' ? (dlOpen() ? renderDownloadsPanel() : renderDlSlot()) : state.tab==='transfers' ? renderTransfersTab() : state.tab.startsWith('week_') ? renderWeekTab() : renderTeamTab()}
+      ${state.tab==='scout' ? renderScoutTab() : state.tab==='team' ? renderTeamTab() : state.tab==='clubs' ? renderClubsTab() : state.tab==='stats' ? renderStatsTab() : state.tab==='league' ? renderLeagueTab() : state.tab==='rivalen' ? renderRivalenTab() : state.tab==='leagueStats' ? (renderPuntenverloop()+renderLeagueStatsTab()) : state.tab==='spelersZoeker' ? renderSpelersZoekerTab() : state.tab==='coachTeamView' ? renderCoachTeamViewTab() : state.tab==='hof' ? renderHallOfFameTab() : state.tab==='wissels' ? renderWisselsTab() : state.tab==='parels' ? renderParelsTab() : state.tab==='matches' ? renderMatchesTab() : state.tab==='calendar' ? renderCalendarTab() : state.tab==='wisselschema' ? renderWisselschemaTab() : state.tab==='injuries' ? renderInjuriesTab() : state.tab==='injuryIndex' ? renderInjuryIndexTab() : state.tab==='cardIndex' ? renderCardIndexTab() : state.tab==='injuryHistory' ? renderInjuryHistoryTab() : state.tab==='suspensions' ? renderSuspensionsTab() : state.tab==='standings' ? renderStandingsTab() : state.tab==='rankings' ? renderRankingsTab() : state.tab==='positiewisselingen' ? renderPositiewisselingenTab() : state.tab==='penaltys' ? renderPenaltysTab() : state.tab==='controle' ? (dlOpen() ? renderControleTab() : renderDlSlot()) : state.tab==='downloads' ? (dlOpen() ? renderDownloadsPanel() : renderDlSlot()) : state.tab==='transfers' ? renderTransfersTab() : state.tab==='grafieken' ? renderGrafiekenTab() : state.tab.startsWith('week_') ? renderWeekTab() : renderTeamTab()}
     </main>
     ${renderModal()}
     ${renderDialog()}
