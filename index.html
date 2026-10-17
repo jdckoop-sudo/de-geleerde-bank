@@ -1355,6 +1355,9 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
 .gr-alles small{font-weight:400;}
 .gr-achter{fill:none;stroke:var(--text-dim);stroke-width:1;opacity:.12;pointer-events:none;}
 @media (max-width:640px){.gr-veld select{min-width:0;width:100%;}.gr-veld:has(.view-toggle){flex:1 1 100%;}.gr-veld .view-toggle{display:flex;}.gr-veld .view-toggle button{flex:1;}.gr-veld{flex:1 1 45%;}.gr-lijst{grid-template-columns:1fr;}}
+.parels-kop{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;background:none;border:none;padding:0 0 10px;cursor:pointer;color:inherit;text-align:left;}
+.parels-meer{font-size:11px;color:var(--accent-text,var(--accent));font-weight:600;white-space:nowrap;}
+.parels-kop:hover .parels-meer{text-decoration:underline;}
 </style>
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -7465,7 +7468,7 @@ function setParelsVanTot(van, tot){ if(van!=null) state.parelsVan=van; if(tot!=n
   if(state.parelsVan && state.parelsTot && state.parelsVan>state.parelsTot){ if(van!=null) state.parelsTot=state.parelsVan; else state.parelsVan=state.parelsTot; } render(); }
 function findParelsBereik(van, tot){
   const rondes = availableSnapshotRounds().filter(r=>r>=van && r<=tot);
-  const minMin = 50 * rondes.length;
+  const minMin = 50 * rondes.length; const alle = {}, mediaan = {};
   const sum = (p, veld)=>rondes.reduce((t,r)=>{ const sn=SEASON_2627_SNAPSHOTS[r]; return t + ((sn&&sn[veld]&&sn[veld][p.Speler+'|'+p.Team])||0); },0);
   const result = {};
   POS_ORDER.forEach(pos=>{
@@ -7474,17 +7477,31 @@ function findParelsBereik(van, tot){
     const prices = group.map(x=>x.p.Prijs).sort((a,b)=>a-b); const median = prices[Math.floor(prices.length/2)];
     const uit = group.length > 8 ? 5 : Math.max(0, group.length-3);
     const top = new Set(group.slice().sort((a,b)=>b.pnt-a.pnt).slice(0,uit).map(x=>x.p.Speler+'|'+x.p.Team));
-    result[pos] = group.filter(x=>x.p.Prijs<=median && !top.has(x.p.Speler+'|'+x.p.Team) && x.pnt>0)
-      .map(x=>({...x, ppm: x.pnt / x.p.Prijs})).sort((a,b)=>b.ppm-a.ppm).slice(0,5);
+    // volledige ranglijst (alle clubs) + kaart met maximaal één speler per club (sinds 17-10-2026)
+    const lijst = group.filter(x=>x.p.Prijs<=median && !top.has(x.p.Speler+'|'+x.p.Team) && x.pnt>0)
+      .map(x=>({...x, ppm: x.pnt / x.p.Prijs})).sort((a,b)=>b.ppm-a.ppm || b.pnt-a.pnt);
+    alle[pos] = lijst; mediaan[pos] = median;
+    const clubs = new Set(); result[pos] = lijst.filter(x=>{ if(clubs.has(x.p.Team)) return false; clubs.add(x.p.Team); return true; }).slice(0,5);
   });
-  return {result, rondes:rondes.length, minMin};
+  return {result, alle, mediaan, rondes:rondes.length, minMin};
 }
 function renderParelsTab(){
   const season = state.parelsSeason;
   const seizoenKeuze = `<select onchange="setParelsSeason(this.value)" style="font-weight:600;">${SEASON_ORDER.map(s=>`<option value="${s}" ${season===s?'selected':''}>Seizoen: ${s}</option>`).join('')}</select>`;
   if(season==='2026/27'){
     const per = parelsPeriode(); const opties=[]; for(let n=1;n<=per.max;n++) opties.push(n);
-    const {result, rondes, minMin} = findParelsBereik(per.van, per.tot);
+    const {result, alle, mediaan, rondes, minMin} = findParelsBereik(per.van, per.tot);
+    const open = state.parelsOpen && alle[state.parelsOpen] ? state.parelsOpen : null;
+    const ppmTxt = v=>(Math.round(v*10)/10).toString().replace('.',',');
+    const ranglijst = open ? (()=>{ const L = alle[open], opKaart = new Set(result[open].map(x=>x.p.Speler+'|'+x.p.Team));
+      return `<div class="summary-card parels-rang" style="text-align:left;margin-top:14px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;"><div class="label" style="flex:1;margin:0;">Ranglijst ${POS_LABEL[open].toLowerCase()}s — alle clubs (${L.length})</div>
+          <button class="btn ghost" style="padding:4px 10px;font-size:11px;" onclick="state.parelsOpen=null;render()">Sluiten ×</button></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">Zelfde voorwaarden als de kaart (prijs t/m mediaan ${fmtEuro(mediaan[open])}, niet bij de 5 meest scorende, minimaal ${minMin} minuten), maar met álle spelers per club. ${icon('navStar',11)} = staat op de kaart.</div>
+        <div style="overflow-x:auto;"><table class="stat-table"><thead><tr><th>#</th><th>Speler</th><th>Club</th><th style="text-align:right;">Prijs</th><th style="text-align:right;">Punten</th><th style="text-align:right;">Minuten</th><th style="text-align:right;">Per €1M</th></tr></thead>
+        <tbody>${L.map((x,i)=>`<tr style="cursor:pointer;" onclick="openPlayerModal('${encodeURIComponent(x.p.Speler)}','${encodeURIComponent(x.p.Team)}')"><td style="color:var(--text-dim);">${i+1}</td>
+          <td>${opKaart.has(x.p.Speler+'|'+x.p.Team)?icon('navStar',11)+' ':''}${x.p.Speler} ${intBadge(x.p)}</td><td>${teamLogo(x.p.Team)} ${x.p.Team}</td>
+          <td style="text-align:right;">${fmtEuro(x.p.Prijs)}</td><td style="text-align:right;">${x.pnt}</td><td style="text-align:right;">${x.min}</td><td style="text-align:right;font-weight:700;color:var(--accent-text,var(--accent));">${ppmTxt(x.ppm)}/M</td></tr>`).join('')}</tbody></table></div></div>`; })() : '';
     const any = POS_ORDER.some(pos=>result[pos] && result[pos].length);
     return `
     <div class="toolbar overig-ronde" style="margin-bottom:10px;">
@@ -7494,11 +7511,12 @@ function renderParelsTab(){
       ${per.max>=5 ? `<button class="btn ghost" style="padding:5px 10px;font-size:11px;" onclick="setParelsVanTot(${Math.max(1,per.max-4)}, ${per.max})">Laatste 5</button>` : ''}
       <button class="btn ghost" style="padding:5px 10px;font-size:11px;" onclick="state.parelsVan=null;state.parelsTot=null;render();">Heel seizoen</button>
     </div>
-    <div class="news-note">"Parels" zijn spelers die in <b>ronde ${per.van}${per.tot!==per.van?'–'+per.tot:''}</b> de meeste CVHJ-punten per miljoen haalden, goedkoper zijn dan de mediaanprijs op hun positie en niet bij de 5 meest scorende spelers van die positie in deze periode horen. Minimaal ${minMin} speelminuten in deze ${rondes} ronde${rondes===1?'':'s'}.</div>
+    <div class="news-note">"Parels" zijn spelers die in <b>ronde ${per.van}${per.tot!==per.van?'–'+per.tot:''}</b> de meeste CVHJ-punten per miljoen haalden, goedkoper zijn dan de mediaanprijs op hun positie en niet bij de 5 meest scorende spelers van die positie in deze periode horen. Minimaal ${minMin} speelminuten in deze ${rondes} ronde${rondes===1?'':'s'}. Per kaart maximaal één speler per club; klik op de kop van een kaart voor de ranglijst van alle clubs.</div>
     ${any ? `<div class="summary-cards" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));align-items:start;">
       ${POS_ORDER.map(pos=>`
-        <div class="summary-card" style="text-align:left;">
-          <div class="label" style="margin-bottom:10px;">${POS_LABEL[pos]}s</div>
+        <div class="summary-card" style="text-align:left;${open===pos?'outline:2px solid var(--accent);':''}">
+          <button class="parels-kop" onclick="state.parelsOpen=state.parelsOpen==='${pos}'?null:'${pos}';render();if(state.parelsOpen)setTimeout(()=>{const e=document.querySelector('.parels-rang');if(e)e.scrollIntoView({behavior:'smooth',block:'start'});},60)" title="Toon de ranglijst van alle clubs">
+            <span class="label" style="margin:0;">${POS_LABEL[pos]}s</span><span class="parels-meer">${open===pos?'verberg ranglijst':'ranglijst alle clubs ('+(alle[pos]||[]).length+') ›'}</span></button>
           ${result[pos] && result[pos].length ? `<ol style="list-style:none;padding:0;margin:0;">
             ${result[pos].map(x=>`
               <li onclick="openPlayerModal('${encodeURIComponent(x.p.Speler)}','${encodeURIComponent(x.p.Team)}')" style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);cursor:pointer;">
@@ -7509,7 +7527,7 @@ function renderParelsTab(){
               </li>`).join('')}
           </ol>` : `<div style="color:var(--text-dim);font-size:13px;">Geen spelers die aan de voorwaarden voldoen.</div>`}
         </div>`).join('')}
-    </div>` : `<div class="news-note">Geen parels in deze periode (te weinig spelers met ${minMin}+ minuten). Kies een groter rondebereik.</div>`}`;
+    </div>${ranglijst}` : `<div class="news-note">Geen parels in deze periode (te weinig spelers met ${minMin}+ minuten). Kies een groter rondebereik.</div>`}`;
   }
   const parels = findParels(season);
   return `
