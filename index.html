@@ -1532,6 +1532,121 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
 .kaart-ic-kop{display:inline-flex;vertical-align:-2px;margin-right:5px;color:var(--accent);}
 @media (prefers-reduced-motion:reduce){.stat-box[onclick]{transition:none;}.stat-box[onclick]:hover{transform:none;}}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style id="spiegeling">
+  /* Spiegeling (proef 25-10-2026): huisstijl uit het eend-palet. Petrol #1E3B37, kastanje #5B3A30,
+     rietgrijs #B8B5B9, mosterd #EBB43A. Ingevoegd door tools/spiegeling/bouw_proef.ps1. */
+
+  body.wa-spiegeling-licht, .wa-export.wa-spiegeling-licht{
+    --bg:#ECEAEB;--bg-alt:#E3E0E1;--surface:#FFFFFF;--surface-2:#F4F2F2;--line:rgba(30,59,55,.12);
+    --text:#1E3B37;--text-dim:rgba(30,59,55,.70);--base-text:#1E3B37;--base-dim:rgba(30,59,55,.70);
+    --accent:#1E3B37;--accent-text:#1E3B37;--accent-dim:rgba(30,59,55,.30);--on-accent:#FFFFFF;
+    --danger:#B4483A;--danger-text:#9A3B2E;--on-danger:#FFFFFF;--myteam:#EBB43A;--on-myteam:#1E3B37;
+    --gk:#EBB43A;--def:#2F6F66;--mid:#5B3A30;--fwd:#C9673E;
+    --gk-on:#1E3B37;--def-on:#FFFFFF;--mid-on:#FFFFFF;--fwd-on:#FFFFFF;
+    --gk-text:#8A6309;--def-text:#2F6F66;--mid-text:#5B3A30;--fwd-text:#A84F2A;
+    --gk-s:#EBB43A;--def-s:#2F6F66;--mid-s:#5B3A30;--fwd-s:#C9673E;
+    --card-gk:#EBB43A;--card-def:#2F6F66;--card-mid:#5B3A30;--card-fwd:#C9673E;
+    --bar-track:rgba(30,59,55,.12);--serie-1:#1E3B37;--serie-2:#EBB43A;--serie-3:#5B3A30;
+    --c-gold:#8A6309;--c-teal:#2F6F66;--c-plum:#5B3A30;--c-rose:#B4483A;--c-blue:#1E3B37;
+    --type-ere:#1E3B37;--type-euro:#5B3A30;--type-int:#2F6F66;--type-beker:#8A6309;--type-friendly:rgba(30,59,55,.6);
+    --nav-bg:#EBB43A;--nav-text:#1E3B37;--nav-dim:rgba(30,59,55,.78);--nav-act:#1E3B37;--nav-act-text:#EBB43A;
+    --zone-bg:#FFFFFF;--zone-text:#1E3B37;--zone-line:rgba(30,59,55,.12);--sec:#5B3A30;
+    --card-bg:#FFFFFF;--card-text:#1E3B37;--card-line:rgba(30,59,55,.12);
+    --pitch-a:#1E3B37;--pitch-b:rgba(255,255,255,.04);--pitch-alt-a:#5B3A30;--pitch-alt-b:rgba(255,255,255,.04);--pitch-line:rgba(242,240,238,.22);
+    --pitch-chip:#F2F0EE;--pitch-alt-chip:#F2F0EE;--pitch-chip-text:#1E3B37;--pitch-alt-chip-text:#1E3B37;--pitch-on:#FFFFFF;--pitch-alt-on:#FFFFFF;
+    --sp-chip:rgba(30,59,55,.08);
+  }
+  body.wa-spiegeling-donker, .wa-export.wa-spiegeling-donker{
+    --bg:#0F1C1A;--bg-alt:#132522;--surface:#182B28;--surface-2:#1F3531;--line:rgba(242,240,238,.10);
+    --text:#ECEAE6;--text-dim:rgba(236,234,230,.70);--base-text:#ECEAE6;--base-dim:rgba(236,234,230,.70);
+    --accent:#EBB43A;--accent-text:#EBB43A;--accent-dim:rgba(235,180,58,.35);--on-accent:#1E3B37;
+    --danger:#C65A49;--danger-text:#E58B79;--on-danger:#FFFFFF;--myteam:#EBB43A;--on-myteam:#1E3B37;
+    --gk:#EBB43A;--def:#5FA79B;--mid:#B98575;--fwd:#E0875E;
+    --gk-on:#1E3B37;--def-on:#0F1C1A;--mid-on:#0F1C1A;--fwd-on:#0F1C1A;
+    --gk-text:#EBB43A;--def-text:#7DBDB2;--mid-text:#D1A496;--fwd-text:#EDA27F;
+    --gk-s:#EBB43A;--def-s:#5FA79B;--mid-s:#B98575;--fwd-s:#E0875E;
+    --card-gk:#EBB43A;--card-def:#5FA79B;--card-mid:#B98575;--card-fwd:#E0875E;
+    --bar-track:rgba(242,240,238,.12);--serie-1:#EBB43A;--serie-2:#5FA79B;--serie-3:#B98575;
+    --c-gold:#EBB43A;--c-teal:#5FA79B;--c-plum:#B98575;--c-rose:#E58B79;--c-blue:#9FB7B3;
+    --type-ere:#EBB43A;--type-euro:#B98575;--type-int:#5FA79B;--type-beker:#E0C27A;--type-friendly:rgba(236,234,230,.6);
+    --nav-bg:#1E3B37;--nav-text:#F2F0EE;--nav-dim:rgba(242,240,238,.74);--nav-act:#EBB43A;--nav-act-text:#1E3B37;
+    --zone-bg:#182B28;--zone-text:#ECEAE6;--zone-line:rgba(242,240,238,.10);--sec:#EBB43A;
+    --card-bg:#182B28;--card-text:#ECEAE6;--card-line:rgba(242,240,238,.10);
+    --pitch-a:#1E3B37;--pitch-b:rgba(255,255,255,.04);--pitch-alt-a:#5B3A30;--pitch-alt-b:rgba(255,255,255,.04);--pitch-line:rgba(242,240,238,.22);
+    --pitch-chip:#F2F0EE;--pitch-alt-chip:#F2F0EE;--pitch-chip-text:#1E3B37;--pitch-alt-chip-text:#1E3B37;--pitch-on:#FFFFFF;--pitch-alt-on:#FFFFFF;
+    --sp-chip:rgba(242,240,238,.08);
+  }
+  /* Rust: alle kaarten één kleur (zetKaartKleuren zet --k1..4 inline, daarom !important) en geen sier-iconen */
+  body.wa-spiegeling{
+    --k1:var(--surface) !important;--k2:var(--surface) !important;--k3:var(--surface) !important;--k4:var(--surface) !important;
+    --k1-t:var(--text) !important;--k2-t:var(--text) !important;--k3-t:var(--text) !important;--k4-t:var(--text) !important;
+    --k1-a:var(--accent) !important;--k2-a:var(--accent) !important;--k3-a:var(--accent) !important;--k4-a:var(--accent) !important;
+    --k1-d:var(--text-dim) !important;--k2-d:var(--text-dim) !important;--k3-d:var(--text-dim) !important;--k4-d:var(--text-dim) !important;
+    --k1-l:var(--line) !important;--k2-l:var(--line) !important;--k3-l:var(--line) !important;--k4-l:var(--line) !important;
+    --radius:18px;
+  }
+  body.wa-spiegeling .kaart-ic{display:none !important;}
+
+  /* Lettertype: Outfit overal (vlaggen blijven via Twemoji) */
+  body.wa-spiegeling, body.wa-spiegeling *:not(svg):not(svg *){font-family:'Twemoji Country Flags','Outfit',sans-serif !important;}
+  body.wa-spiegeling h1, body.wa-spiegeling h2, body.wa-spiegeling h3, body.wa-spiegeling h4{letter-spacing:-.01em;}
+  body.wa-spiegeling .section-title{letter-spacing:.04em;font-size:14px;text-transform:none;}
+
+  /* Layout: geen zijbalk meer, de navigatie zit in de kopband */
+  .wrap{max-width:none !important;padding:0 !important;}
+  .wrap > main{max-width:1240px;margin:0 auto;padding:26px 24px 72px;box-sizing:border-box;}
+  .sp-band{background:var(--nav-bg);color:var(--nav-text);border-radius:0 0 32px 32px;}
+  .sp-in{max-width:1240px;margin:0 auto;padding:18px 24px 26px;box-sizing:border-box;}
+  .sp-row1{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .sp-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:22px;color:var(--nav-text);}
+  .sp-brand svg{width:34px;height:23px;flex:none;}
+  .sp-nav{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:flex-start;}
+  .sp-nb{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:64px;background:none;border:none;padding:0;color:var(--nav-text);font-size:12.5px;font-weight:500;cursor:pointer;}
+  .sp-c{position:relative;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb, var(--nav-text) 12%, transparent);transition:background .15s;}
+  .sp-nb:hover .sp-c{background:color-mix(in srgb, var(--nav-text) 22%, transparent);}
+  .sp-nb.active .sp-c{background:var(--nav-act);color:var(--nav-act-text);}
+  .sp-nb.active .sp-l{font-weight:600;}
+  .sp-nb:focus-visible .sp-c{outline:2px solid var(--nav-text);outline-offset:2px;}
+  .sp-c .nav-dot{position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:999px;background:#B4483A;color:#fff;font-style:normal;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+  .sp-sep{width:1px;align-self:stretch;margin:4px 4px 22px;background:color-mix(in srgb, var(--nav-text) 22%, transparent);}
+  .sp-band .status2{justify-content:flex-start;margin:18px 0 0;padding:0;border:none;color:var(--nav-dim);font-size:13px;}
+  .sp-band .st2-item{border-left-color:color-mix(in srgb, var(--nav-text) 22%, transparent);}
+  .sp-band .st2-item:first-child{padding-left:0;}
+  .sp-band .st2-item b, .sp-band .st2-btn{color:var(--nav-text);}
+  .sp-band .st2-btn{background:color-mix(in srgb, var(--nav-text) 12%, transparent);border-radius:999px;padding:6px 12px;margin-right:10px;border:none;}
+  .sp-band .st2-btn + .st2-item{border-left:none;}
+  .sp-band .st2-attn{background:var(--nav-act);color:var(--nav-act-text);}
+  .sp-band .top2{margin:24px 0 0;}
+  .sp-band .top2 h1{font-weight:700;font-size:clamp(34px,5vw,56px);text-transform:none;letter-spacing:-.02em;color:var(--nav-text);line-height:1;}
+  .sp-band .top2-desc{color:var(--nav-dim);font-size:16px;margin-top:6px;}
+  .sp-band .back-btn{background:color-mix(in srgb, var(--nav-text) 12%, transparent) !important;color:var(--nav-text) !important;border:none !important;width:44px;height:44px;border-radius:50%;}
+  .sp-band .back-btn:disabled{opacity:.35;}
+  .sp-band .seg2{margin:20px 0 0 !important;padding:0 !important;border:none !important;gap:8px;}
+  .sp-band .seg2 button{background:color-mix(in srgb, var(--nav-text) 12%, transparent) !important;border:none !important;border-radius:999px !important;margin:0 !important;color:var(--nav-text) !important;font-size:14px !important;font-weight:500 !important;padding:10px 16px !important;}
+  .sp-band .seg2 button:hover{background:color-mix(in srgb, var(--nav-text) 22%, transparent) !important;}
+  .sp-band .seg2 button.active{background:var(--nav-act) !important;color:var(--nav-act-text) !important;font-weight:600 !important;}
+
+  /* Kaarten en knoppen: zachter, ronder, zonder schaduw */
+  body.wa-spiegeling main button{border-radius:999px;}
+  body.wa-spiegeling main select, body.wa-spiegeling main input[type=text], body.wa-spiegeling main input[type=search]{border-radius:12px;}
+
+  /* Mobiel: de ronde knoppen verhuizen naar de onderbalk (bestaande mnav) */
+  @media (max-width:760px){
+    .sp-nav{display:none;}
+    .sp-band{border-radius:0 0 24px 24px;}
+    .sp-in{padding:14px 16px 20px;}
+    .sp-band .status2{margin-top:12px;flex-wrap:wrap !important;overflow:visible !important;row-gap:8px;}
+    .sp-band .st2-item{padding-left:0 !important;padding-right:12px !important;border-left:none !important;}
+    .sp-band .top2{margin-top:16px;}
+    .wrap > main{padding:16px 14px 112px;}
+    body.wa-spiegeling .mnav{background:var(--surface) !important;border-top:1px solid var(--line) !important;}
+    body.wa-spiegeling .mnav-btn{color:var(--text-dim) !important;}
+    body.wa-spiegeling .mnav-btn.active{background:var(--nav-bg) !important;color:var(--nav-text) !important;}
+  }
+</style>
+
 </head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2848,7 +2963,7 @@ async function loadSquad(){
 // altA/altB = veld van een ander team (Team v/d week, coaches), line = veldlijnen.
 // Alle vlakken komen uit de staal (WA_THEMES[].swatch); alleen tekst is zwart of wit (leesbaarheid).
 // Gegenereerd met tools/genereer_themas.py (14-10-2026). b/altB = schaduw voor de veldstrepen, geen eigen kleur.
-const WA_PITCH = {"rushmore-licht": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#26213F", "altB": "rgba(0,0,0,.08)", "line": "#DEB08E"}, "rushmore-donker": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#DEB08E", "altB": "rgba(0,0,0,.08)", "line": "#26213F"}, "tenenbaums-licht": {"a": "#575B80", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#E3D3D5"}, "tenenbaums-donker": {"a": "#E3D3D5", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#575B80"}, "aquatic-licht": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#DDBE3A"}, "aquatic-donker": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#DDBE3A"}, "darjeeling-licht": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#E59C25"}, "darjeeling-donker": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#E59C25"}, "mrfox-licht": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#951D25", "altB": "rgba(0,0,0,.08)", "line": "#E0C31F"}, "mrfox-donker": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#E0C31F", "altB": "rgba(0,0,0,.08)", "line": "#951D25"}, "moonrise-licht": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#8B1A1E", "altB": "rgba(0,0,0,.08)", "line": "#977431"}, "moonrise-donker": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#E3D0B0", "altB": "rgba(0,0,0,.08)", "line": "#8B1A1E"}};
+const WA_PITCH = {"spiegeling-licht": {"a": "#1E3B37", "b": "rgba(255,255,255,.04)", "altA": "#5B3A30", "altB": "rgba(255,255,255,.04)", "line": "#B8B5B9"}, "spiegeling-donker": {"a": "#1E3B37", "b": "rgba(255,255,255,.04)", "altA": "#5B3A30", "altB": "rgba(255,255,255,.04)", "line": "#B8B5B9"}, "rushmore-licht": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#26213F", "altB": "rgba(0,0,0,.08)", "line": "#DEB08E"}, "rushmore-donker": {"a": "#2E6A4F", "b": "rgba(0,0,0,.08)", "altA": "#DEB08E", "altB": "rgba(0,0,0,.08)", "line": "#26213F"}, "tenenbaums-licht": {"a": "#575B80", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#E3D3D5"}, "tenenbaums-donker": {"a": "#E3D3D5", "b": "rgba(0,0,0,.08)", "altA": "#A55C21", "altB": "rgba(0,0,0,.08)", "line": "#575B80"}, "aquatic-licht": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#DDBE3A"}, "aquatic-donker": {"a": "#4489A9", "b": "rgba(0,0,0,.08)", "altA": "#D29A1E", "altB": "rgba(0,0,0,.08)", "line": "#DDBE3A"}, "darjeeling-licht": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#E59C25"}, "darjeeling-donker": {"a": "#0E8B73", "b": "rgba(0,0,0,.08)", "altA": "#E57A25", "altB": "rgba(0,0,0,.08)", "line": "#E59C25"}, "mrfox-licht": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#951D25", "altB": "rgba(0,0,0,.08)", "line": "#E0C31F"}, "mrfox-donker": {"a": "#4F9AC4", "b": "rgba(0,0,0,.08)", "altA": "#E0C31F", "altB": "rgba(0,0,0,.08)", "line": "#951D25"}, "moonrise-licht": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#8B1A1E", "altB": "rgba(0,0,0,.08)", "line": "#977431"}, "moonrise-donker": {"a": "#87B1A5", "b": "rgba(0,0,0,.08)", "altA": "#E3D0B0", "altB": "rgba(0,0,0,.08)", "line": "#8B1A1E"}};
 const WA_ZONES = {"rushmore-licht": {"nav": "#26213F", "navText": "#FFFFFF", "act": "#DEB08E", "actText": "#161616", "zone": "#2E6A4F", "zoneText": "#FFFFFF", "sec": "#26213F", "card": "#26213F", "cardText": "#FFFFFF"}, "rushmore-donker": {"nav": "#DEB08E", "navText": "#161616", "act": "#26213F", "actText": "#FFFFFF", "zone": "#D9B25F", "zoneText": "#161616", "sec": "#DEB08E", "card": "#DEB08E", "cardText": "#161616"}, "tenenbaums-licht": {"nav": "#575B80", "navText": "#FFFFFF", "act": "#E3D3D5", "actText": "#161616", "zone": "#C8321E", "zoneText": "#FFFFFF", "sec": "#575B80", "card": "#575B80", "cardText": "#FFFFFF"}, "tenenbaums-donker": {"nav": "#E3D3D5", "navText": "#161616", "act": "#575B80", "actText": "#FFFFFF", "zone": "#A7C9D7", "zoneText": "#161616", "sec": "#E3D3D5", "card": "#E3D3D5", "cardText": "#161616"}, "aquatic-licht": {"nav": "#D23511", "navText": "#FFFFFF", "act": "#DDBE3A", "actText": "#161616", "zone": "#4489A9", "zoneText": "#161616", "sec": "#D23511", "card": "#D23511", "cardText": "#FFFFFF"}, "aquatic-donker": {"nav": "#DDBE3A", "navText": "#161616", "act": "#D23511", "actText": "#FFFFFF", "zone": "#D29A1E", "zoneText": "#161616", "sec": "#DDBE3A", "card": "#DDBE3A", "cardText": "#161616"}, "darjeeling-licht": {"nav": "#E2102E", "navText": "#FFFFFF", "act": "#E59C25", "actText": "#161616", "zone": "#0E8B73", "zoneText": "#161616", "sec": "#E2102E", "card": "#E2102E", "cardText": "#FFFFFF"}, "darjeeling-donker": {"nav": "#E59C25", "navText": "#161616", "act": "#E2102E", "actText": "#FFFFFF", "zone": "#5FACCF", "zoneText": "#161616", "sec": "#E59C25", "card": "#E59C25", "cardText": "#161616"}, "mrfox-licht": {"nav": "#951D25", "navText": "#FFFFFF", "act": "#E0C31F", "actText": "#161616", "zone": "#C77A2E", "zoneText": "#161616", "sec": "#951D25", "card": "#951D25", "cardText": "#FFFFFF"}, "mrfox-donker": {"nav": "#E0C31F", "navText": "#161616", "act": "#951D25", "actText": "#FFFFFF", "zone": "#4F9AC4", "zoneText": "#161616", "sec": "#E0C31F", "card": "#E0C31F", "cardText": "#161616"}, "moonrise-licht": {"nav": "#8B1A1E", "navText": "#FFFFFF", "act": "#E3D0B0", "actText": "#161616", "zone": "#977431", "zoneText": "#FFFFFF", "sec": "#8B1A1E", "card": "#8B1A1E", "cardText": "#FFFFFF"}, "moonrise-donker": {"nav": "#E3D0B0", "navText": "#161616", "act": "#8B1A1E", "actText": "#FFFFFF", "zone": "#E4B21A", "zoneText": "#161616", "sec": "#E3D0B0", "card": "#E3D0B0", "cardText": "#161616"}};
 const WA_THEMES = [
   {id:'rushmore', label:'Rushmore', mode:'donker', swatch:['#D9B25F','#DEB08E','#2E6A4F','#26213F','#D33A2C']},
@@ -2858,9 +2973,10 @@ const WA_THEMES = [
   {id:'mrfox', label:'Fantastic Mr. Fox', mode:'donker', swatch:['#C77A2E','#E0C31F','#4F9AC4','#D47A26','#951D25']},
   {id:'moonrise', label:'Moonrise Kingdom', mode:'licht', swatch:['#8B1A1E','#E4B21A','#977431','#87B1A5','#E3D0B0']},
 ];
+WA_THEMES.splice(0, WA_THEMES.length, {id:'spiegeling', label:'Spiegeling', mode:'licht', swatch:['#1E3B37','#5B3A30','#B8B5B9','#EBB43A']});
 function applyAppTheme(){
   let t = state.theme;
-  if(!WA_THEMES.some(x=>x.id===t)) t = 'rushmore';
+  if(!WA_THEMES.some(x=>x.id===t)) t = 'spiegeling';
   state.theme = t;
   const def = WA_THEMES.find(x=>x.id===t);
   let m = state.themeMode;
@@ -2917,6 +3033,7 @@ function renderAppThemeModal(){
     </div>
   </div>`;
 }
+function toggleSpMode(){ setAppTheme('spiegeling', state.themeMode==='donker' ? 'licht' : 'donker'); }
 function setAppTheme(t, mode){
   state.theme = t;
   state.themeMode = mode || (WA_THEMES.find(x=>x.id===t)||{}).mode;
@@ -11655,13 +11772,6 @@ function render(){
   const nieuwsN = mijnNieuws().length;
   const navBtn = (g, cls)=>`<button class="${cls} ${activeGroup===g.id?'active':''}" style="${activeGroup===g.id?`--nav-c:${g.color};`:''}" onclick="setTab('${g.tabs[0]}')">${icon(g.iconName,18)}<span>${g.label}</span>${(g.id==='team'||g.id==='blessures')&&nieuwsN?`<i class="nav-dot" title="${nieuwsN} melding${nieuwsN===1?'':'en'} over jouw spelers (laatste 7 dagen)">${nieuwsN}</i>`:''}</button>`;
   app.innerHTML = `
-    <aside class="nav2">
-      <div class="nav2-brand"><div class="nav2-title">De Geleerde Bank<svg class="bank-ico" viewBox="0 0 32 22" aria-hidden="true"><path d="M3 11 V7 Q16 -1 29 7 V11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="10.5" width="20" height="2.6" rx="1.2" fill="currentColor"/><rect x="5" y="15" width="22" height="3" rx="1.3" fill="currentColor"/><path d="M8 18 V21 M24 18 V21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></div><div class="nav2-rule"></div><div class="nav2-sub">Casting Couch · 2026/27</div></div>
-      <nav class="nav2-list">${NAV_GROUPS.map(g=>navBtn(g,'nav2-btn')).join('')}</nav>
-      <div class="nav2-foot">
-        <button class="nav2-btn" onclick="openAppThemePicker()">${icon('navPalette',18)}<span>Thema</span></button>
-      </div>
-    </aside>
     <nav class="mnav">
       ${NAV_GROUPS.filter(g=>MOBILE_PRIMARY_NAV.includes(g.id)).map(g=>navBtn(g,'mnav-btn')).join('')}
       <button class="mnav-btn ${!MOBILE_PRIMARY_NAV.includes(activeGroup)?'active':''}" onclick="toggleMobileMore()">${icon('navMenu',18)}<span>Meer</span></button>
@@ -11671,6 +11781,11 @@ function render(){
       <button class="mnav-sheet-btn" onclick="state.mobileMoreOpen=false;openAppThemePicker()">${icon('navPalette',18)}<span><b>Thema</b><small>Kleuren van het dashboard</small></span></button>
     </div>` : ''}
     ${renderSwapFailureBanner()}
+    <header class="sp-band"><div class="sp-in">
+      <div class="sp-row1">
+        <div class="sp-brand"><svg viewBox="0 0 32 22" aria-hidden="true"><path d="M3 11 V7 Q16 -1 29 7 V11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="6" y="10.5" width="20" height="2.6" rx="1.2" fill="currentColor"/><rect x="5" y="15" width="22" height="3" rx="1.3" fill="currentColor"/><path d="M8 18 V21 M24 18 V21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>de geleerde bank</span></div>
+        <nav class="sp-nav" aria-label="Hoofdmenu">${NAV_GROUPS.map(g=>`<button class="sp-nb ${activeGroup===g.id?'active':''}" ${activeGroup===g.id?'aria-current="page"':''} onclick="setTab('${g.tabs[0]}')"><span class="sp-c">${icon(g.iconName,20)}${(g.id==='team'||g.id==='blessures')&&nieuwsN?`<i class="nav-dot" title="${nieuwsN} melding${nieuwsN===1?'':'en'} over jouw spelers">${nieuwsN}</i>`:''}</span><span class="sp-l">${g.label}</span></button>`).join('')}<span class="sp-sep"></span><button class="sp-nb" onclick="toggleSpMode()" aria-label="${state.themeMode==='donker'?'Lichte modus aanzetten':'Donkere modus aanzetten'}"><span class="sp-c">${icon(state.themeMode==='donker'?'sun':'moon',20)}</span><span class="sp-l">${state.themeMode==='donker'?'Licht':'Donker'}</span></button></nav>
+      </div>
     <div class="status2">
       <button class="st2-item st2-btn${state.followedCoach?'':' st2-attn'}" onclick="openCoachPicker()" title="Wissel van coach">${icon('user',12)}<span>${state.followedCoach || 'Kies coach'}</span>${icon('chevronDown',10)}</button>
       ${cd ? `<span class="st2-item" title="Start van de volgende ronde">${icon('clock',12)}<span>Ronde ${cd.round} begint over <b id="countdown-live">${cd.text}</b></span></span>` : ''}
@@ -11686,6 +11801,7 @@ function render(){
     ${groupTabs.length>1 ? `<nav class="seg2">
       ${groupTabs.map(t=>`<button class="${state.tab===t?'active':''}" onclick="setTab('${t}')">${TAB_LABELS[t]||t}</button>`).join('')}
     </nav>` : ''}
+    </div></header>
     <main>
       ${state.tab==='scout' ? renderScoutTab() : state.tab==='team' ? renderTeamTab() : state.tab==='clubs' ? renderClubsTab() : state.tab==='stats' ? renderStatsTab() : state.tab==='league' ? renderLeagueTab() : state.tab==='rivalen' ? renderRivalenTab() : state.tab==='leagueStats' ? (renderPuntenverloop()+renderLeagueStatsTab()) : state.tab==='spelersZoeker' ? renderSpelersZoekerTab() : state.tab==='coachTeamView' ? renderCoachTeamViewTab() : state.tab==='hof' ? renderHallOfFameTab() : state.tab==='wissels' ? renderWisselsTab() : state.tab==='parels' ? renderParelsTab() : state.tab==='matches' ? renderMatchesTab() : state.tab==='calendar' ? renderCalendarTab() : state.tab==='wisselschema' ? renderWisselschemaTab() : state.tab==='injuries' ? renderInjuriesTab() : state.tab==='injuryIndex' ? renderInjuryIndexTab() : state.tab==='cardIndex' ? renderCardIndexTab() : state.tab==='injuryHistory' ? renderInjuryHistoryTab() : state.tab==='suspensions' ? renderSuspensionsTab() : state.tab==='standings' ? renderStandingsTab() : state.tab==='rankings' ? renderRankingsTab() : state.tab==='positiewisselingen' ? renderPositiewisselingenTab() : state.tab==='penaltys' ? renderPenaltysTab() : state.tab==='controle' ? (dlOpen() ? renderControleTab() : renderDlSlot()) : state.tab==='downloads' ? (dlOpen() ? renderDownloadsPanel() : renderDlSlot()) : state.tab==='transfers' ? renderTransfersTab() : state.tab==='grafieken' ? renderGrafiekenTab() : state.tab.startsWith('week_') ? renderWeekTab() : renderTeamTab()}
     </main>
