@@ -1592,6 +1592,34 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
   .wh-tabel .wh-lijnkop td{font-weight:700;font-size:11px;color:var(--text-dim);padding-top:10px;}
   .wh-pos{font-weight:400;color:var(--accent-text,var(--accent));}
   .wh-zoek{width:100%;padding:8px 10px;margin-bottom:10px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit;font-size:12px;}
+  .wh-scroll{max-height:62vh;overflow:auto;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;}
+  .wh-scroll-klein{max-height:44vh;}
+  .wh-scroll-kaarten{padding:8px;}
+  .wh-scroll .wh-tabel{margin:0;}
+  .wh-scroll > table > thead th{position:sticky;top:0;background:var(--bg-alt);z-index:1;}
+  .wh-filters{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;margin-bottom:10px;}
+  .wh-filters label{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--text-dim);}
+  .wh-filters select{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:5px 8px;font:inherit;font-size:12px;max-width:220px;}
+  .wh-filters .wh-check{flex-direction:row;align-items:center;gap:6px;font-size:12px;color:var(--text);}
+  .wh-klik{cursor:pointer;}
+  .wh-klik:hover td,.wh-klik.open td{background:color-mix(in srgb, var(--accent) 7%, transparent);}
+  .wh-lijst td.uit{text-decoration:line-through;color:var(--text-dim);}
+  .wh-detail > td{padding:6px;background:var(--bg-alt);}
+  .wh-delta{font-weight:700;white-space:nowrap;}
+  .wh-delta.plus{color:var(--accent-text,var(--accent));}
+  .wh-delta.min{color:var(--text-dim);font-weight:400;}
+  .wh-veld{margin:6px 0 14px;}
+  .wh-veld .pitch{margin:0 auto;}
+  .wh-chip-veld{cursor:pointer;position:relative;}
+  .wh-chip-veld.wh-gekozen .pc-av{box-shadow:0 0 0 3px var(--accent);}
+  .wh-chip-veld.wh-nieuw .pc-name{box-shadow:0 0 0 2px var(--accent);}
+  .wh-chip-veld.wh-gewijzigd .pc-av{box-shadow:0 0 0 3px var(--accent);}
+  .wh-veldlabel{position:absolute;top:-8px;left:50%;transform:translateX(-50%);z-index:3;font-size:9px;font-weight:700;white-space:nowrap;background:var(--accent);color:var(--on-accent,var(--bg));border-radius:999px;padding:0 6px;}
+  .wh-proef-status{font-size:12px;margin:-2px 0 6px;color:var(--text-dim);}
+  .wh-fout{color:var(--danger-text,var(--danger));}
+  .wh-ok{color:var(--text);font-weight:600;}
+  .wh-filters .btn.sm{align-self:flex-end;}
+  @media (max-width:760px){ .wh-lijst th:nth-child(5),.wh-lijst td:nth-child(5),.wh-lijst th:nth-child(6),.wh-lijst td:nth-child(6){display:none;} }
   .wh-hoe{margin-top:14px;font-size:11.5px;color:var(--text-dim);line-height:1.5;}
   .wh-hoe summary{cursor:pointer;color:var(--text);}
   @media (max-width:760px){ .wh-strip .wh-opp{display:none;} .wh-rij{flex-wrap:wrap;} .wh-tabel{font-size:11px;} }
@@ -16151,7 +16179,7 @@ function whProjectie(p, ctx){
 function whContext(){
   const s = whState();
   const r0 = wisselRound();
-  const H = Math.max(1, Math.min(6, s.horizon||4));
+  const H = Math.max(1, Math.min(window.__whLangH||6, s.horizon||4));
   const rondes = []; for(let r=r0; r<=34 && rondes.length<H+2; r++) rondes.push(r);
   const sleutel = [r0, H, s.doel, typeof DATA_LAST_UPDATED!=='undefined'?DATA_LAST_UPDATED:'', state.potentialCalibration||1, state.followedCoach||''].join('|');
   if(window.__whCtx && window.__whCtx.sleutel===sleutel) return window.__whCtx;
@@ -16186,14 +16214,8 @@ function whContext(){
   ctx.ligaGem = tot.n ? tot.v/tot.n : 1.5;
   ctx.teamDoelpunten = c=>{ const o = dv[c]; return o && o.n ? {voor:o.v/o.n, tegen:o.t/o.n} : {voor:ctx.ligaGem, tegen:ctx.ligaGem}; };
   PLAYERS.forEach(p=>{ if(p.former || !(p.Prijs>0)) return; const x = whProjectie(p, ctx); ctx.proj.set(x.key, x); });
-  // Zoekpool: per linie de 70 beste over de horizon + de 25 beste goedkope (≤ €1,5M)
-  const pool = new Set();
-  WH_POS.forEach(pos=>{
-    const lijst = [...ctx.proj.values()].filter(x=>x.pos===pos);
-    lijst.slice().sort((a,b)=>whSom(b,ctx,true)-whSom(a,ctx,true)).slice(0,70).forEach(x=>pool.add(x));
-    lijst.filter(x=>x.prijs<=1.5).sort((a,b)=>whSom(b,ctx,true)-whSom(a,ctx,true)).slice(0,25).forEach(x=>pool.add(x));
-  });
-  ctx.pool = [...pool];
+  // Zoekpool: álle actieve spelers (ook buiten de top kan een speler een upgrade zijn; 27-10-2026)
+  ctx.pool = [...ctx.proj.values()];
   ctx.cache = {};
   window.__whCtx = ctx;
   return ctx;
@@ -16302,7 +16324,7 @@ function whBeste(ctx){
     top.push({tr:[o], winst:o.delta}); if(top.length>=12) break;
   }
   const combos = k>=2 ? whCombos(sq, ctx, Math.min(k,4), 0, ctx.H, {zeker:s.zeker}, 20) : [];
-  const res = {sq, alle, enkel, top, combos: combos.slice(1).map((lv,i)=>({aantal:i+2, lijst:lv.slice(0,5)})), k};
+  const res = {sq, alle, enkel, top, combos: combos.slice(1).map((lv,i)=>({aantal:i+2, lijst:lv.slice(0,10)})), k};
   ctx.cache[sig] = res;
   return res;
 }
@@ -16330,11 +16352,11 @@ function whPlan(ctx){
     });
     const gezien = new Set(), uniek = [];
     nieuw.sort((a,b)=>b.score-a.score).forEach(st=>{ const k = st.stappen.map(x=>x.tr.map(t=>t.inn.key).sort().join('+')).join('|'); if(gezien.has(k)) return; gezien.add(k); uniek.push(st); });
-    beam = uniek.slice(0, 6);
+    beam = uniek.slice(0, 8);
   }
   const zonder = []; for(let t=0;t<P;t++) zonder.push(whTeamRonde(sq0, t));
   const totZonder = zonder.reduce((a,b)=>a+b,0);
-  const plannen = beam.slice(0,4).map(pl=>({stappen:pl.stappen, totaal: pl.stappen.reduce((t,x)=>t+x.punten,0), winst: pl.stappen.reduce((t,x)=>t+x.punten,0)-totZonder, eindteam: pl.sq}));
+  const plannen = beam.slice(0,8).map(pl=>({stappen:pl.stappen, totaal: pl.stappen.reduce((t,x)=>t+x.punten,0), winst: pl.stappen.reduce((t,x)=>t+x.punten,0)-totZonder, eindteam: pl.sq}));
   const res = {plannen, totZonder, P};
   ctx.cache[sig] = res;
   return res;
@@ -16431,13 +16453,56 @@ function whRenderBeste(ctx){
   if(former.length) h += `<div class="news-note">${icon('info',12)} Inactief in je team: ${former.map(x=>x.p.Speler).join(', ')}. Die mag je gratis vervangen; dat telt niet als wissel.</div>`;
   if(b.top.length && whW(b.top[0].winst)<1) h += `<div class="news-note">${icon('info',12)} Geen duidelijke wissel: de beste optie levert verwacht minder dan 1 punt op over ${ctx.H} ronde${ctx.H>1?'s':''}, dat is in de terugtest niet van toeval te onderscheiden. Een wissel bewaren kan niet, dus een kleine plus pakken mag; het grootste verschil maak je met tijdig reageren op blessures en schorsingen.</div>`;
   if(!b.top.length) h += `<div class="news-note">Geen wissel die je team over ${ctx.H} rondes verwacht beter maakt binnen budget en clublimiet.</div>`;
-  b.top.forEach((it,i)=>{ const id='b1-'+i; whRegistreer(id, it.tr); h += whKaart(it, id, ctx, b.sq, `#${i+1} · 1 wissel`); });
+  b.top.slice(0,5).forEach((it,i)=>{ const id='b1-'+i; whRegistreer(id, it.tr); h += whKaart(it, id, ctx, b.sq, `#${i+1} · 1 wissel`); });
+  h += whRenderAlleWissels(ctx, b);
   b.combos.forEach(c=>{
     if(!c.lijst.length) return;
-    h += `<div class="section-title"><span>Combinaties van ${c.aantal} wissels</span><span class="line"></span></div>`;
+    h += `<div class="section-title"><span>Combinaties van ${c.aantal} wissels (${c.lijst.length})</span><span class="line"></span></div><div class="wh-scroll wh-scroll-kaarten">`;
     c.lijst.forEach((it,i)=>{ const id='b'+c.aantal+'-'+i; whRegistreer(id, it.tr); h += whKaart(it, id, ctx, b.sq, `#${i+1} · ${c.aantal} wissels tegelijk`); });
+    h += `</div>`;
   });
   if(tegoed<2) h += `<div class="news-note" style="margin-top:10px;">Combinaties van 2–3 wissels verschijnen bij een nieuwe periode (3 wissels) of als je hierboven het aantal wissels hoger zet. Vooruitkijken over meerdere rondes doe je in het Wisselplan.</div>`;
+  return h;
+}
+
+// ---- Lange, scrollbare lijsten (27-10-2026) ----
+function whSel(k, opties, waarde){ return `<select onchange="whZet('${k}', this.value)">${opties.map(([v,l])=>`<option value="${v}"${String(waarde)===String(v)?' selected':''}>${l}</option>`).join('')}</select>`; }
+function whDeltaCel(d){ const w = whW(d); return `<span class="wh-delta ${w>=1?'plus':w>0.05?'klein':'min'}">${whSign(w)}</span>`; }
+// Alle wissels die je team verbeteren, met filters; klik op een rij voor de volledige kaart.
+function whRenderAlleWissels(ctx, b){
+  const s = whState();
+  const fPos = s.fPos||'alle', fUit = s.fUit||'alle', sorteer = s.sorteer||'winst';
+  let lijst = b.enkel.filter(o=>(fPos==='alle' || o.inn.pos===fPos) && (fUit==='alle' || o.uit.key===fUit) && whFilterOk(o.inn));
+  if(sorteer==='goedkoop') lijst = lijst.slice().sort((a,c)=>a.kost-c.kost || c.delta-a.delta);
+  else if(sorteer==='cc') lijst = lijst.slice().sort((a,c)=>a.inn.own-c.inn.own || c.delta-a.delta);
+  else if(sorteer==='kans') lijst = lijst.slice().sort((a,c)=>c.inn.pp[0]-a.inn.pp[0] || c.delta-a.delta);
+  const totaal = lijst.length; lijst = lijst.slice(0, 200);
+  let h = `<div class="section-title"><span>Alle wissels die je team verbeteren (${b.enkel.length})</span><span class="line"></span></div>
+    <div class="wh-filters">
+      <label>Linie van de nieuwe speler ${whSel('fPos', [['alle','Alle'],...WH_POS.map(p=>[p,POS_LABEL[p]])], fPos)}</label>
+      <label>Speler eruit ${whSel('fUit', [['alle','Iedereen'],...b.sq.map(x=>[x.key, x.p.Speler])], fUit)}</label>
+      <label>Sorteren ${whSel('sorteer', [['winst','Meeste winst'],['goedkoop','Goedkoopst'],['kans','Hoogste speelkans'],['cc','Minst gekozen in CC']], sorteer)}</label>
+      ${whFilterUI()}
+    </div>`;
+  if(!totaal) return h + `<div class="news-note">Geen verbeterende wissel met deze filters.</div>`;
+  h += `<div class="wh-scroll"><table class="wh-tabel wh-lijst"><thead><tr><th>#</th><th>Eruit</th><th>Erin</th><th>Prijs</th><th>Kans</th><th>CC</th><th>Winst</th><th></th></tr></thead><tbody>`;
+  lijst.forEach((o,i)=>{
+    const id = 'bl-'+i; whRegistreer(id, [o]);
+    const open = s.open===id;
+    h += `<tr class="wh-klik${open?' open':''}" onclick="whZet('open', ${open?'null':`'${id}'`})">
+      <td>${i+1}</td>
+      <td class="uit">${o.uit.p.Speler}</td>
+      <td><b>${o.inn.p.Speler}</b> <small>${whPos(o.inn.pos)} · ${teamLogo(o.inn.team)}${whKort(o.inn.team)}${o.inn.pos!==o.uit.pos?' · andere linie':''}</small></td>
+      <td>${whEuro(o.inn.prijs)} <small>(${o.kost>=0?'+':'−'}${whEuro(Math.abs(o.kost))})</small></td>
+      <td>${Math.round(o.inn.pp[0]*100)}%</td>
+      <td>${ctx.eig.n?o.inn.own+'/'+ctx.eig.n:'–'}</td>
+      <td>${whDeltaCel(o.delta)}</td>
+      <td><button class="btn primary sm" onclick="event.stopPropagation();whToepassen('${id}')">Toepassen</button></td>
+    </tr>`;
+    if(open) h += `<tr class="wh-detail"><td colspan="8">${whKaart({tr:[o], winst:o.delta}, id, ctx, b.sq, `#${i+1} · 1 wissel`)}</td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+  if(totaal>200) h += `<div class="news-note">De eerste 200 van ${totaal} getoond; verfijn met de filters.</div>`;
   return h;
 }
 function whRenderPlan(ctx){
@@ -16461,61 +16526,64 @@ function whRenderPlan(ctx){
   });
   return h;
 }
-function whRenderOpstelling(ctx){
-  const defs = slotDefs(), sq = whSquad(ctx);
-  let winstTot = 0;
-  const lijnen = WH_POS.map(pos=>{
-    const sl = defs.filter(d=>d.pos===pos && state.squad[d.id]);
-    const spelers = sl.map(d=>({d, x:whProjVan(state.squad[d.id], ctx)}));
-    const huidigBank = spelers.find(z=>z.d.reserve);
-    const best = spelers.slice().sort((a,b)=>b.x.e[0]-a.x.e[0]);
-    const besteBank = best[best.length-1];
-    const vast = (bank)=>{ const st = spelers.filter(z=>z!==bank); let v=0,pa=1; st.forEach(z=>{v+=z.x.e[0];pa*=z.x.pp[0];}); return v + (bank? bank.x.e[0]*(0.5+0.5*(1-pa)) : 0); };
-    const winst = huidigBank && besteBank ? vast(besteBank) - vast(huidigBank) : 0;
-    if(winst>0.05) winstTot += winst;
-    return {pos, spelers, huidigBank, besteBank, winst};
-  });
-  let h = `<div class="news-note">Opstelling voor ronde ${ctx.r0}: per linie spelen de spelers met de hoogste verwachting, de laagste gaat op de bank. Geen transfer nodig. Verwachte teamscore met de beste opstelling: <b>${whF1(whTeamRonde(sq,0))}</b>.</div>`;
-  if(winstTot>0.05) h += `<div style="margin:0 0 12px;"><button class="btn primary" onclick="whZetOpstelling()">Zet beste opstelling (${whSign(winstTot)} pnt)</button></div>`;
-  else h += `<div class="news-note">Je opstelling staat al goed voor ronde ${ctx.r0}.</div>`;
-  h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Tegen</th><th>Verw.</th><th>Speelkans</th><th></th></tr></thead><tbody>`;
-  lijnen.forEach(l=>{
-    h += `<tr class="wh-lijnkop"><td colspan="5">${POS_LABEL[l.pos]}${l.winst>0.05?` · <span class="wh-pos">${l.besteBank.x.p.Speler} naar de bank, ${l.huidigBank.x.p.Speler} erin (${whSign(l.winst)})</span>`:''}</td></tr>`;
-    l.spelers.slice().sort((a,b)=>b.x.e[0]-a.x.e[0]).forEach(z=>{
-      const t = z.x.tegen[0]; const opp = t.length ? t.map(q=>whKort(q.opp)+(q.thuis?' (t)':' (u)')).join(' + ') : '—';
-      const wordtBank = z===l.besteBank;
-      h += `<tr${z.d.reserve?' class="bank"':''}><td>${teamLogo(z.x.team)}${z.x.p.Speler}${z.d.reserve?' <small>(bank)</small>':''}</td><td>${opp}</td><td><b>${whF1(z.x.e[0])}</b></td><td>${Math.round(z.x.pp[0]*100)}%</td><td>${wordtBank?'<small>bank</small>':''}</td></tr>`;
-    });
-  });
-  return h + `</tbody></table>`;
-}
 function whRenderMarkt(ctx){
   const s = whState(), b = whBeste(ctx), sq = b.sq;
-  let h = `<div class="section-title"><span>Jouw spelers · zwakste plek eerst</span><span class="line"></span></div>`;
-  const rijen = sq.map(x=>{ const beste = b.enkel.find(o=>o.uit===x); return {x, beste}; }).sort((a,b2)=>(b2.beste?b2.beste.delta:-99)-(a.beste?a.beste.delta:-99));
-  h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Σ ${ctx.H} r.</th><th>Kans</th><th>Beste vervanger</th></tr></thead><tbody>`;
-  rijen.forEach(({x, beste})=>{
-    h += `<tr><td>${whPos(x.pos)} · ${teamLogo(x.team)}${x.p.Speler}</td><td><b>${whF1(whSom(x,ctx,false))}</b></td><td>${Math.round(x.pp[0]*100)}%</td><td>${beste && beste.delta>0.05 ? `${beste.inn.p.Speler} <small>${whKort(beste.inn.team)} · ${whSign(whW(beste.delta))}</small>` : '<small>geen betere binnen budget</small>'}</td></tr>`;
+  const fold = t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  // Jouw spelers: klik voor alle vervangers van die speler
+  let h = `<div class="section-title"><span>Jouw spelers · zwakste plek eerst</span><span class="line"></span></div>
+    <div class="news-note">Klik op een speler voor al zijn mogelijke vervangers.</div>`;
+  const rijen = sq.map(x=>{ const opties = b.alle.filter(o=>o.uit===x); return {x, opties, beste: opties[0]}; })
+    .sort((a,c)=>(c.beste?c.beste.delta:-99)-(a.beste?a.beste.delta:-99));
+  h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Σ ${ctx.H} r.</th><th>Kans</th><th>Beste vervanger</th><th>Upgrades</th></tr></thead><tbody>`;
+  rijen.forEach(({x, opties, beste})=>{
+    const open = s.marktOpen===x.key;
+    const upgrades = opties.filter(o=>o.delta>0.05).length;
+    h += `<tr class="wh-klik${open?' open':''}" onclick="whZet('marktOpen', ${open?'null':`'${x.key.replace(/'/g,"\\'")}'`})"><td>${whPos(x.pos)} · ${teamLogo(x.team)}${x.p.Speler}</td><td><b>${whF1(whSom(x,ctx,false))}</b></td><td>${Math.round(x.pp[0]*100)}%</td><td>${beste && beste.delta>0.05 ? `${beste.inn.p.Speler} <small>${whKort(beste.inn.team)}</small> ${whDeltaCel(beste.delta)}` : '<small>geen betere binnen budget</small>'}</td><td>${upgrades}</td></tr>`;
+    if(open){
+      h += `<tr class="wh-detail"><td colspan="5"><div class="wh-scroll wh-scroll-klein"><table class="wh-tabel"><thead><tr><th>#</th><th>Vervanger</th><th>Prijs</th><th>Σ ${ctx.H} r.</th><th>Kans</th><th>Winst</th><th></th></tr></thead><tbody>${
+        opties.slice(0,60).map((o,i)=>{ const id = 'mv-'+i; whRegistreer(id, [o]);
+          return `<tr><td>${i+1}</td><td>${teamLogo(o.inn.team)}${o.inn.p.Speler} <small>${whPos(o.inn.pos)} · ${whKort(o.inn.team)}</small></td><td>${whEuro(o.inn.prijs)}</td><td>${whF1(whSom(o.inn,ctx,false))}</td><td>${Math.round(o.inn.pp[0]*100)}%</td><td>${whDeltaCel(o.delta)}</td><td>${o.delta>0.05?`<button class="btn primary sm" onclick="event.stopPropagation();whToepassen('${id}')">Toepassen</button>`:''}</td></tr>`; }).join('')
+      }</tbody></table></div>${opties.length>60?`<div class="news-note">De beste 60 van ${opties.length} mogelijke vervangers.</div>`:''}</td></tr>`;
+    }
   });
   h += `</tbody></table>`;
-  h += `<div class="section-title"><span>Beste spelers per linie</span><span class="line"></span></div>
-    <div class="view-toggle" style="margin-bottom:10px;">${WH_POS.map(pos=>`<button class="${s.pos===pos?'active':''}" onclick="whZet('pos','${pos}')">${POS_LABEL[pos]}</button>`).join('')}</div>`;
+  // Alle spelers per linie, sorteerbaar, scrollbaar
+  const sorteer = s.mSort||'som', alleenUp = !!s.alleenUp;
+  h += `<div class="section-title"><span>Alle spelers per linie</span><span class="line"></span></div>
+    <div class="view-toggle" style="margin-bottom:10px;">${WH_POS.map(pos=>`<button class="${s.pos===pos?'active':''}" onclick="whZet('pos','${pos}')">${POS_LABEL[pos]}</button>`).join('')}</div>
+    <input class="wh-zoek" id="wh-zoek" placeholder="Zoek een speler of club (alle linies)…" value="${(s.zoek||'').replace(/"/g,'&quot;')}" oninput="whZoek(this.value)">
+    <div class="wh-filters">
+      <label>Sorteren ${whSel('mSort', [['som','Verwachte punten'],['upgrade','Beste upgrade voor jou'],['ppm','Punten per €M'],['prijs','Goedkoopst'],['cc','Minst gekozen in CC']], sorteer)}</label>
+      ${whFilterUI()}
+      <label class="wh-check"><input type="checkbox" ${alleenUp?'checked':''} onchange="whZet('alleenUp', this.checked)"> Alleen spelers die je team verbeteren</label>
+    </div>`;
   const eigen = new Set(sq.map(x=>x.key));
-  const zoek = (s.zoek||'').trim().toLowerCase();
-  const fold = t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-  h += `<input class="wh-zoek" id="wh-zoek" placeholder="Zoek een speler of club om hem door te rekenen…" value="${(s.zoek||'').replace(/"/g,'&quot;')}" oninput="whZoek(this.value)">`;
-  const lijst = zoek ? [...ctx.proj.values()].filter(x=>fold(x.p.Speler+' '+x.team).includes(fold(zoek))).sort((a,b2)=>whSom(b2,ctx,true)-whSom(a,ctx,true)).slice(0,25)
-    : [...ctx.proj.values()].filter(x=>x.pos===s.pos && (!s.zeker || x.kans>=0.6)).sort((a,b2)=>whSom(b2,ctx,true)-whSom(a,ctx,true)).slice(0,15);
-  h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Prijs</th><th>Σ ${ctx.H} r.</th><th>pnt/€M</th><th>CC</th><th>Zo past hij</th></tr></thead><tbody>`;
-  lijst.forEach(x=>{
+  const besteVoor = new Map(); b.alle.forEach(o=>{ if(!besteVoor.has(o.inn.key)) besteVoor.set(o.inn.key, o); }); // alle is gesorteerd op winst
+  const zoek = (s.zoek||'').trim();
+  let lijst = [...ctx.proj.values()].filter(x=> (zoek ? fold(x.p.Speler+' '+x.team).includes(fold(zoek)) : (x.pos===s.pos || (s.fClub && s.fClub!=='alle'))) && whFilterOk(x));
+  if(s.zeker) lijst = lijst.filter(x=>x.kans>=0.6 || eigen.has(x.key));
+  if(alleenUp) lijst = lijst.filter(x=>{ const o = besteVoor.get(x.key); return o && o.delta>0.05; });
+  const som = x=>whSom(x,ctx,false);
+  const sorteerFn = {
+    som:(a,c)=>whSom(c,ctx,true)-whSom(a,ctx,true),
+    upgrade:(a,c)=>((besteVoor.get(c.key)||{delta:-99}).delta)-((besteVoor.get(a.key)||{delta:-99}).delta),
+    ppm:(a,c)=>som(c)/c.prijs-som(a)/a.prijs,
+    prijs:(a,c)=>a.prijs-c.prijs || som(c)-som(a),
+    cc:(a,c)=>a.own-c.own || som(c)-som(a),
+  }[sorteer] || ((a,c)=>som(c)-som(a));
+  lijst.sort(sorteerFn);
+  h += `<div class="wh-scroll"><table class="wh-tabel"><thead><tr><th>#</th><th>Speler</th><th>Prijs</th><th>Σ ${ctx.H} r.</th><th>pnt/€M</th><th>Kans</th><th>CC</th><th>Zo past hij</th><th></th></tr></thead><tbody>`;
+  lijst.forEach((x,i)=>{
     const inTeam = eigen.has(x.key);
-    const past = inTeam ? null : b.alle.find(o=>o.inn===x);
+    const past = inTeam ? null : besteVoor.get(x.key);
     const clubgenoot = inTeam ? null : sq.find(y=>y.team===x.team);
-    const reden = clubgenoot ? `clubgenoot ${clubgenoot.p.Speler} in je team` : (x.prijs > BUDGET_CAP - sq.reduce((t,y)=>t+y.prijs,0) + Math.max(...sq.filter(y=>y.pos===x.pos||x.pos!=='Goalkeeper').map(y=>y.prijs)) ? 'te duur voor 1 wissel' : 'geen geldige wissel');
-    const som = whSom(x,ctx,false);
-    h += `<tr${inTeam?' class="bank"':''}><td>${teamLogo(x.team)}${x.p.Speler}${findInjury(x.p.Speler,x.p.Team)?' '+injuryBadge(findInjury(x.p.Speler,x.p.Team)):''}</td><td>${whEuro(x.prijs)}</td><td><b>${whF1(som)}</b></td><td>${whF1(som/x.prijs)}</td><td>${ctx.eig.n?x.own+'/'+ctx.eig.n:'–'}</td><td>${inTeam?'<small>in je team</small>':past?`voor ${past.uit.p.Speler} <small>${whSign(whW(past.delta))}</small>`:`<small>${reden}</small>`}</td></tr>`;
+    const reden = clubgenoot ? `clubgenoot ${clubgenoot.p.Speler} in je team` : 'te duur of geen geldige formatie';
+    let knop = '';
+    if(past && past.delta>0.05){ const id = 'ml-'+i; whRegistreer(id, [past]); knop = `<button class="btn primary sm" onclick="whToepassen('${id}')">Toepassen</button>`; }
+    h += `<tr${inTeam?' class="bank"':''}><td>${i+1}</td><td>${teamLogo(x.team)}${x.p.Speler}${zoek?` <small>${whPos(x.pos)}</small>`:''}${findInjury(x.p.Speler,x.p.Team)?' '+injuryBadge(findInjury(x.p.Speler,x.p.Team)):''}</td><td>${whEuro(x.prijs)}</td><td><b>${whF1(som(x))}</b></td><td>${whF1(som(x)/x.prijs)}</td><td>${Math.round(x.pp[0]*100)}%</td><td>${ctx.eig.n?x.own+'/'+ctx.eig.n:'–'}</td><td>${inTeam?'<small>in je team</small>':past?`voor ${past.uit.p.Speler} ${whDeltaCel(past.delta)}`:`<small>${reden}</small>`}</td><td>${knop}</td></tr>`;
   });
-  return h + `</tbody></table>`;
+  h += `</tbody></table></div><div class="news-note">${lijst.length} spelers. "Zo past hij" is de beste ruil met iemand uit je team (budget, max. 1 per club en een geldige formatie meegerekend); de winst is gecorrigeerd zoals bij Beste wissels.</div>`;
+  return h;
 }
 function whRenderModal(){
   const s = whState();
@@ -16526,7 +16594,7 @@ function whRenderModal(){
   else {
     ctx = whContext();
     window.__whItems = {};
-    inhoud = s.weergave==='plan' ? whRenderPlan(ctx) : s.weergave==='opstelling' ? whRenderOpstelling(ctx) : s.weergave==='markt' ? whRenderMarkt(ctx) : whRenderBeste(ctx);
+    inhoud = s.weergave==='plan' ? whRenderPlan(ctx) : s.weergave==='opstelling' ? whRenderOpstelling(ctx) : s.weergave==='markt' ? whRenderMarkt(ctx) : s.weergave==='proef' ? whRenderProef(ctx) : whRenderBeste(ctx);
   }
   const tegoedAuto = state.mode==='sandbox' ? null : wisselsRemaining();
   const sel = (k, v, label)=> `<option value="${v}"${String(s[k])===String(v)?' selected':''}>${label}</option>`;
@@ -16539,6 +16607,7 @@ function whRenderModal(){
           <button class="${s.weergave==='plan'?'active':''}" onclick="whZet('weergave','plan')">Wisselplan</button>
           <button class="${s.weergave==='opstelling'?'active':''}" onclick="whZet('weergave','opstelling')">Opstelling</button>
           <button class="${s.weergave==='markt'?'active':''}" onclick="whZet('weergave','markt')">Spelersmarkt</button>
+          <button class="${s.weergave==='proef'?'active':''}" onclick="whZet('weergave','proef')">Proefteam</button>
         </div>
         <div class="wh-instellingen">
           <label>Vooruitkijken<select onchange="whZet('horizon', parseInt(this.value))">${[1,2,3,4,5,6].map(n=>sel('horizon', n, n+' ronde'+(n>1?'s':''))).join('')}</select></label>
@@ -16558,6 +16627,257 @@ function whRenderModal(){
   </div>`;
 }
 function whZoek(v){ whState().zoek = v; render(); const el = document.getElementById('wh-zoek'); if(el){ el.focus(); el.setSelectionRange(v.length, v.length); } }
+// ---- Veldweergave (Opstelling en Proefteam, 27-10-2026): zelfde veld als Mijn Team ----
+// items: [{pos, p (PLAYERS-object of null), punten, sub, cls, onclick, bank}]
+function whVeld(basisPerLinie, bank, opts){
+  opts = opts || {};
+  const chip = (it, isBank)=>{
+    const color = POS_COLOR[it.pos];
+    const klik = it.onclick ? ` onclick="${it.onclick}"` : '';
+    if(!it.p) return `<div class="pitch-chip pc2 pc-empty wh-chip-veld${it.cls?' '+it.cls:''}"${klik}>${isBank?`<span class="pc-pos" style="background:${color}">${POS_SHORT[it.pos]}</span>`:''}<div class="pc-av" style="--pc:${color};--pc-on:${posOn(color)}"><span class="pc-init">+</span></div><div class="pc-name">${POS_LABEL[it.pos]}</div></div>`;
+    return `<div class="pitch-chip pc2 wh-chip-veld${it.cls?' '+it.cls:''}"${klik} title="${it.p.Speler} · ${it.p.Team}">
+      ${isBank?`<span class="pc-pos" style="background:${color}">${POS_SHORT[it.pos]}</span>`:''}
+      ${it.label && !isBank?`<span class="wh-veldlabel">${it.label}</span>`:''}
+      ${pitchAvatarHtml(it.p.Speler, it.p.Team, color)}
+      ${it.punten!=null?`<div class="pc-pts ${it.punten>=3?'pos':'nul'}">${whF1(it.punten)}</div>`:''}
+      <div class="pc-name">${pitchSurname(it.p.Speler)}</div>
+      ${it.sub?`<div class="pc-opp">${it.sub}</div>`:''}
+    </div>`;
+  };
+  return `<div class="wh-veld"><div class="pitch-wrap"><div class="pitch">
+      ${pitchMarkingsSvg()}
+      ${['Forward','Midfielder','Defender','Goalkeeper'].map(pos=>`<div class="pitch-row pr-${pos.toLowerCase()}${pos==='Goalkeeper'?' pitch-row-gk':''}">${(basisPerLinie[pos]||[]).map(it=>chip(it,false)).join('')}</div>`).join('')}
+      ${opts.label?`<div class="pitch-team-label">${opts.label}</div>`:''}
+    </div></div>
+    <div class="bench2"><div class="bench2-head"><span>Bank</span></div><div class="bench2-row">${bank.map(it=>chip(it,true)).join('')}</div></div></div>`;
+}
+function whTegenTekst(x, i){
+  const t = x.tegen[i]; if(!t || !t.length) return '';
+  return t.map(z=>(z.thuis?'thuis ':'uit ')+whKort(z.opp)).join(' + ');
+}
+// ---- Opstelling als veld ----
+function whRenderOpstelling(ctx){
+  const defs = slotDefs(), sq = whSquad(ctx);
+  let winstTot = 0;
+  const basis = {}, bank = [];
+  const advies = [];
+  WH_POS.forEach(pos=>{
+    const sl = defs.filter(d=>d.pos===pos && state.squad[d.id]);
+    const spelers = sl.map(d=>({d, x:whProjVan(state.squad[d.id], ctx)}));
+    const best = spelers.slice().sort((a,b)=>b.x.e[0]-a.x.e[0]);
+    const besteBank = best[best.length-1], huidigBank = spelers.find(z=>z.d.reserve);
+    const vast = (bk)=>{ let v=0,pa=1; spelers.filter(z=>z!==bk).forEach(z=>{v+=z.x.e[0];pa*=z.x.pp[0];}); return v + (bk? bk.x.e[0]*(0.5+0.5*(1-pa)) : 0); };
+    const winst = huidigBank && besteBank ? vast(besteBank) - vast(huidigBank) : 0;
+    if(winst>0.05){ winstTot += winst; advies.push(`${POS_LABEL[pos]}: <b>${huidigBank.x.p.Speler}</b> erin, <b>${besteBank.x.p.Speler}</b> naar de bank (${whSign(winst)})`); }
+    const item = (z, isBank)=>{
+      const wasBank = z.d.reserve;
+      const label = (!isBank && wasBank) ? 'erin' : (isBank && !wasBank) ? 'naar bank' : '';
+      return {pos, p:z.x.p, punten:z.x.e[0], sub:`${whTegenTekst(z.x,0)}${z.x.pp[0]<0.95?` · ${Math.round(z.x.pp[0]*100)}%`:''}`, cls: label?'wh-gewijzigd':'', label,
+        onclick:`openPlayerModal('${encodeURIComponent(z.x.p.Speler)}','${encodeURIComponent(z.x.p.Team)}')`};
+    };
+    basis[pos] = best.slice(0, best.length-1).map(z=>item(z,false));
+    if(besteBank) bank.push(item(besteBank, true));
+  });
+  let h = `<div class="news-note">Beste opstelling voor ronde ${ctx.r0}: per linie spelen de spelers met de hoogste verwachting (getal bij de speler), de laagste gaat op de bank. Geen transfer nodig. Verwachte teamscore: <b>${whF1(whTeamRonde(sq,0))}</b>.</div>`;
+  if(winstTot>0.05) h += `<div class="news-note">${advies.join('<br>')}</div><div style="margin:0 0 12px;"><button class="btn primary" onclick="whZetOpstelling()">Zet deze opstelling (${whSign(winstTot)} pnt)</button></div>`;
+  else h += `<div class="news-note">Je opstelling staat al goed voor ronde ${ctx.r0}.</div>`;
+  h += whVeld(basis, bank, {label:`Ronde ${ctx.r0} · ${state.formation}`});
+  return h;
+}
+// ---- Proefteam: zelf een doelteam maken, de wisselhulp zoekt de beste route ernaartoe ----
+function whProefSlotDefs(formatie){
+  const f = FORMATIONS[formatie]; const defs = [{id:'GK1',pos:'Goalkeeper',reserve:false}];
+  for(let i=1;i<=f.Defender;i++) defs.push({id:'DEF'+i,pos:'Defender',reserve:false});
+  for(let i=1;i<=f.Midfielder;i++) defs.push({id:'MID'+i,pos:'Midfielder',reserve:false});
+  for(let i=1;i<=f.Forward;i++) defs.push({id:'FWD'+i,pos:'Forward',reserve:false});
+  ['GKR:Goalkeeper','DEFR:Defender','MIDR:Midfielder','FWDR:Forward'].forEach(x=>{ const [id,pos]=x.split(':'); defs.push({id,pos,reserve:true}); });
+  return defs;
+}
+function whProef(){
+  const s = whState();
+  if(!s.proef) s.proef = {formatie: state.formation, slots:{}};
+  return s.proef;
+}
+function whProefSpeler(key){ return key ? PLAYERS.find(p=>!p.former && whKey(p)===key) || null : null; }
+async function whProefOpslaan(){ whState().proefGewijzigd = true; try{ await storageSet('cvhj-wh-proefteam', JSON.stringify(whProef()), false); }catch(e){} }
+async function whProefLaden(){
+  const s = whState(); if(s.proefGeladen) return; s.proefGeladen = true;
+  try{ const r = await storageGet('cvhj-wh-proefteam', false); if(r && r.value){ const d = JSON.parse(r.value); if(d && FORMATIONS[d.formatie] && !s.proefGewijzigd) { s.proef = d; render(); } } }catch(e){}
+}
+function whProefVanTeam(){
+  const pr = {formatie: state.formation, slots:{}};
+  slotDefs().forEach(d=>{ if(state.squad[d.id]) pr.slots[d.id] = whKey(state.squad[d.id]); });
+  whState().proef = pr; whState().proefSlot = null; whProefOpslaan(); render();
+}
+function whProefLeeg(){ whState().proef = {formatie: whProef().formatie, slots:{}}; whState().proefSlot = null; whProefOpslaan(); render(); }
+function whProefVanPlan(){
+  const ctx = whContext(), pl = whPlan(ctx); const p = pl.plannen[0]; if(!p) return;
+  const per = whPerLinie(p.eindteam); const f = whFormatie(per) || state.formation;
+  const defs = whProefSlotDefs(f), slots = {};
+  WH_POS.forEach(pos=>{ const lijst = per[pos].slice().sort((a,b)=>b.e[0]-a.e[0]); defs.filter(d=>d.pos===pos).forEach((d,i)=>{ if(lijst[i]) slots[d.id] = lijst[i].key; }); });
+  whState().proef = {formatie:f, slots}; whState().proefSlot = null; whProefOpslaan(); render();
+}
+function whProefFormatie(f){
+  const pr = whProef(); if(!FORMATIONS[f] || f===pr.formatie) return;
+  const oud = whProefSlotDefs(pr.formatie), nieuw = whProefSlotDefs(f), slots = {}, over = [];
+  const geldig = new Set(nieuw.map(d=>d.id));
+  oud.forEach(d=>{ const k = pr.slots[d.id]; if(!k) return; if(geldig.has(d.id)) slots[d.id] = k; else over.push({k, pos:d.pos}); });
+  over.forEach(o=>{ const vrij = nieuw.find(d=>d.pos===o.pos && !slots[d.id]); if(vrij) slots[vrij.id] = o.k; });
+  pr.formatie = f; pr.slots = slots; whState().proefSlot = null; whProefOpslaan(); render();
+}
+function whProefKies(slotId){ const s = whState(); s.proefSlot = s.proefSlot===slotId ? null : slotId; s.proefZoek = ''; render(); }
+function whProefZet(slotId, keyEnc){ const pr = whProef(); pr.slots[slotId] = decodeURIComponent(keyEnc); whState().proefSlot = null; whProefOpslaan(); render(); }
+function whProefWeg(slotId){ const pr = whProef(); delete pr.slots[slotId]; whProefOpslaan(); render(); }
+function whProefZoek(v){ whState().proefZoek = v; render(); const el = document.getElementById('wh-proef-zoek'); if(el){ el.focus(); el.setSelectionRange(v.length, v.length); } }
+function whProefCheck(pr){
+  const defs = whProefSlotDefs(pr.formatie);
+  const spelers = defs.map(d=>({d, p: whProefSpeler(pr.slots[d.id])}));
+  const gevuld = spelers.filter(z=>z.p);
+  const prijs = gevuld.reduce((t,z)=>t+z.p.Prijs, 0);
+  const clubs = {}; gevuld.forEach(z=>{ (clubs[z.p.Team] = clubs[z.p.Team]||[]).push(z.p.Speler); });
+  const dubbel = Object.entries(clubs).filter(([c,l])=>l.length>1);
+  const fouten = [];
+  if(gevuld.length<15) fouten.push(`Nog ${15-gevuld.length} plek${15-gevuld.length>1?'ken':''} leeg.`);
+  if(prijs>BUDGET_CAP+1e-6) fouten.push(`Te duur: ${whEuro(prijs)} (max. €32M).`);
+  dubbel.forEach(([c,l])=>fouten.push(`Meer dan 1 speler van ${c}: ${l.join(', ')}.`));
+  return {defs, spelers, gevuld, prijs, fouten, compleet: gevuld.length===15 && !fouten.length};
+}
+// Beste volgorde van wissels van het huidige team naar het doelteam (beam search over de rondes).
+function whRoute(ctx, cur, doel){
+  const doelKeys = new Set(doel.map(x=>x.key)), curKeys = new Set(cur.map(x=>x.key));
+  const uit0 = cur.filter(x=>!doelKeys.has(x.key)), in0 = doel.filter(x=>!curKeys.has(x.key));
+  const W = ctx.rondes.length;
+  const tegoed = t=>{ const r = ctx.rondes[t]; if(t===0) return state.mode==='sandbox' ? (isUnlimitedRound(r)?99:windowAllowanceForRound(r)) : (isFinite(wisselsRemaining()) ? wisselsRemaining() : 99); return isUnlimitedRound(r) ? 99 : windowAllowanceForRound(r); };
+  const V = (sq,t)=>whTeamRonde(sq,t);
+  const geldig = sq=>{ if(sq.reduce((s,x)=>s+x.prijs,0) > BUDGET_CAP+1e-6) return false; const c = new Set(sq.map(x=>x.team)); if(c.size!==sq.length) return false; return !!whFormatie(whPerLinie(sq)); };
+  const vDoel = []; for(let t=0;t<W;t++) vDoel.push(V(doel,t));
+  let beam = [{sq:cur, uit:uit0, inn:in0, stappen:[], real:0, key:0}];
+  for(let t=0;t<W;t++){
+    const a = Math.min(tegoed(t), 15);
+    const nieuw = [];
+    beam.forEach(st=>{
+      const opties = [{moves:[], sq:st.sq}];
+      if(st.uit.length && a>0){
+        const max = Math.min(a, st.uit.length);
+        // kandidaat-paren: alle (uit, in) combinaties; bij veel resterende wissels de 30 met de beste enkele winst
+        let paren = [];
+        st.uit.forEach(u=>st.inn.forEach(i=>paren.push({u,i})));
+        if(paren.length>30){ const base = V(st.sq,t); paren.forEach(pq=>{ pq.w = V(st.sq.filter(x=>x!==pq.u).concat([pq.i]), t) - base; }); paren.sort((x,y)=>y.w-x.w); paren = paren.slice(0,30); }
+        const zoek = (start, gekozen)=>{
+          if(gekozen.length){ const sq = st.sq.filter(x=>!gekozen.some(m=>m.u===x)).concat(gekozen.map(m=>m.i)); if(geldig(sq)) opties.push({moves:gekozen.slice(), sq}); }
+          if(gekozen.length>=max || opties.length>400) return;
+          for(let j=start;j<paren.length;j++){ const pq = paren[j]; if(gekozen.some(m=>m.u===pq.u || m.i===pq.i)) continue; gekozen.push(pq); zoek(j+1, gekozen); gekozen.pop(); }
+        };
+        zoek(0, []);
+      }
+      opties.forEach(o=>{
+        const uit = st.uit.filter(x=>!o.moves.some(m=>m.u===x)), inn = st.inn.filter(x=>!o.moves.some(m=>m.i===x));
+        const real = st.real + V(o.sq, t);
+        let toekomst = 0; for(let t2=t+1;t2<W;t2++) toekomst += uit.length ? 0.5*(V(o.sq,t2)+vDoel[t2]) : vDoel[t2];
+        nieuw.push({sq:o.sq, uit, inn, stappen: st.stappen.concat([{ronde:ctx.rondes[t], tegoed:a, moves:o.moves, punten:V(o.sq,t), formatie: whFormatie(whPerLinie(o.sq))}]), real, key: real + toekomst - uit.length*0.01});
+      });
+    });
+    const gezien = new Set();
+    beam = nieuw.sort((x,y)=>y.key-x.key).filter(st=>{ const k = st.stappen.map(s=>s.moves.map(m=>m.u.key+'>'+m.i.key).sort().join('+')).join('|'); if(gezien.has(k)) return false; gezien.add(k); return true; }).slice(0, 20);
+  }
+  const beste = beam.slice().sort((x,y)=>(x.uit.length-y.uit.length) || (y.real-x.real))[0];
+  let blijven = 0, direct = 0; for(let t=0;t<W;t++){ blijven += V(cur,t); direct += vDoel[t]; }
+  return {beste, blijven, direct, nWissels: uit0.length, W};
+}
+function whRenderProef(ctx){
+  whProefLaden();
+  const s = whState(), pr = whProef(), chk = whProefCheck(pr);
+  const huidig = new Set(slotDefs().map(d=>state.squad[d.id]).filter(Boolean).map(whKey));
+  // veld
+  const basis = {}, bank = [];
+  chk.spelers.forEach(({d,p})=>{
+    const x = p ? whProjVan(p, ctx) : null;
+    const it = {pos:d.pos, p, punten: x ? whSom(x, ctx, false) : null, sub: p ? (huidig.has(whKey(p)) ? whEuro(p.Prijs) : `nieuw · ${whEuro(p.Prijs)}`) : '',
+      cls: (s.proefSlot===d.id ? 'wh-gekozen' : '') + (p && !huidig.has(whKey(p)) ? ' wh-nieuw' : ''), onclick:`whProefKies('${d.id}')`};
+    if(d.reserve) bank.push(it); else (basis[d.pos] = basis[d.pos]||[]).push(it);
+  });
+  let h = `<div class="news-note">Stel je doelteam samen: klik op een plek op het veld en kies een speler. De wisselhulp zoekt daarna de beste volgorde van wissels naar dit team, volgens de spelregels (1 per ronde, 3 vóór een nieuwe periode) en met de meeste verwachte punten onderweg. Het getal bij een speler is zijn verwachting over ${ctx.H} ronde${ctx.H>1?'s':''}.</div>
+    <div class="wh-filters">
+      <label>Formatie ${`<select onchange="whProefFormatie(this.value)">${Object.keys(FORMATIONS).map(f=>`<option${f===pr.formatie?' selected':''}>${f}</option>`).join('')}</select>`}</label>
+      <button class="btn ghost sm" onclick="whProefVanTeam()">Begin met mijn team</button>
+      <button class="btn ghost sm" onclick="whProefVanPlan()">Neem eindteam Wisselplan A</button>
+      <button class="btn ghost sm" onclick="whProefLeeg()">Leegmaken</button>
+    </div>
+    <div class="wh-proef-status">${whEuro(chk.prijs)} van €32M · ${chk.gevuld.length}/15 spelers${chk.fouten.length?` · <span class="wh-fout">${chk.fouten.join(' ')}</span>`:' · <span class="wh-ok">geldig team</span>'}</div>`;
+  h += whVeld(basis, bank, {label:`Proefteam · ${pr.formatie}`});
+  // keuzelijst voor de gekozen plek
+  if(s.proefSlot){
+    const d = chk.defs.find(z=>z.id===s.proefSlot);
+    if(d){
+      const huidigeP = whProefSpeler(pr.slots[d.id]);
+      const ruimte = BUDGET_CAP - chk.prijs + (huidigeP ? huidigeP.Prijs : 0);
+      const andereClubs = new Set(chk.gevuld.filter(z=>z.d.id!==d.id).map(z=>z.p.Team));
+      const fold = t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+      const zoek = (s.proefZoek||'').trim();
+      const inProef = new Set(chk.gevuld.map(z=>whKey(z.p)));
+      let lijst = [...ctx.proj.values()].filter(x=>x.pos===d.pos && !inProef.has(x.key) && whFilterOk(x) && (!zoek || fold(x.p.Speler+' '+x.team).includes(fold(zoek))));
+      lijst.sort((a,b)=>whSom(b,ctx,false)-whSom(a,ctx,false));
+      h += `<div class="section-title"><span>${POS_LABEL[d.pos]} kiezen${d.reserve?' (bank)':''} · ruimte ${whEuro(ruimte)}</span><span class="line"></span></div>
+        <div class="wh-filters"><input class="wh-zoek" id="wh-proef-zoek" style="margin:0;flex:1;min-width:200px;" placeholder="Zoek speler of club…" value="${zoek.replace(/"/g,'&quot;')}" oninput="whProefZoek(this.value)">
+        ${huidigeP?`<button class="btn ghost sm" onclick="whProefWeg('${d.id}')">${huidigeP.Speler} weghalen</button>`:''}<button class="btn ghost sm" onclick="whProefKies('${d.id}')">Sluiten</button></div>
+        <div class="wh-filters">${whFilterUI()}</div>
+        <div class="wh-scroll"><table class="wh-tabel"><thead><tr><th>Speler</th><th>Prijs</th><th>Σ ${ctx.H} r.</th><th>pnt/€M</th><th>Kans</th><th>CC</th><th></th></tr></thead><tbody>${
+        lijst.map(x=>{ const teDuur = x.prijs>ruimte+1e-6, club = andereClubs.has(x.team);
+          const reden = teDuur ? 'te duur' : club ? `al een speler van ${whKort(x.team)}` : '';
+          return `<tr${reden?' class="bank"':''}><td>${teamLogo(x.team)}${x.p.Speler}${huidig.has(x.key)?' <small>(in je team)</small>':''}${findInjury(x.p.Speler,x.p.Team)?' '+injuryBadge(findInjury(x.p.Speler,x.p.Team)):''}</td><td>${whEuro(x.prijs)}</td><td><b>${whF1(whSom(x,ctx,false))}</b></td><td>${whF1(whSom(x,ctx,false)/x.prijs)}</td><td>${Math.round(x.pp[0]*100)}%</td><td>${ctx.eig.n?x.own+'/'+ctx.eig.n:'–'}</td><td>${reden?`<small>${reden}</small>`:''}<button class="btn ${reden?'ghost':'primary'} sm" onclick="whProefZet('${d.id}','${encodeURIComponent(x.key)}')">Kies</button></td></tr>`; }).join('')
+        }</tbody></table></div>`;
+    }
+  }
+  // route
+  if(!chk.compleet){ h += `<div class="news-note">Maak het proefteam compleet en geldig; daarna verschijnt de beste route ernaartoe.</div>`; return h; }
+  const ctxL = whContextLang();
+  const cur = whSquad(ctxL), doel = chk.gevuld.map(z=>whProjVan(z.p, ctxL));
+  const sig = 'route|'+whSquadSig(cur)+'|'+whSquadSig(doel)+'|'+state.mode+'|'+(state.mode==='sandbox'?'':wisselsRemaining());
+  const R = ctxL.cache[sig] || (ctxL.cache[sig] = whRoute(ctxL, cur, doel));
+  if(!R.nWissels){ h += `<div class="news-note">Je proefteam is gelijk aan je huidige team.</div>`; return h; }
+  const b = R.beste;
+  const klaar = !b.uit.length;
+  const laatsteStap = b.stappen.reduce((m,st,i)=>st.moves.length?i:m, -1);
+  const winst = b.real - R.blijven;
+  h += `<div class="section-title"><span>Beste route: ${R.nWissels} wissel${R.nWissels>1?'s':''}${klaar?`, klaar in ronde ${b.stappen[laatsteStap].ronde}`:''}</span><span class="line"></span></div>`;
+  if(!klaar) h += `<div class="news-note">${icon('warning',12)} Binnen ${R.W} rondes lukt het niet om het hele proefteam te halen (budget, clubs of formatie blokkeren de volgorde). Nog niet binnen: ${b.inn.map(x=>x.p.Speler).join(', ')}.</div>`;
+  h += `<div class="news-note">Over rondes ${ctxL.rondes[0]}–${ctxL.rondes[R.W-1]} verwacht je met deze route <b>${whF1(b.real)}</b> punten, tegen ${whF1(R.blijven)} als je niets wijzigt (${whSign(winst)}). Als je het proefteam in één keer zou hebben: ${whF1(R.direct)}. Dit zijn schattingen, niet gecorrigeerd: jij kiest het team, niet de wisselhulp.</div>`;
+  const zichtbaar = klaar ? b.stappen.slice(0, laatsteStap+1) : b.stappen;
+  const naKlaar = klaar ? b.stappen.slice(laatsteStap+1) : [];
+  h += `<div class="wh-kaart">${zichtbaar.map((st,t)=>`<div class="wh-planstap">
+      <div class="wh-planronde">R${st.ronde}<small>${st.tegoed>=99?'onbeperkt':st.tegoed+' wissel'+(st.tegoed>1?'s':'')}</small></div>
+      <div class="wh-planinhoud">${st.moves.length ? st.moves.map((m,j)=>{ const id = `pr${t}-${j}`; const o = {uit:m.u, inn:m.i, kost:m.i.prijs-m.u.prijs, delta:0}; whRegistreer(id, [o]);
+        const knop = t===0 ? '' : (m.u.pos===m.i.pos && whSlotVan(m.u.key) ? `<button class="btn ghost sm" onclick="whInplannen('${id}', ${st.ronde})">Inplannen</button>` : '');
+        return `<div class="wh-planwissel"><span class="uit">${m.u.p.Speler}</span> → <b>${m.i.p.Speler}</b> <small>${whPos(m.i.pos)} · ${whKort(m.i.team)} · ${whEuro(m.i.prijs)}</small> ${knop}</div>`; }).join('')
+        + (t===0 ? (()=>{ const id = 'pr0-alle'; whRegistreer(id, st.moves.map(m=>({uit:m.u, inn:m.i, kost:m.i.prijs-m.u.prijs, delta:0}))); return `<div><button class="btn primary sm" onclick="whToepassen('${id}')">Wissel${st.moves.length>1?'s':''} ronde ${st.ronde} toepassen</button></div>`; })() : '')
+        : `<div class="wh-planwissel dim">${t>laatsteStap && klaar ? 'proefteam compleet' : 'geen wissel'}</div>`}${st.formatie && st.formatie!==(t?b.stappen[t-1].formatie:state.formation)?`<div class="wh-planwissel dim">formatie wordt ${st.formatie}</div>`:''}</div>
+      <div class="wh-planpunten">${whF1(st.punten)}</div>
+    </div>`).join('')}${naKlaar.length?`<div class="wh-planstap"><div class="wh-planronde">R${naKlaar[0].ronde}–${naKlaar[naKlaar.length-1].ronde}</div><div class="wh-planinhoud"><div class="wh-planwissel dim">proefteam compleet · gemiddeld ${whF1(naKlaar.reduce((t,x)=>t+x.punten,0)/naKlaar.length)} per ronde</div></div><div class="wh-planpunten">${whF1(naKlaar.reduce((t,x)=>t+x.punten,0))}</div></div>`:''}</div>`;
+  return h;
+}
+// Langere context voor de route (tot ~12 rondes vooruit), los van de horizon-instelling.
+function whContextLang(){
+  const s = whState(); const bewaar = window.__whCtx, H = s.horizon;
+  const r0 = wisselRound(); const n = Math.min(12, 35-r0);
+  if(window.__whCtxLang && window.__whCtxLang.r0===r0 && window.__whCtxLang.rondes.length===n && window.__whCtxLang.doel===s.doel && window.__whCtxLang.data===(typeof DATA_LAST_UPDATED!=='undefined'?DATA_LAST_UPDATED:'')) return window.__whCtxLang;
+  window.__whCtx = null; s.horizon = Math.max(1, n-2); window.__whLangH = 12;
+  let ctx; try{ ctx = whContext(); } finally { s.horizon = H; window.__whLangH = null; }
+  ctx.H = Math.min(6, n); ctx.data = typeof DATA_LAST_UPDATED!=='undefined'?DATA_LAST_UPDATED:'';
+  window.__whCtxLang = ctx; window.__whCtx = bewaar;
+  return ctx;
+}
+// ---- Filters op prijs en club (gedeeld door Spelersmarkt, Alle wissels en Proefteam) ----
+function whClubs(){ return [...new Set(PLAYERS.filter(p=>!p.former).map(p=>p.Team))].sort((a,b)=>a.localeCompare(b,'nl')); }
+function whFilterUI(){
+  const s = whState(), prijzen = []; for(let v=0.5; v<=5.001; v+=0.25) prijzen.push(Math.round(v*100)/100);
+  const opt = (v, sel, l)=>`<option value="${v}"${String(sel)===String(v)?' selected':''}>${l}</option>`;
+  return `<label>Club <select onchange="whZet('fClub', this.value)">${opt('alle', s.fClub||'alle', 'Alle clubs')}${whClubs().map(c=>opt(c, s.fClub, c)).join('')}</select></label>
+    <label>Prijs vanaf <select onchange="whZet('fPMin', parseFloat(this.value))">${prijzen.map(v=>opt(v, s.fPMin||0.5, whEuro(v))).join('')}</select></label>
+    <label>tot en met <select onchange="whZet('fPMax', parseFloat(this.value))">${prijzen.map(v=>opt(v, s.fPMax||5, whEuro(v))).join('')}</select></label>
+    ${(s.fClub && s.fClub!=='alle') || (s.fPMin||0.5)>0.5 || (s.fPMax||5)<5 ? `<button class="btn ghost sm" onclick="whFilterWis()">Filters wissen</button>` : ''}`;
+}
+function whFilterOk(x){ const s = whState(); if(s.fClub && s.fClub!=='alle' && x.team!==s.fClub) return false; if(x.prijs < (s.fPMin||0.5)-1e-6) return false; if(x.prijs > (s.fPMax||5)+1e-6) return false; return true; }
+function whFilterWis(){ const s = whState(); s.fClub = 'alle'; s.fPMin = 0.5; s.fPMax = 5; render(); }
 function whSlotVan(key){ return slotDefs().find(d=>state.squad[d.id] && whKey(state.squad[d.id])===key) || null; }
 function whToepassen(id){
   const tr = (window.__whItems||{})[id]; if(!tr) return;
