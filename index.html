@@ -7179,34 +7179,108 @@ function renderPlayerCastingCouchSection(p){
     ${detail}
   `;
 }
+// ---- Blessuregeschiedenis (herzien 27-10-2026) ----
+// Bron 1: de blessure-index (blessuresenschorsingen.nl, volledige scrape bij elke afgeronde ronde):
+//   per speler alle blessures van seizoen 2026/27 met begin- en einddatum.
+// Bron 2: de eigen registratie INJURY_HISTORY, alleen voor spelers zonder indexprofiel.
+// Per blessure: welke CVHJ-rondes hij miste (Eredivisieduels van zijn club binnen de periode) en
+// in welke ronde hij weer minuten maakte. Lopende blessures staan onder Actueel, niet hier.
+let __bgCache = null;
+function bgIso(v){
+  if(!v) return null; v = String(v).trim(); let m;
+  if((m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v))) return `${m[1]}-${m[2]}-${m[3]}`;
+  if((m = /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(v))){ const y = m[3].length===2 ? '20'+m[3] : m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+  return null;
+}
+function bgDatum(iso){ if(!iso) return 'onbekend'; const [y,m,d] = iso.split('-'); return `${d}-${m}-${y}`; }
+function bgDagen(van, tot){ if(!van || !tot) return null; return Math.max(0, Math.round((new Date(tot) - new Date(van))/86400000)); }
+function bgType(t){ t = String(t||'Blessure').trim(); return t.charAt(0).toUpperCase() + t.slice(1); }
+function bgVerrijk(h){
+  const key = h.Speler+'|'+h.Team;
+  const duels = MATCHES.filter(m=>m.type==='Eredivisie' && (m.home===h.Team || m.away===h.Team) && m.date);
+  const minuten = r=>{ const sn = SEASON_2627_SNAPSHOTS[r]; if(!sn || !sn.playerRoundMinutes || isVoorlopigeRonde(r)) return null; return sn.playerRoundMinutes[key]||0; };
+  // gemist = een Eredivisieduel van zijn club binnen de periode én in die ronde geen minuten gemaakt
+  const eind = h.Tot || (h.Lopend ? '9999-12-31' : null);
+  h.Gemist = h.Van && eind ? [...new Set(duels.filter(m=>m.date>=h.Van && m.date<=eind).map(m=>matchRoundNumber(m.id)).filter(r=>r!=null && minuten(r)===0))].sort((a,b)=>a-b) : [];
+  if(h.Tot && !h.Lopend){
+    // weer gespeeld = eerste ronde met minuten, vanaf de hersteldatum
+    const na = [...new Set(duels.filter(m=>m.date>=h.Tot).map(m=>matchRoundNumber(m.id)).filter(r=>r!=null))].sort((a,b)=>a-b);
+    const terug = na.find(r=>{ const sn = SEASON_2627_SNAPSHOTS[r]; return sn && sn.playerRoundMinutes && sn.playerRoundMinutes[key]>0; });
+    h.HersteldRonde = terug || null;
+    h.NogNietGespeeld = !terug && na.some(r=>SEASON_2627_SNAPSHOTS[r] && !isVoorlopigeRonde(r));
+  }
+  h.Dagen = bgDagen(h.Van, h.Tot);
+  return h;
+}
+function blessureGeschiedenis(){
+  if(__bgCache) return __bgCache;
+  const lijst = [], metIndex = new Set();
+  const peil = typeof INJURY_INDEX_UPDATED!=='undefined' ? INJURY_INDEX_UPDATED : '9999';
+  Object.entries(typeof INJURY_INDEX!=='undefined' ? INJURY_INDEX : {}).forEach(([key, x])=>{
+    (x.hist||[]).forEach(e=>{
+      if(e[0]!=='2026/27') return;
+      metIndex.add(key);
+      const tot = e[3] || null;
+      lijst.push(bgVerrijk({Speler:x.n, Team:x.c, Status:'Geblesseerd', Type:bgType(e[1]), Van:e[2]||null, Tot:tot, Lopend: !tot || tot>peil, Bron:'index'}));
+    });
+  });
+  (typeof INJURY_HISTORY!=='undefined' ? INJURY_HISTORY : []).forEach(h=>{
+    if(metIndex.has(h.Speler+'|'+h.Team)) return;
+    const van = bgIso(h.Sinds), tot = bgIso(h.Terugkeer);
+    const item = bgVerrijk({Speler:h.Speler, Team:h.Team, Status:h.Status||'Geblesseerd', Type:bgType(h.Type), Van:van, Tot:tot, Lopend:false, Bron:'eigen'});
+    if(!item.HersteldRonde && h.HersteldRonde) item.HersteldRonde = h.HersteldRonde;
+    lijst.push(item);
+  });
+  __bgCache = lijst;
+  return lijst;
+}
 function playerInjuryHistory(naam, team){
-  return INJURY_HISTORY.filter(h=>h.Speler===naam && h.Team===team);
+  return blessureGeschiedenis().filter(h=>h.Speler===naam && h.Team===team).sort((a,b)=>String(b.Van||'').localeCompare(String(a.Van||'')));
+}
+function bgRegel(h){
+  const periode = `${bgDatum(h.Van)} t/m ${h.Lopend?'nu':bgDatum(h.Tot)}${h.Dagen!=null?` (${h.Dagen} dag${h.Dagen===1?'':'en'})`:''}`;
+  const gemist = h.Gemist && h.Gemist.length ? ` · miste ${h.Gemist.length===1?'ronde '+h.Gemist[0]:'rondes '+h.Gemist.join(', ')}` : ' · geen ronde gemist';
+  const terug = h.Lopend ? ' · loopt nog' : h.HersteldRonde ? ` · weer gespeeld: ronde ${h.HersteldRonde}` : h.NogNietGespeeld ? ' · sindsdien nog niet gespeeld' : '';
+  return `${h.Type} · ${periode}${gemist}${terug}`;
 }
 function renderInjuryHistoryTab(){
   if(state.timeMachine.active) return timeUnavailableNote('De blessuregeschiedenis');
-  let list = INJURY_HISTORY.slice().sort((a,b)=>(b.HersteldRonde||0)-(a.HersteldRonde||0) || a.Team.localeCompare(b.Team));
-  const teams = [...new Set(INJURY_HISTORY.map(i=>i.Team))].sort();
+  const alle = blessureGeschiedenis().filter(h=>!h.Lopend);
+  const teams = [...new Set(alle.map(i=>i.Team))].sort((a,b)=>a.localeCompare(b,'nl'));
+  let list = alle.slice();
   if(state.injHistTeamFilter && state.injHistTeamFilter!=='ALL') list = list.filter(i=>i.Team===state.injHistTeamFilter);
-  const STATUS_COLOR = {'Geblesseerd':'var(--danger)','Twijfelgeval':'#C99A2E','Geschorst':'#8E4A2E'};
+  if(state.injHistMijn){ const mijn = new Set(Object.values(state.squad).filter(Boolean).map(p=>p.Speler+'|'+p.Team)); list = list.filter(i=>mijn.has(i.Speler+'|'+i.Team)); }
+  const sort = state.injHistSort || 'recent';
+  if(sort==='lang') list.sort((a,b)=>(b.Dagen||0)-(a.Dagen||0));
+  else if(sort==='gemist') list.sort((a,b)=>(b.Gemist||[]).length-(a.Gemist||[]).length || (b.Dagen||0)-(a.Dagen||0));
+  else if(sort==='naam') list.sort((a,b)=>a.Speler.localeCompare(b.Speler,'nl'));
+  else list.sort((a,b)=>String(b.Tot||'').localeCompare(String(a.Tot||'')));
+  const spelers = new Set(list.map(i=>i.Speler+'|'+i.Team)).size;
+  const rondesGemist = list.reduce((t,i)=>t+(i.Gemist||[]).length, 0);
   return `
-    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Zodra een geblesseerde speler weer minuten heeft gemaakt (dus daadwerkelijk speelde), verhuist zijn blessure hierheen — de informatie blijft zo bewaard, maar telt niet meer mee als "actief geblesseerd".</div>
-    <div class="toolbar" style="margin-bottom:14px;">
+    <div class="news-note" style="margin-bottom:14px;">${icon('info',11)} Alle afgeronde blessures van dit seizoen, met de periode, de CVHJ-rondes die de speler miste en de ronde waarin hij weer minuten maakte. Bron: blessure-index (blessuresenschorsingen.nl, stand ${fmtIndexDate(INJURY_INDEX_UPDATED)}), aangevuld met de eigen registratie voor spelers zonder indexprofiel. Lopende blessures staan onder Actueel.</div>
+    <div class="toolbar" style="margin-bottom:14px;flex-wrap:wrap;gap:8px;">
       <select onchange="setInjHistTeam(this.value)">
         <option value="ALL">Alle clubs</option>
         ${teams.map(t=>`<option value="${t}" ${state.injHistTeamFilter===t?'selected':''}>${t}</option>`).join('')}
       </select>
+      <select onchange="state.injHistSort=this.value;render()">
+        ${[['recent','Meest recent hersteld'],['lang','Langste blessure'],['gemist','Meeste rondes gemist'],['naam','Naam']].map(([v,l])=>`<option value="${v}"${sort===v?' selected':''}>${l}</option>`).join('')}
+      </select>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" ${state.injHistMijn?'checked':''} onchange="state.injHistMijn=this.checked;render()"> Alleen Mijn Team</label>
+      <span style="font-size:12px;color:var(--text-dim);">${list.length} blessure${list.length===1?'':'s'} · ${spelers} speler${spelers===1?'':'s'} · ${rondesGemist} gemiste rondes</span>
     </div>
     <div class="match-list">
       ${list.map(i=>{
         const knownPlayer = PLAYERS.find(p=>p.Speler===i.Speler && p.Team===i.Team);
         const clickAttr = knownPlayer ? `onclick="openPlayerModal('${encodeURIComponent(i.Speler)}','${encodeURIComponent(i.Team)}')"` : '';
-        return `<div class="match-card" style="${knownPlayer?'':'cursor:default;'}opacity:0.85;" ${clickAttr}>
-          <span class="type-badge" style="background:${STATUS_COLOR[i.Status]};color:#fff;">${i.Status} <span style="opacity:0.7;">· hersteld</span></span>
+        return `<div class="match-card" style="${knownPlayer?'':'cursor:default;'}" ${clickAttr}>
+          <span class="type-badge" style="background:var(--danger);color:#fff;">${i.Status==='Geschorst'?'Geschorst':'Blessure'} <span style="opacity:0.75;">· hersteld</span></span>
           <span class="match-teams">${teamLogo(i.Team)}${i.Speler} <span style="color:var(--text-dim);font-size:12px;">(${i.Team})</span></span>
-          <span class="match-comp" style="width:auto;margin-top:0;">${i.Type}${i.Sinds?` · sinds ${i.Sinds}`:''} · weer gespeeld: ronde ${i.HersteldRonde}</span>
+          <span class="match-comp" style="width:auto;margin-top:0;">${bgRegel(i)}</span>
         </div>`;
       }).join('')}
-      ${list.length===0 ? `<div class="empty-state">Nog geen herstelde blessures geregistreerd.</div>` : ''}
+      ${list.length===0 ? `<div class="empty-state">Geen afgeronde blessures voor dit filter.</div>` : ''}
     </div>
   `;
 }
@@ -10347,8 +10421,8 @@ function renderStatDetailPanel(p, sel){
           <div class="stat-detail-row">
             <div class="stat-detail-icon">${icon('cross',14)}</div>
             <div class="stat-detail-info">
-              <div class="stat-detail-match">${h.Type}</div>
-              <div class="stat-detail-sub">${h.Sinds?`Sinds ${h.Sinds} — `:''}terug: ${h.Terugkeer} (weer gespeeld: ronde ${h.HersteldRonde})</div>
+              <div class="stat-detail-match">${h.Type}${h.Lopend?' <span style="color:var(--danger-text,var(--danger));font-size:11px;">· loopt nog</span>':''}</div>
+              <div class="stat-detail-sub">${bgRegel(h).split(' · ').slice(1).join(' · ')}</div>
             </div>
           </div>
         `).join('') : `<div style="color:var(--text-dim);font-size:13px;padding:12px;">Geen eerdere blessures geregistreerd.</div>`}
