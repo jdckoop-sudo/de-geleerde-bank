@@ -1544,6 +1544,9 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
   .wh-kaart.open{box-shadow:inset 0 0 0 1px var(--accent);}
   .wh-kop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;cursor:pointer;}
   .wh-type{font-size:11px;color:var(--text-dim);}
+  .wh-sterkte{border:1px solid var(--line);border-radius:999px;padding:0 6px;}
+  .wh-sterkte.sterk{border-color:var(--def);color:var(--text);}
+  .wh-sterkte.zwak{opacity:.75;}
   .wh-winst{font-size:13px;font-weight:700;color:var(--accent-text,var(--accent));}
   .wh-winst small{font-weight:400;color:var(--text-dim);font-size:11px;}
   .wh-rij{display:flex;align-items:flex-start;gap:10px;}
@@ -1588,6 +1591,7 @@ body.wa-licht .gr-root,body.light .gr-root{--gs-1:#2a78d6;--gs-2:#eb6834;--gs-3:
   .wh-tabel tr.bank td{color:var(--text-dim);}
   .wh-tabel .wh-lijnkop td{font-weight:700;font-size:11px;color:var(--text-dim);padding-top:10px;}
   .wh-pos{font-weight:400;color:var(--accent-text,var(--accent));}
+  .wh-zoek{width:100%;padding:8px 10px;margin-bottom:10px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;font:inherit;font-size:12px;}
   .wh-hoe{margin-top:14px;font-size:11.5px;color:var(--text-dim);line-height:1.5;}
   .wh-hoe summary{cursor:pointer;color:var(--text);}
   @media (max-width:760px){ .wh-strip .wh-opp{display:none;} .wh-rij{flex-wrap:wrap;} .wh-tabel{font-size:11px;} }
@@ -16032,10 +16036,16 @@ function renderInjuryCheckModal(){
 //    en max. 1 speler per club; combinaties via beam search op het hele team, niet als optelsom;
 //  - doel: meeste punten óf voorsprong op de Casting Couch (spelers die veel rivalen hebben, tellen minder);
 //  - wisselplan per ronde volgens de spelregels (1 per ronde, 3 vóór een nieuwe periode).
-// Terugtest ronde 4–10 (alleen data van vóór elke ronde): verwachting over 3 rondes vs echte punten
-// correlatie 0,44 (oude vormscore 0,39); top 8 per linie volgens het model scoorde 9,1 tegen 8,6 punten.
+// Terugtest 27-10-2026 (tools/bt_wisselhulp.js, 27 CC-teams × rondes 5–8, uitkomst over 3 rondes):
+// #1-suggestie +3,6 ± 0,9 punt, gemiddelde top 3 +2,3 (willekeurige geldige wissel −4,7; eerste versie
+// −2,1); samenhang berekende vs echte winst over ~43.000 wissels 0,36 (eerste versie 0,26). Zie databank referentie/.
 const WH_POS = ['Goalkeeper','Defender','Midfielder','Forward'];
 const WH_DISC = 0.9; // latere rondes zijn onzekerder en tellen iets minder
+// Terugtest (27 teams, rondes 5–10): de echte winst van de #1-suggestie was ~50% (1 ronde vooruit),
+// ~60% (2) en ~65% (3) van de berekende winst — wie de hoogste uit honderden schattingen kiest, kiest
+// ook de meest overschatte. Getoonde winsten worden daarmee gecorrigeerd; de rangorde verandert niet.
+function whKalibratie(){ const H = window.__whCtx ? window.__whCtx.H : 4; return H<=1 ? 0.5 : H===2 ? 0.6 : 0.65; }
+function whW(x){ return x*whKalibratie(); }
 function whKey(p){ return p.Speler+'|'+p.Team; }
 function whState(){
   if(!state.wh) state.wh = {weergave:'beste', horizon:4, doel:'punten', wissels:null, zeker:false, open:null, pos:'Midfielder', planOpen:null};
@@ -16102,10 +16112,19 @@ function whProjectie(p, ctx){
   const l3 = last.length===3 ? (3*last[2]+2*last[1]+last[0])/6 : (last.length ? last.reduce((a,b)=>a+b,0)/last.length : 0);
   const vorig = p.seasons && p.seasons['2025/26'];
   const ppg25 = (vorig && vorig.Totaal!=null) ? vorig.Totaal/34 : null;
-  let basis = ppr==null ? (ppg25!=null ? ppg25 : 1) : 0.5*ppr + 0.5*l3;
-  if(ppg25!=null) basis = (basis*n + ppg25*2)/(n+2);
+  // Wisselhulp-model (27-10-2026, na terugtest): 70% seizoensgemiddelde + 30% laatste 3 rondes,
+  // vorig seizoen telt als 3 rondes, en alles wordt met 15 rondes naar wat spelers van die PRIJS en
+  // linie gemiddeld scoren getrokken (× zijn speelkans: de prijs zegt niets over speeltijd). De
+  // CVHJ-prijs bevat veel voorkennis; zonder dit jaagt de wisselhulp op spelers met 2–3 uitschieters.
+  let basis = ppr==null ? (ppg25!=null ? ppg25 : 1) : 0.7*ppr + 0.3*l3;
+  let gewicht = n;
+  if(ppg25!=null){ basis = (basis*n + ppg25*3)/(n+3); gewicht = n+3; }
+  const geel = dr.reduce((t,r)=>t+(((S[r].playerRoundYellow||{})[key])||0), 0);
   const recent = mins.slice(-4).filter(m=>m!=null);
   const kans = recent.length ? recent.filter(m=>m>0).length/recent.length : (ppg25!=null ? 0.6 : 0.4);
+  const pf = ctx.prijsFit[p.Positie];
+  const prijsVerwachting = (pf ? Math.max(0, pf.a + pf.b*p.Prijs) : ctx.posGem[p.Positie]) * kans;
+  basis = (basis*gewicht + prijsVerwachting*15)/(gewicht+15);
   const besch = whBeschikbaarheid(p, ctx.rondes);
   const cal = state.potentialCalibration || 1;
   const e = [], pp = [], tegen = [], fac = [];
@@ -16115,15 +16134,19 @@ function whProjectie(p, ctx){
     if(ms===null) f = 1; // van deze ronde is nog geen programma bekend
     else if(!ms.length) f = 0.4; // club speelt deze ronde (nog) niet
     else ms.forEach(m=>{ const th = m.home===p.Team, opp = th ? m.away : m.home;
-      const d = ctx.clubPpm(p.Team) - ctx.clubPpm(opp);
-      f += Math.max(0.5, 1 + 0.12*d + (th ? 0.06 : -0.04)); t.push({opp, thuis:th}); });
+      // tegenstander per linie: keepers/verdedigers tegen hoe vaak de tegenstander scoort,
+      // middenvelders/aanvallers tegen hoe vaak hij tegen krijgt (plus het algemene niveauverschil)
+      let d = 0.5*(ctx.clubPpm(p.Team) - ctx.clubPpm(opp));
+      const ts = ctx.teamDoelpunten(opp);
+      d += (p.Positie==='Goalkeeper' || p.Positie==='Defender') ? 1.5*(ctx.ligaGem - ts.voor) : 1.5*(ts.tegen - ctx.ligaGem);
+      f += Math.max(0.5, 1 + 0.2*d + (th ? 0.06 : -0.04)); t.push({opp, thuis:th}); });
     fac.push(f); tegen.push(t);
     e.push(Math.max(0, basis*f*besch[i]*cal));
     pp.push(Math.min(1, kans*besch[i]));
   });
   const own = ctx.eig.map[key] || 0;
   const w = ctx.doel==='cc' && ctx.eig.n ? Math.max(0.05, 1 - own/ctx.eig.n) : 1;
-  return {p, key, pos:p.Positie, prijs:p.Prijs, team:p.Team, basis, l3, ppr, n, kans, e, pp, tegen, fac, besch, own, w};
+  return {p, key, pos:p.Positie, prijs:p.Prijs, team:p.Team, basis, l3, ppr, n, kans, e, pp, tegen, fac, besch, own, w, geel};
 }
 function whContext(){
   const s = whState();
@@ -16143,6 +16166,25 @@ function whContext(){
   const ppmCache = {};
   const ctx = {sleutel, r0, H, rondes, dataRondes, wedstrijden, doel:s.doel, eig:whEigendom(),
     clubPpm: c=> (c in ppmCache) ? ppmCache[c] : (ppmCache[c] = clubPointsPerMatchBefore(c, r0)), proj:new Map()};
+  // gemiddelde punten per speler-ronde per linie (voor het terugtrekken naar het gemiddelde)
+  ctx.posGem = {};
+  WH_POS.forEach(pos=>{ let som=0, n=0; PLAYERS.forEach(q=>{ if(q.Positie!==pos) return; const k = whKey(q);
+    dataRondes.forEach(r=>{ const pr = SEASON_2627_SNAPSHOTS[r].playerRoundPoints||{}; if(k in pr){ som += pr[k]; n++; } }); }); ctx.posGem[pos] = n ? som/n : 1; });
+  // punten per speler-ronde als functie van de prijs, per linie (lineaire fit over dit seizoen)
+  ctx.prijsFit = {};
+  WH_POS.forEach(pos=>{ const X=[], Y=[]; PLAYERS.forEach(q=>{ if(q.Positie!==pos || !(q.Prijs>0)) return; const k = whKey(q);
+    dataRondes.forEach(r=>{ const pr = SEASON_2627_SNAPSHOTS[r].playerRoundPoints||{}; if(k in pr){ X.push(q.Prijs); Y.push(pr[k]); } }); });
+    if(X.length<20) return;
+    const mx = X.reduce((a,b)=>a+b,0)/X.length, my = Y.reduce((a,b)=>a+b,0)/Y.length; let sxy=0, sxx=0;
+    X.forEach((x,i)=>{ sxy += (x-mx)*(Y[i]-my); sxx += (x-mx)*(x-mx); });
+    const b = sxx ? sxy/sxx : 0; ctx.prijsFit[pos] = {a: my-b*mx, b}; });
+  // doelpunten voor/tegen per club per wedstrijd (alleen gespeelde Eredivisie-duels vóór deze ronde)
+  const dv = {};
+  MATCHES.forEach(m=>{ if(m.type!=='Eredivisie' || m.homeScore==null || m.awayScore==null || matchRoundNumber(m.id)>=r0) return;
+    [[m.home,m.homeScore,m.awayScore],[m.away,m.awayScore,m.homeScore]].forEach(([c,v,t])=>{ const o = dv[c] = dv[c]||{v:0,t:0,n:0}; o.v+=v; o.t+=t; o.n++; }); });
+  const tot = Object.values(dv).reduce((a,o)=>({v:a.v+o.v, n:a.n+o.n}), {v:0,n:0});
+  ctx.ligaGem = tot.n ? tot.v/tot.n : 1.5;
+  ctx.teamDoelpunten = c=>{ const o = dv[c]; return o && o.n ? {voor:o.v/o.n, tegen:o.t/o.n} : {voor:ctx.ligaGem, tegen:ctx.ligaGem}; };
   PLAYERS.forEach(p=>{ if(p.former || !(p.Prijs>0)) return; const x = whProjectie(p, ctx); ctx.proj.set(x.key, x); });
   // Zoekpool: per linie de 70 beste over de horizon + de 25 beste goedkope (≤ €1,5M)
   const pool = new Set();
@@ -16311,6 +16353,8 @@ function whChips(x, ctx){
   const inj = findInjury(x.p.Speler, x.p.Team);
   if(inj) chips.push(`<span class="wh-chip slecht">${inj.Status}${inj.Terugkeer&&inj.Terugkeer!=='niet bekend'?' · terug '+inj.Terugkeer:''}</span>`);
   if(x.p.former) chips.push(`<span class="wh-chip slecht">inactief · gratis wissel</span>`);
+  if(x.n>=5 && x.ppr!=null && x.l3 > Math.max(4, 1.8*x.ppr)) chips.push(`<span class="wh-chip" title="Laatste 3 rondes ${whF1(x.l3)} per ronde, seizoen ${whF1(x.ppr)}. Zulke pieken zakken meestal terug; de wisselhulp rekent daar al mee.">recente piek</span>`);
+  if(x.geel===4 || x.geel===7) chips.push(`<span class="wh-chip slecht" title="${x.geel} gele kaarten dit seizoen">${x.geel}× geel: volgende = schorsing</span>`);
   return `<div class="wh-chips">${chips.join('')}</div>`;
 }
 function whStrip(tr, ctx){
@@ -16341,6 +16385,7 @@ function whWaarom(tr, ctx, sq){
   const naief = tr.reduce((s,t)=>s+whSom(t.inn,ctx,false)-whSom(t.uit,ctx,false),0);
   const nieuwSq = sq.filter(x=>!tr.some(t=>t.uit===x)).concat(tr.map(t=>t.inn));
   const echt = whTeamWaarde(nieuwSq,0,ctx.H,false) - whTeamWaarde(sq,0,ctx.H,false);
+  if(echt > naief + 0.3) bits.push(`Een deel van de winst (${whF1(echt-naief)}) komt van je bank: wie minder vaak speelt, laat vaker zijn plek over aan je bankspeler van die linie, en die telt dan voor 100% in plaats van 50%.`);
   if(naief>0.5 && echt < naief*0.75) bits.push(`De teamwinst (${whF1(echt)}) is kleiner dan het verschil tussen de spelers (${whF1(naief)}), omdat een van hen (deels) op de bank belandt en bankspelers maar 50% tellen.`);
   const f = whFormatie(whPerLinie(nieuwSq));
   if(f && f!==state.formation) bits.push(`Na deze wissel speel je ${f} (nu ${state.formation}).`);
@@ -16357,8 +16402,8 @@ function whKaart(item, id, ctx, sq, eenheid){
   const label = ctx.doel==='cc' ? 'CC-voorsprong' : 'punten';
   return `<div class="wh-kaart${open?' open':''}">
     <div class="wh-kop" onclick="whZet('open', ${open?'null':`'${id}'`})">
-      <span class="wh-type">${eenheid}${f && f!==state.formation?` · ${state.formation} → ${f}`:''}</span>
-      <span class="wh-winst">${whSign(item.winst)} ${label}<small> · ${ctx.H} rondes${ctx.doel==='cc'?` (${whSign(echtePunten)} pnt)`:''} · ${kost>=0?'+':'−'}${whEuro(Math.abs(kost))}</small></span>
+      <span class="wh-type">${eenheid}${f && f!==state.formation?` · ${state.formation} → ${f}`:''} · <span class="wh-sterkte ${whSterkte(whW(item.winst)).cls}">${whSterkte(whW(item.winst)).label}</span></span>
+      <span class="wh-winst">${whSign(whW(item.winst))} ${label}<small> · ${ctx.H} rondes${ctx.doel==='cc'?` (${whSign(whW(echtePunten))} pnt)`:''} · ${kost>=0?'+':'−'}${whEuro(Math.abs(kost))}</small></span>
     </div>
     ${item.tr.map(t=>`<div class="wh-rij">
       <div class="wh-speler uit"><div class="naam">${t.uit.p.Speler}</div><div class="sub">${whPos(t.uit.pos)} · ${teamLogo(t.uit.team)}${t.uit.team} · ${whEuro(t.uit.prijs)}</div>${whChips(t.uit, ctx)}</div>
@@ -16373,14 +16418,18 @@ function whKaart(item, id, ctx, sq, eenheid){
     ${open ? `<div class="wh-uitleg">${whWaarom(item.tr, ctx, sq)}</div>` : ''}
   </div>`;
 }
+// Sterkte van een suggestie (gecorrigeerde winst over de horizon). In de terugtest was een winst
+// onder ~1 punt niet van toeval te onderscheiden.
+function whSterkte(w){ return w>=2.5 ? {label:'duidelijk', cls:'sterk'} : w>=1 ? {label:'klein voordeel', cls:''} : {label:'marginaal', cls:'zwak'}; }
 function whRegistreer(id, tr){ window.__whItems = window.__whItems || {}; window.__whItems[id] = tr; }
 function whRenderBeste(ctx){
   const b = whBeste(ctx), s = whState();
   const r0 = ctx.r0, tegoed = whTegoed(), rest = state.mode==='sandbox' ? null : wisselsRemaining();
-  let h = '';
+  let h = `<div class="news-note">${icon('info',12)} Getoonde winsten zijn al gecorrigeerd voor overschatting. In de terugtest (rondes 5–8, alle 27 Casting Couch-teams, uitkomst over 3 rondes) leverde de #1-suggestie gemiddeld <b>+3,6 punt</b> op (±0,9); een willekeurige wissel kostte bijna 5 punten. Ongeveer de helft pakte positief uit: één wissel is een klein voordeel, geen garantie. Hoe verder je vooruitkijkt, hoe meer een wissel oplevert (1 ronde: +1,2; 2 rondes: +2,5; 3 rondes: +3,6).</div>`;
   if(rest===0) h += `<div class="news-note">${icon('warning',12)} Je wissel voor ronde ${r0} is al gebruikt. De suggesties hieronder kun je pas in een volgende ronde toepassen (of bekijk het Wisselplan).</div>`;
   const former = b.sq.filter(x=>x.p.former);
   if(former.length) h += `<div class="news-note">${icon('info',12)} Inactief in je team: ${former.map(x=>x.p.Speler).join(', ')}. Die mag je gratis vervangen; dat telt niet als wissel.</div>`;
+  if(b.top.length && whW(b.top[0].winst)<1) h += `<div class="news-note">${icon('info',12)} Geen duidelijke wissel: de beste optie levert verwacht minder dan 1 punt op over ${ctx.H} ronde${ctx.H>1?'s':''}, dat is in de terugtest niet van toeval te onderscheiden. Een wissel bewaren kan niet, dus een kleine plus pakken mag; het grootste verschil maak je met tijdig reageren op blessures en schorsingen.</div>`;
   if(!b.top.length) h += `<div class="news-note">Geen wissel die je team over ${ctx.H} rondes verwacht beter maakt binnen budget en clublimiet.</div>`;
   b.top.forEach((it,i)=>{ const id='b1-'+i; whRegistreer(id, it.tr); h += whKaart(it, id, ctx, b.sq, `#${i+1} · 1 wissel`); });
   b.combos.forEach(c=>{
@@ -16398,13 +16447,13 @@ function whRenderPlan(ctx){
   pl.plannen.forEach((p,i)=>{
     const open = s.planOpen===i;
     h += `<div class="wh-kaart${i===0?' open':''}">
-      <div class="wh-kop" onclick="whZet('planOpen', ${open?'null':i})"><span class="wh-type">Plan ${String.fromCharCode(65+i)}${i===0?' · beste':''}</span><span class="wh-winst">${whF1(p.totaal)} pnt<small> · ${whSign(p.winst)} t.o.v. niets doen</small></span></div>
+      <div class="wh-kop" onclick="whZet('planOpen', ${open?'null':i})"><span class="wh-type">Plan ${String.fromCharCode(65+i)}${i===0?' · beste':''}</span><span class="wh-winst">${whF1(pl.totZonder+whW(p.winst))} pnt<small> · ${whSign(whW(p.winst))} t.o.v. niets doen</small></span></div>
       ${p.stappen.map((st,t)=>`<div class="wh-planstap">
         <div class="wh-planronde">R${st.ronde}<small>${st.tegoed} wissel${st.tegoed>1?'s':''}</small></div>
         <div class="wh-planinhoud">${st.tr.length ? st.tr.map((x,j)=>{ const id = `p${i}-${t}-${j}`; whRegistreer(id, [x]);
           const knop = t===0 ? `<button class="btn primary sm" onclick="whToepassen('${id}')">Toepassen</button>`
             : (x.uit.pos===x.inn.pos && whSlotVan(x.uit.key) ? `<button class="btn ghost sm" onclick="whInplannen('${id}', ${st.ronde})">Inplannen</button>` : '');
-          return `<div class="wh-planwissel"><span class="uit">${x.uit.p.Speler}</span> → <b>${x.inn.p.Speler}</b> <small>${whKort(x.inn.team)} · ${whEuro(x.inn.prijs)} · ${whSign(x.delta)}</small> ${knop}</div>`; }).join('') : `<div class="wh-planwissel dim">geen wissel nodig</div>`}</div>
+          return `<div class="wh-planwissel"><span class="uit">${x.uit.p.Speler}</span> → <b>${x.inn.p.Speler}</b> <small>${whKort(x.inn.team)} · ${whEuro(x.inn.prijs)} · ${whSign(whW(x.delta))}</small> ${knop}</div>`; }).join('') : `<div class="wh-planwissel dim">geen wissel nodig</div>`}</div>
         <div class="wh-planpunten">${whF1(st.punten)}</div>
       </div>`).join('')}
       ${open ? `<div class="wh-uitleg"><p>Eindteam na dit plan:</p><p>${WH_POS.map(pos=>`<b>${POS_LABEL[pos]}</b>: ${p.eindteam.filter(x=>x.pos===pos).map(x=>x.p.Speler).join(', ')}`).join('<br>')}</p></div>` : `<div class="wh-meer" onclick="whZet('planOpen', ${i})">Toon eindteam</div>`}
@@ -16446,13 +16495,17 @@ function whRenderMarkt(ctx){
   const rijen = sq.map(x=>{ const beste = b.enkel.find(o=>o.uit===x); return {x, beste}; }).sort((a,b2)=>(b2.beste?b2.beste.delta:-99)-(a.beste?a.beste.delta:-99));
   h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Σ ${ctx.H} r.</th><th>Kans</th><th>Beste vervanger</th></tr></thead><tbody>`;
   rijen.forEach(({x, beste})=>{
-    h += `<tr><td>${whPos(x.pos)} · ${teamLogo(x.team)}${x.p.Speler}</td><td><b>${whF1(whSom(x,ctx,false))}</b></td><td>${Math.round(x.pp[0]*100)}%</td><td>${beste && beste.delta>0.05 ? `${beste.inn.p.Speler} <small>${whKort(beste.inn.team)} · ${whSign(beste.delta)}</small>` : '<small>geen betere binnen budget</small>'}</td></tr>`;
+    h += `<tr><td>${whPos(x.pos)} · ${teamLogo(x.team)}${x.p.Speler}</td><td><b>${whF1(whSom(x,ctx,false))}</b></td><td>${Math.round(x.pp[0]*100)}%</td><td>${beste && beste.delta>0.05 ? `${beste.inn.p.Speler} <small>${whKort(beste.inn.team)} · ${whSign(whW(beste.delta))}</small>` : '<small>geen betere binnen budget</small>'}</td></tr>`;
   });
   h += `</tbody></table>`;
   h += `<div class="section-title"><span>Beste spelers per linie</span><span class="line"></span></div>
     <div class="view-toggle" style="margin-bottom:10px;">${WH_POS.map(pos=>`<button class="${s.pos===pos?'active':''}" onclick="whZet('pos','${pos}')">${POS_LABEL[pos]}</button>`).join('')}</div>`;
   const eigen = new Set(sq.map(x=>x.key));
-  const lijst = [...ctx.proj.values()].filter(x=>x.pos===s.pos && (!s.zeker || x.kans>=0.6)).sort((a,b2)=>whSom(b2,ctx,true)-whSom(a,ctx,true)).slice(0,15);
+  const zoek = (s.zoek||'').trim().toLowerCase();
+  const fold = t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  h += `<input class="wh-zoek" id="wh-zoek" placeholder="Zoek een speler of club om hem door te rekenen…" value="${(s.zoek||'').replace(/"/g,'&quot;')}" oninput="whZoek(this.value)">`;
+  const lijst = zoek ? [...ctx.proj.values()].filter(x=>fold(x.p.Speler+' '+x.team).includes(fold(zoek))).sort((a,b2)=>whSom(b2,ctx,true)-whSom(a,ctx,true)).slice(0,25)
+    : [...ctx.proj.values()].filter(x=>x.pos===s.pos && (!s.zeker || x.kans>=0.6)).sort((a,b2)=>whSom(b2,ctx,true)-whSom(a,ctx,true)).slice(0,15);
   h += `<table class="wh-tabel"><thead><tr><th>Speler</th><th>Prijs</th><th>Σ ${ctx.H} r.</th><th>pnt/€M</th><th>CC</th><th>Zo past hij</th></tr></thead><tbody>`;
   lijst.forEach(x=>{
     const inTeam = eigen.has(x.key);
@@ -16460,7 +16513,7 @@ function whRenderMarkt(ctx){
     const clubgenoot = inTeam ? null : sq.find(y=>y.team===x.team);
     const reden = clubgenoot ? `clubgenoot ${clubgenoot.p.Speler} in je team` : (x.prijs > BUDGET_CAP - sq.reduce((t,y)=>t+y.prijs,0) + Math.max(...sq.filter(y=>y.pos===x.pos||x.pos!=='Goalkeeper').map(y=>y.prijs)) ? 'te duur voor 1 wissel' : 'geen geldige wissel');
     const som = whSom(x,ctx,false);
-    h += `<tr${inTeam?' class="bank"':''}><td>${teamLogo(x.team)}${x.p.Speler}${findInjury(x.p.Speler,x.p.Team)?' '+injuryBadge(findInjury(x.p.Speler,x.p.Team)):''}</td><td>${whEuro(x.prijs)}</td><td><b>${whF1(som)}</b></td><td>${whF1(som/x.prijs)}</td><td>${ctx.eig.n?x.own+'/'+ctx.eig.n:'–'}</td><td>${inTeam?'<small>in je team</small>':past?`voor ${past.uit.p.Speler} <small>${whSign(past.delta)}</small>`:`<small>${reden}</small>`}</td></tr>`;
+    h += `<tr${inTeam?' class="bank"':''}><td>${teamLogo(x.team)}${x.p.Speler}${findInjury(x.p.Speler,x.p.Team)?' '+injuryBadge(findInjury(x.p.Speler,x.p.Team)):''}</td><td>${whEuro(x.prijs)}</td><td><b>${whF1(som)}</b></td><td>${whF1(som/x.prijs)}</td><td>${ctx.eig.n?x.own+'/'+ctx.eig.n:'–'}</td><td>${inTeam?'<small>in je team</small>':past?`voor ${past.uit.p.Speler} <small>${whSign(whW(past.delta))}</small>`:`<small>${reden}</small>`}</td></tr>`;
   });
   return h + `</tbody></table>`;
 }
@@ -16495,15 +16548,16 @@ function whRenderModal(){
         </div>
         ${inhoud}
         <details class="wh-hoe"><summary>Hoe rekent de wisselhulp?</summary>
-          <p>Per speler en per ronde een verwachting met het model van het Potentieel Beste Team: punten per ronde dit seizoen (ook rondes zonder speeltijd), de laatste 3 rondes zwaarder, vorig seizoen als aanloop, en de tegenstander (punten per wedstrijd van beide clubs, thuis/uit). Blessures en schorsingen tellen per ronde mee tot de verwachte terugkeerdatum; twijfelgevallen met hun speelkans.</p>
+          <p>Per speler en per ronde een verwachting: 70% het puntengemiddelde van dit seizoen (ook rondes zonder speeltijd) en 30% de laatste 3 rondes. Vorig seizoen telt mee alsof het 3 rondes zijn, en alles wordt met het gewicht van 15 rondes getrokken naar wat spelers met dezelfde prijs op die linie dit seizoen gemiddeld scoren, maal hun speelkans: de CVHJ-prijs zegt veel, en zo weegt een korte piek niet te zwaar. Voor de tegenstander kijken keepers en verdedigers naar hoe vaak die scoort, middenvelders en aanvallers naar hoe vaak die tegen krijgt, plus thuis/uit. Blessures en schorsingen tellen per ronde mee tot de verwachte terugkeerdatum; twijfelgevallen met hun speelkans.</p>
           <p>Een wissel wordt beoordeeld op je hele team: per ronde de beste opstelling binnen je 15, de bank voor 50% (of 100% als een basisspeler van die linie niet speelt). Wissels naar een andere linie mogen ook als er een geldige formatie overblijft. Budget €32M en max. 1 speler per club. Latere rondes tellen iets minder (×0,9 per ronde).</p>
           <p><b>Voorsprong Casting Couch</b>: punten van een speler die veel rivalen ook hebben, leveren je weinig voorsprong op. Elke speler telt dan voor het deel van de rivalen dat hem níet heeft.</p>
-          <p>Terugtest ronde 4–10 (alleen data van vóór elke ronde): de verwachting over 3 rondes heeft een correlatie van 0,44 met de echte punten (de oude vormscore: 0,39). Het blijft een schatting.</p>
+          <p><b>Terugtest</b> (27-10-2026): voor alle 27 Casting Couch-teams in rondes 5–8 is de #1-suggestie nagerekend met alleen de data van vóór die ronde (blessures van toen zijn niet bekend en dus niet meegenomen). Uitkomst over 3 rondes: +3,6 punt per #1-wissel (±0,9), gemiddeld +2,3 voor de top 3; een willekeurige geldige wissel gaf −4,7. De eerste versie van deze wisselhulp (meer gewicht op de laatste rondes, geen prijs) haalde −2,1. Over ruim 40.000 mogelijke wissels volgde de berekende winst de echte winst met een samenhang van 0,36 (eerste versie 0,26); voetbalpunten blijven grillig. De berekende winst van de beste keuze bleek te hoog; getoonde winsten zijn daarom gecorrigeerd (×0,65 bij 3+ rondes, ×0,6 bij 2, ×0,5 bij 1).</p>
         </details>
       </div>
     </div>
   </div>`;
 }
+function whZoek(v){ whState().zoek = v; render(); const el = document.getElementById('wh-zoek'); if(el){ el.focus(); el.setSelectionRange(v.length, v.length); } }
 function whSlotVan(key){ return slotDefs().find(d=>state.squad[d.id] && whKey(state.squad[d.id])===key) || null; }
 function whToepassen(id){
   const tr = (window.__whItems||{})[id]; if(!tr) return;
